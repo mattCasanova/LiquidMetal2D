@@ -1,3 +1,8 @@
 public struct LiquidMetal2D {
-    var text = "Hello, World!"
+    
+    public init() {
+        
+    }
+    
+    public ar text = "Hello, World!"
 }
