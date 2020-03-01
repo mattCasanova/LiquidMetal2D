@@ -1,3 +1,3 @@
-open struct LiquidMetal2D {
+public struct LiquidMetal2D {
     var text = "Hello, World!"
 }
