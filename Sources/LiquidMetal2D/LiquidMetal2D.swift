@@ -4,5 +4,5 @@ public struct LiquidMetal2D {
         
     }
     
-    public ar text = "Hello, World!"
+    public var text = "Hello, World!"
 }
