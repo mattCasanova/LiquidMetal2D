@@ -6,7 +6,9 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-extension Vector2D {
+import MetalMath
+
+public extension Vector2D {
     static func +(lhs: Vector2D, rhs: Vector2D) -> Vector2D {
         return lhs.add(rhs)
     }

@@ -6,9 +6,9 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-import Foundation
+import MetalMath
 
-extension Transform2D {
+public extension Transform2D {
     static func *(lhs: Transform2D, rhs: Transform2D) -> Transform2D {
         return lhs.multiplyRight(rhs)
     }
