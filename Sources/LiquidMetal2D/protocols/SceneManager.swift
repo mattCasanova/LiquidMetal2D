@@ -8,7 +8,7 @@
 
 import Foundation
 
-protocol SceneManager {
+public protocol SceneManager {
     func setScene(type: SceneType)
     func pushScene(type: SceneType)
     func popScene()

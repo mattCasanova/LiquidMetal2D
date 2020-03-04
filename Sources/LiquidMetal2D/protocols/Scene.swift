@@ -8,8 +8,8 @@
 
 import Foundation
 
-protocol Scene {
-    func initialize(sceneMgr: SceneManager, renderer: Renderer)
+public protocol Scene {
+  func initialize(sceneMgr: SceneManager, renderer: Renderer)
     func resize()
     func update(dt: Float)
     func draw()

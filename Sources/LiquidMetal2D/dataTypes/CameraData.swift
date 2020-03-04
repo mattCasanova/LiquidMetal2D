@@ -8,16 +8,20 @@
 
 import MetalMath
 
-class CameraData {
-    var eye:      Vector2D = Vector2D()
-    var distance: Float    = 0
+public class CameraData {
+    public var eye:      Vector2D = Vector2D()
+    public var distance: Float    = 0
+  
+    public init() {
     
-    func set(_ x: Float, _ y: Float, _ distance: Float) {
+    }
+  
+    public func set(_ x: Float, _ y: Float, _ distance: Float) {
         eye.setX(x, andY: y)
         self.distance = distance
     }
     
-    func make() -> Transform2D {
+    public func make() -> Transform2D {
         return Transform2D.makeLook(at: eye, distance: distance)
     }
 }

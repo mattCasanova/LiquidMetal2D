@@ -9,7 +9,7 @@
 import UIKit
 import MetalMath
 
-class Texture: NSObject {
+public class Texture: NSObject {
     
     var target: MTLTextureType = MTLTextureType.type2D
     var pixelFormat = MTLPixelFormat.rgba8Unorm
@@ -17,7 +17,7 @@ class Texture: NSObject {
     let bytesPerPixel = 4
     let bitsPerComponent = 8
     
-    var texture: MTLTexture! = nil
+    public var texture: MTLTexture! = nil
     var width: Int = 0
     var height: Int = 0
     var hasAlpha: Bool!
@@ -25,13 +25,13 @@ class Texture: NSObject {
     var isMipmapped: Bool!
 
     
-    init(name: String, ext: String, isMipmaped: Bool) {
+    public init(name: String, ext: String, isMipmaped: Bool) {
         path = Bundle.main.path(forResource: name, ofType: ext)
         self.isMipmapped = isMipmaped
         super.init()
     }
     
-    func loadTexture(device: MTLDevice, commandQueue: MTLCommandQueue, flip: Bool) {
+    public func loadTexture(device: MTLDevice, commandQueue: MTLCommandQueue, flip: Bool) {
         guard let image = UIImage(contentsOfFile: path)?.cgImage else { return }
         
         let colorSpace = CGColorSpaceCreateDeviceRGB()

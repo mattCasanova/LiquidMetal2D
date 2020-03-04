@@ -12,15 +12,18 @@ import Metal
 import MetalMath
 
 @available(iOS 13.0, *)
-class BaseRenderer {
-    let device: MTLDevice!
-    let layer: CAMetalLayer!
-    let commandQueue: MTLCommandQueue!
-    let view: UIView
+public class BaseRenderer {
+    public let device: MTLDevice!
+    public let layer: CAMetalLayer!
+    public let commandQueue: MTLCommandQueue!
+    public let alphaBlendPipelineState: MTLRenderPipelineState
+    public let depthState: MTLDepthStencilState
+  public var depthTexture: MTLTexture
+    public let view: UIView
     
-    var clearColor: MTLClearColor = MTLClearColor()
+    public var clearColor: MTLClearColor = MTLClearColor()
     
-    init(parentView: UIView) {
+    public init(parentView: UIView) {
         view = parentView
         
         device                = MTLCreateSystemDefaultDevice()!
@@ -32,19 +35,30 @@ class BaseRenderer {
         layer.framebufferOnly = true
         layer.frame           = view.layer.frame
         view.layer.addSublayer(layer)
+      
+      alphaBlendPipelineState = BaseRenderer.createPipelineState(
+            device: device,
+            layer: layer,
+            vertexName: "basic_vertex",
+            fragmentName: "basic_fragment")
+      
+      depthState = BaseRenderer.createDepthStencilState(device: device)
+      depthTexture = BaseRenderer.buildDepthTexture(device, view.bounds.size)
     }
     
-    func resize(scale: CGFloat, layerSize: CGSize) {
+    public func resize(scale: CGFloat, layerSize: CGSize) {
         view.contentScaleFactor = scale
         layer.frame             = CGRect(x: 0, y: 0, width: layerSize.width, height: layerSize.height)
         layer.drawableSize      = CGSize(width: layerSize.width * scale, height: layerSize.height * scale)
+      
+      depthTexture = BaseRenderer.buildDepthTexture(device, layer.drawableSize)
     }
         
-    func setClearColor(clearColor: Vector3D) {
+    public func setClearColor(clearColor: Vector3D) {
         self.clearColor = MTLClearColor(red: Double(clearColor.r), green: Double(clearColor.g), blue: Double(clearColor.b), alpha: 1.0)
     }
     
-    func createDefaultSampler(device: MTLDevice) -> MTLSamplerState {
+    public func createDefaultSampler(device: MTLDevice) -> MTLSamplerState {
       let sampler = MTLSamplerDescriptor()
       sampler.minFilter             = MTLSamplerMinMagFilter.nearest
       sampler.magFilter             = MTLSamplerMinMagFilter.nearest
@@ -58,4 +72,55 @@ class BaseRenderer {
       sampler.lodMaxClamp           = .greatestFiniteMagnitude
       return device.makeSamplerState(descriptor: sampler)!
     }
+  
+  private static func createPipelineState(device: MTLDevice, layer: CAMetalLayer, vertexName: String, fragmentName: String) -> MTLRenderPipelineState {
+      
+      // TODO: Error Check
+      let defaultLibrary                                      = device.makeDefaultLibrary()!
+      let fragmentProgram                                     = defaultLibrary.makeFunction(name: fragmentName)
+      let vertexProgram                                       = defaultLibrary.makeFunction(name: vertexName)
+      
+      let pipelineStateDescriptor                             = MTLRenderPipelineDescriptor()
+      pipelineStateDescriptor.vertexFunction                  = vertexProgram
+      pipelineStateDescriptor.fragmentFunction                = fragmentProgram
+    pipelineStateDescriptor.depthAttachmentPixelFormat      = .depth32Float
+      pipelineStateDescriptor.colorAttachments[0].pixelFormat = layer.pixelFormat
+  
+      
+      //////////////////////// Alpha Blending
+      let colorDescriptor                          = pipelineStateDescriptor.colorAttachments[0]
+      colorDescriptor?.isBlendingEnabled           = true
+      colorDescriptor?.rgbBlendOperation           = .add
+      colorDescriptor?.alphaBlendOperation         = .add
+      
+      colorDescriptor?.sourceRGBBlendFactor        = .sourceAlpha
+      colorDescriptor?.sourceAlphaBlendFactor      = .sourceAlpha
+      
+      colorDescriptor?.destinationRGBBlendFactor   = .oneMinusSourceAlpha
+      colorDescriptor?.destinationAlphaBlendFactor = .oneMinusSourceAlpha
+      ////////////////////////
+      
+      // TODO Error Check
+      return try! device.makeRenderPipelineState(descriptor: pipelineStateDescriptor)
+  }
+  
+  private static func createDepthStencilState(device: MTLDevice) -> MTLDepthStencilState {
+      let depthStencilDescriptor = MTLDepthStencilDescriptor()
+      depthStencilDescriptor.depthCompareFunction = .less
+      depthStencilDescriptor.isDepthWriteEnabled = true
+      
+      //TODO Error Check
+      return device.makeDepthStencilState(descriptor: depthStencilDescriptor)!
+  }
+  
+  private static func buildDepthTexture(_ device: MTLDevice, _ size: CGSize) -> MTLTexture {
+      let desc = MTLTextureDescriptor.texture2DDescriptor(
+        pixelFormat: .depth32Float,
+          width: Int(size.width), height: Int(size.height), mipmapped: false)
+      desc.storageMode = .private
+      desc.usage = .renderTarget
+      return device.makeTexture(descriptor: desc)!
+  }
+  
+  
 }

@@ -8,7 +8,7 @@
 
 import UIKit
  
-protocol GameEngine {
+public protocol GameEngine {
     var timer: CADisplayLink! { get set }
     var lastFrameTime: Double  { get set }
     var renderer: Renderer    { get }
@@ -22,7 +22,7 @@ protocol GameEngine {
     
 }
 
-extension GameEngine {
+public extension GameEngine {
     func resize(scale: CGFloat, layerSize: CGSize) {
         renderer.resize(scale: scale, layerSize: layerSize)
         currentScene.resize()

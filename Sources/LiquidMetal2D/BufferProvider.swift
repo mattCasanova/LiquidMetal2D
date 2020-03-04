@@ -8,14 +8,14 @@
 
 import Metal
 
-class BufferProvider{
+public class BufferProvider{
     private let buffersCount: Int;
     private let semaphore: DispatchSemaphore
     
     private var buffers: [MTLBuffer]
     private var availableIndex = 0;
     
-    init(device: MTLDevice, size: Int, buffersCount: Int = 3) {
+    public init(device: MTLDevice, size: Int, buffersCount: Int = 3) {
         self.semaphore    = DispatchSemaphore(value: buffersCount)
         self.buffersCount = buffersCount
         self.buffers      = [MTLBuffer]()
@@ -26,15 +26,15 @@ class BufferProvider{
         }
     }
     
-    func wait() {
+    public func wait() {
         _ = semaphore.wait(timeout: DispatchTime.distantFuture)
     }
     
-    func signal() {
+    public func signal() {
         semaphore.signal()
     }
     
-    func nextBuffer() -> MTLBuffer {
+    public func nextBuffer() -> MTLBuffer {
         let buffer = buffers[availableIndex]
         availableIndex = (availableIndex + 1) % buffersCount
         return buffer

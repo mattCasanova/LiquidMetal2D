@@ -8,7 +8,7 @@
 
 import Metal
 
-protocol UniformData {
+public protocol UniformData {
     var size: Int { get }
     func setBuffer(buffer: UnsafeMutableRawPointer)
     

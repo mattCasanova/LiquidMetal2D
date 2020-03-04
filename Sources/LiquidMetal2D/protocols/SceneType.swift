@@ -8,6 +8,6 @@
 
 import Foundation
 
-protocol SceneType {
+public protocol SceneType {
     var value: Int { get }
 }
