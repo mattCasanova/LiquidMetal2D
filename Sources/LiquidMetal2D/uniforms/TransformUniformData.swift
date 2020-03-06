@@ -10,15 +10,13 @@ import Foundation
 import MetalMath
 
 public class TransformUniformData: UniformData {
-  public var viewProjection: Transform2D = Transform2D()
+  public var transform: Transform2D = Transform2D()
   public var size: Int = 64
   
-  public init() {
+  public init() {  }
     
-  }
-    
-  public func setBuffer(buffer: UnsafeMutableRawPointer) {
-    memcpy(buffer, viewProjection.raw(), size)
+  public func setBuffer(buffer: UnsafeMutableRawPointer, offsetIndex: Int) {
+    memcpy(buffer + (offsetIndex * size), transform.raw(), size)
   }
     
     

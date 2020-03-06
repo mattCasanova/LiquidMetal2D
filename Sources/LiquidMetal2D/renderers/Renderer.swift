@@ -29,6 +29,6 @@ public protocol Renderer {
     func renderPerspective()
     func setTexture(textureId: Int)
     func renderOrthographic()
-    func draw(transform: Transform2D)
+    func draw(uniforms: UniformData)
     func endRenderPass()
 }

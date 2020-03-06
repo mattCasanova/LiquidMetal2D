@@ -1,10 +1,13 @@
 //
-//  Shaders.metal
-//  LiquidMetal
+//  File.swift
+//  
 //
-//  Created by Matt Casanova on 2/3/20.
-//  Copyright © 2020 Matt Casanova. All rights reserved.
+//  Created by Matt Casanova on 3/5/20.
 //
+
+class ShaderSources {
+  
+  static let alphaBlendShader = """
 
 #include <metal_stdlib>
 using namespace metal;
@@ -43,3 +46,7 @@ vertex VertexOut basic_vertex(
 fragment float4 basic_fragment(VertexOut interpolated [[ stage_in ]], texture2d<float> tex2D [[ texture(0) ]], sampler sampler2D [[ sampler(0) ]]) {
     return tex2D.sample(sampler2D, interpolated.texCoord);
 }
+
+"""
+}
+  

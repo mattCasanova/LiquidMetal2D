@@ -76,7 +76,7 @@ public class BaseRenderer {
   private static func createPipelineState(device: MTLDevice, layer: CAMetalLayer, vertexName: String, fragmentName: String) -> MTLRenderPipelineState {
       
       // TODO: Error Check
-      let defaultLibrary                                      = device.makeDefaultLibrary()!
+    let defaultLibrary                                      = try! device.makeLibrary(source: ShaderSources.alphaBlendShader, options: nil)//device.makeDefaultLibrary()!
       let fragmentProgram                                     = defaultLibrary.makeFunction(name: fragmentName)
       let vertexProgram                                       = defaultLibrary.makeFunction(name: vertexName)
       
@@ -122,5 +122,6 @@ public class BaseRenderer {
       return device.makeTexture(descriptor: desc)!
   }
   
+
   
 }
