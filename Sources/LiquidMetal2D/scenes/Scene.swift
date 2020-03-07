@@ -9,10 +9,11 @@
 import Foundation
 
 public protocol Scene {
-  func initialize(sceneMgr: SceneManager, renderer: Renderer)
+  func initialize(sceneMgr: SceneManager, renderer: Renderer, input: InputGetter)
   func resize()
   func update(dt: Float)
   func draw()
   func shutdown()
+  
   static func build() -> Scene
 }
