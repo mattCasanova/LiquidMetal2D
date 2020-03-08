@@ -11,4 +11,6 @@ import Metal
 public protocol UniformData {
   var size: Int { get }
   func setBuffer(buffer: UnsafeMutableRawPointer, offsetIndex: Int)
+  
+  static func typeSize() -> Int
 }

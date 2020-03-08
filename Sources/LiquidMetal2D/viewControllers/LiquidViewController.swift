@@ -10,9 +10,6 @@ import UIKit
 import MetalMath
 
 open class LiquidViewController: UIViewController {
-  
-  private static let OFF_SCREEN: Float = 10000.0
-  
   public var gameEngine: GameEngine!
   
   open override func viewDidLoad() {
@@ -46,26 +43,24 @@ open class LiquidViewController: UIViewController {
     super.touchesBegan(touches, with: event)
     
     guard let raw = touches.first?.location(in: self.view) else {
-      gameEngine.input.setTouch(location: Vector2D(x: LiquidViewController.OFF_SCREEN, y: LiquidViewController.OFF_SCREEN), isTouched: false)
+      gameEngine.setTouch(location: nil)
       return
     }
     
-    gameEngine.input.setTouch(location: Vector2D(x: Float(raw.x), y: Float(raw.y)), isTouched: true)
+    gameEngine.setTouch(location: Vector2D(x: Float(raw.x), y: Float(raw.y)))
   }
   
   open override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-    gameEngine.input.setTouch(
-      location: Vector2D(x: LiquidViewController.OFF_SCREEN, y: LiquidViewController.OFF_SCREEN),
-      isTouched: false)
+    gameEngine.setTouch(location: nil)
   }
   
   open override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
     guard let raw = touches.first?.location(in: self.view) else {
-      gameEngine.input.setTouch(location: Vector2D(x: LiquidViewController.OFF_SCREEN, y: LiquidViewController.OFF_SCREEN), isTouched: false)
+      gameEngine.setTouch(location: nil)
       return
     }
        
-    gameEngine.input.setTouch(location: Vector2D(x: Float(raw.x), y: Float(raw.y)), isTouched: true)
+    gameEngine.setTouch(location: Vector2D(x: Float(raw.x), y: Float(raw.y)))
   }
 }
 

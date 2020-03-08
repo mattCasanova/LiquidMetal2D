@@ -9,23 +9,26 @@
 import MetalMath
 
 public class PerspectiveData {
+  public static let defaultNearZ: Float = 0.1
+  public static let defaultFarZ: Float = 100
+  
   public var fov:    Float = 0
   public var aspect: Float = 0
   public var nearZ:  Float = 0
   public var farZ:   Float = 0
-    
+  
   public init() {
     
   }
-    
-  public func set(_ fov: Float, _ aspect: Float, _ nearZ: Float, _ farZ: Float) {
-      self.fov    = fov
-      self.aspect = aspect
-      self.nearZ  = nearZ
-      self.farZ   = farZ
+  
+  public func set(aspect: Float, fov: Float, nearZ: Float, farZ: Float) {
+    self.fov    = fov
+    self.aspect = aspect
+    self.nearZ  = nearZ
+    self.farZ   = farZ
   }
-    
+  
   public func make() -> Transform2D {
-      return Transform2D.makePerspective(fov, aspectRatio: aspect, nearZ: nearZ, farZ: farZ)
+    return Transform2D.initPerspective(fov, aspectRatio: aspect, nearZ: nearZ, farZ: farZ)
   }
 }

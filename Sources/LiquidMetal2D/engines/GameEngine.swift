@@ -8,7 +8,7 @@
 
 import UIKit
 
-public protocol GameEngine {
+public protocol GameEngine: InputWriter {
   var timer: CADisplayLink! { get set }
   var lastFrameTime: Double  { get set }
   var renderer: Renderer    { get }
@@ -16,8 +16,6 @@ public protocol GameEngine {
   var currentSceneType: SceneType { get }
   var nextSceneType: SceneType    { get }
   var currentScene: Scene         { get }
-  
-  var input: InputSetter          { get }
   
   func run()
   func gameLoop(displayLink: CADisplayLink)

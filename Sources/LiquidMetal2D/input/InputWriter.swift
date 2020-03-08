@@ -7,6 +7,6 @@
 
 import MetalMath
 
-public protocol InputSetter {
-  func setTouch(location: Vector2D, isTouched: Bool)
+public protocol InputWriter {
+  func setTouch(location: Vector2D?)
 }

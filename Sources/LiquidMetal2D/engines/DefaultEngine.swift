@@ -7,10 +7,11 @@
 //
 
 import UIKit
+import MetalMath
 
-public class DefaultEngine: GameEngine, SceneManager {
+public class DefaultEngine: GameEngine, SceneManager, InputReader {
   
-  private let mInput = Input()
+  private var touchLocation: Vector2D?
   
   public var timer: CADisplayLink! = nil
   public var lastFrameTime: Double = 0.0
@@ -21,8 +22,6 @@ public class DefaultEngine: GameEngine, SceneManager {
   public var currentSceneType: SceneType
   public var nextSceneType: SceneType
   public var currentScene: Scene
-
-  public var input: InputSetter { get { mInput } }
   
   
   public init(renderer: Renderer, intitialSceneType: SceneType, sceneFactory: SceneFactory) {
@@ -33,7 +32,7 @@ public class DefaultEngine: GameEngine, SceneManager {
     self.sceneFactory = sceneFactory
     
     currentScene = sceneFactory.get(intitialSceneType).build()
-    currentScene.initialize(sceneMgr: self, renderer: renderer, input: mInput)
+    currentScene.initialize(sceneMgr: self, renderer: renderer, input: self)
   }
   
   public func run() {
@@ -53,7 +52,22 @@ public class DefaultEngine: GameEngine, SceneManager {
     
   }
   
+  //MARK: InputReader, InputWriter
+  public func getWorldTouch() -> Vector2D? {
+    guard let touch = touchLocation else { return nil }
+    return Vector2D(vector3D: renderer.unProject(screenCoordinate: touch))
+  }
   
+  public func getScreenTouch() -> Vector2D? {
+    return touchLocation
+  }
+  
+  public func setTouch(location: Vector2D?) {
+    touchLocation = location
+  }
+  
+  
+  //MARK: Scene Manager Methods
   public func setScene(type: SceneType) {
     
   }

@@ -11,7 +11,7 @@ import MetalMath
 
 public class TransformUniformData: UniformData {
   public var transform: Transform2D = Transform2D()
-  public var size: Int = 64
+  public var size: Int = TransformUniformData.typeSize()
   
   public init() {  }
     
@@ -19,5 +19,8 @@ public class TransformUniformData: UniformData {
     memcpy(buffer + (offsetIndex * size), transform.raw(), size)
   }
     
+  public static func typeSize() -> Int {
+    return 64
+  }
     
 }
