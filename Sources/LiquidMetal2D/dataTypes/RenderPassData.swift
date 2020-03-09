@@ -16,9 +16,9 @@ public class RenderPassData {
   public let descriptor: MTLRenderPassDescriptor!
   public let encoder: MTLRenderCommandEncoder!
   
-  public init(layer: CAMetalLayer, commandQueue: MTLCommandQueue, clearColor: MTLClearColor, depthTexture: MTLTexture?) {
+  public init(layer: CAMetalLayer, commandQueue: MTLCommandQueue, clearColor: MTLClearColor) {
     drawable      = layer.nextDrawable()
-    descriptor    = RenderPassData.createRenderPassDescriptor(drawable: drawable, clearColor: clearColor, depthTexture: depthTexture)
+    descriptor    = RenderPassData.createRenderPassDescriptor(drawable: drawable, clearColor: clearColor)
     commandBuffer = commandQueue.makeCommandBuffer()
     encoder       = commandBuffer.makeRenderCommandEncoder(descriptor: descriptor)
   }
