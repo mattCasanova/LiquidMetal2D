@@ -17,8 +17,6 @@ public class BaseRenderer {
   public let layer: CAMetalLayer!
   public let commandQueue: MTLCommandQueue!
   public let alphaBlendPipelineState: MTLRenderPipelineState
-  public let depthState: MTLDepthStencilState
-  public var depthTexture: MTLTexture
   public let view: UIView
   
   var viewPort: Array<Int32> = [0, 0, 0, 0]
@@ -43,17 +41,12 @@ public class BaseRenderer {
       layer: layer,
       vertexName: "basic_vertex",
       fragmentName: "basic_fragment")
-    
-    depthState = BaseRenderer.createDepthStencilState(device: device)
-    depthTexture = BaseRenderer.buildDepthTexture(device, view.bounds.size)
   }
   
   public func resize(scale: CGFloat, layerSize: CGSize) {
     view.contentScaleFactor = scale
     layer.frame             = CGRect(x: 0, y: 0, width: layerSize.width, height: layerSize.height)
     layer.drawableSize      = CGSize(width: layerSize.width * scale, height: layerSize.height * scale)
-    
-    depthTexture = BaseRenderer.buildDepthTexture(device, layer.drawableSize)
     
     viewPort[0] = 0                               //bottom left x
     viewPort[1] = 0//Int32(layerSize.height)  //bottom left y
@@ -90,7 +83,7 @@ public class BaseRenderer {
     let pipelineStateDescriptor                             = MTLRenderPipelineDescriptor()
     pipelineStateDescriptor.vertexFunction                  = vertexProgram
     pipelineStateDescriptor.fragmentFunction                = fragmentProgram
-    pipelineStateDescriptor.depthAttachmentPixelFormat      = .depth32Float
+    //pipelineStateDescriptor.depthAttachmentPixelFormat      = .depth32Float
     pipelineStateDescriptor.colorAttachments[0].pixelFormat = layer.pixelFormat
     
     
@@ -110,25 +103,4 @@ public class BaseRenderer {
     // TODO Error Check
     return try! device.makeRenderPipelineState(descriptor: pipelineStateDescriptor)
   }
-  
-  private static func createDepthStencilState(device: MTLDevice) -> MTLDepthStencilState {
-    let depthStencilDescriptor = MTLDepthStencilDescriptor()
-    depthStencilDescriptor.depthCompareFunction = .less
-    depthStencilDescriptor.isDepthWriteEnabled = true
-    
-    //TODO Error Check
-    return device.makeDepthStencilState(descriptor: depthStencilDescriptor)!
-  }
-  
-  private static func buildDepthTexture(_ device: MTLDevice, _ size: CGSize) -> MTLTexture {
-    let desc = MTLTextureDescriptor.texture2DDescriptor(
-      pixelFormat: .depth32Float,
-      width: Int(size.width), height: Int(size.height), mipmapped: false)
-    desc.storageMode = .private
-    desc.usage = .renderTarget
-    return device.makeTexture(descriptor: desc)!
-  }
-  
-  
-  
 }

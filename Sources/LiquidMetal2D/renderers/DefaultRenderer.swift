@@ -127,7 +127,7 @@ public class DefaultRenderer: Renderer {
       layer: baseRenderer.layer,
       commandQueue: baseRenderer.commandQueue,
       clearColor: baseRenderer.clearColor,
-      depthTexture: baseRenderer.depthTexture)
+      depthTexture: nil)
     
     projectionUniformProvider.wait()
     worldUniformProvider.wait()
@@ -140,7 +140,7 @@ public class DefaultRenderer: Renderer {
     }
     
     
-    renderPassData.encoder.setDepthStencilState(baseRenderer.depthState)
+    //renderPassData.encoder.setDepthStencilState(baseRenderer.depthState)
     renderPassData.encoder.setRenderPipelineState(baseRenderer.alphaBlendPipelineState)
     renderPassData.encoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
     renderPassData.encoder.setFragmentSamplerState(samplerState, index: 0)
