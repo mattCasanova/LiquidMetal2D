@@ -45,6 +45,11 @@ public class DefaultEngine: GameEngine, SceneManager, InputReader {
     let dt: Float = Float(displayLink.timestamp - lastFrameTime)
     lastFrameTime = displayLink.timestamp
     
+    if (currentSceneType != nextSceneType) {
+      changeScene()
+      return
+    }
+    
     autoreleasepool {
       currentScene.update(dt: dt)
       currentScene.draw()
@@ -69,7 +74,7 @@ public class DefaultEngine: GameEngine, SceneManager, InputReader {
   
   //MARK: Scene Manager Methods
   public func setScene(type: SceneType) {
-    
+    nextSceneType = type
   }
   
   public func pushScene(type: SceneType) {
@@ -78,6 +83,13 @@ public class DefaultEngine: GameEngine, SceneManager, InputReader {
   
   public func popScene() {
     
+  }
+  
+  private func changeScene() {
+    currentScene.shutdown()
+    currentSceneType = nextSceneType
+    currentScene = sceneFactory.get(currentSceneType)
+    currentScene.initialize(sceneMgr: self, renderer: renderer, input: self)
   }
   
   
