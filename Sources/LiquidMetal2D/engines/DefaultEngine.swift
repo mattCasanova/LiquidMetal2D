@@ -45,7 +45,7 @@ public class DefaultEngine: GameEngine, SceneManager, InputReader {
     let dt: Float = Float(displayLink.timestamp - lastFrameTime)
     lastFrameTime = displayLink.timestamp
     
-    if (currentSceneType != nextSceneType) {
+    if (currentSceneType.value != nextSceneType.value) {
       changeScene()
       return
     }
@@ -88,7 +88,7 @@ public class DefaultEngine: GameEngine, SceneManager, InputReader {
   private func changeScene() {
     currentScene.shutdown()
     currentSceneType = nextSceneType
-    currentScene = sceneFactory.get(currentSceneType)
+    currentScene = sceneFactory.get(currentSceneType).build()
     currentScene.initialize(sceneMgr: self, renderer: renderer, input: self)
   }
   
