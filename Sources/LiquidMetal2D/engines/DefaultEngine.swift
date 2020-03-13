@@ -23,6 +23,10 @@ public class DefaultEngine: GameEngine, SceneManager, InputReader {
   public var nextSceneType: SceneType
   public var currentScene: Scene
   
+  private var isPushing = false
+  private var isPoping = false
+  private var sceneStack = [Scene]()
+  
   
   public init(renderer: Renderer, intitialSceneType: SceneType, sceneFactory: SceneFactory) {
     currentSceneType = intitialSceneType
@@ -78,18 +82,32 @@ public class DefaultEngine: GameEngine, SceneManager, InputReader {
   }
   
   public func pushScene(type: SceneType) {
-    
+   isPushing = true
   }
   
   public func popScene() {
-    
+    isPoping = true
   }
   
   private func changeScene() {
-    currentScene.shutdown()
     currentSceneType = nextSceneType
-    currentScene = sceneFactory.get(currentSceneType).build()
-    currentScene.initialize(sceneMgr: self, renderer: renderer, input: self)
+    
+    if isPushing {
+      sceneStack.append(currentScene)
+      currentScene = sceneFactory.get(currentSceneType).build()
+      currentScene.initialize(sceneMgr: self, renderer: renderer, input: self)
+    } else if isPoping {
+      currentScene.shutdown()
+      currentScene = sceneStack.popLast()
+    } else {
+      currentScene.shutdown()
+      currentScene = sceneFactory.get(currentSceneType).build()
+      currentScene.initialize(sceneMgr: self, renderer: renderer, input: self)
+    }
+    
+    
+    isPushing = isPoping = false
+  
   }
   
   

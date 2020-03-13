@@ -83,7 +83,6 @@ public class BaseRenderer {
     let pipelineStateDescriptor                             = MTLRenderPipelineDescriptor()
     pipelineStateDescriptor.vertexFunction                  = vertexProgram
     pipelineStateDescriptor.fragmentFunction                = fragmentProgram
-    //pipelineStateDescriptor.depthAttachmentPixelFormat      = .depth32Float
     pipelineStateDescriptor.colorAttachments[0].pixelFormat = layer.pixelFormat
     
     
