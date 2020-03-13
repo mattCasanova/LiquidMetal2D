@@ -83,6 +83,7 @@ public class DefaultEngine: GameEngine, SceneManager, InputReader {
   
   public func pushScene(type: SceneType) {
    isPushing = true
+    nextSceneType = type
   }
   
   public func popScene() {
