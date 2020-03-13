@@ -86,7 +86,7 @@ public class DefaultEngine: GameEngine, SceneManager, InputReader {
   }
   
   public func popScene() {
-    if sceneStack.isEmpty {
+    if !sceneStack.isEmpty {
       isPoping = true
     }
   }
