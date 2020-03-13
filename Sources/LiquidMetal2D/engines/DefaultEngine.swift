@@ -25,7 +25,7 @@ public class DefaultEngine: GameEngine, SceneManager, InputReader {
   
   private var isPushing = false
   private var isPoping = false
-  private var sceneStack = [Scene]()
+  private var sceneStack = [SceneData]()
   
   
   public init(renderer: Renderer, intitialSceneType: SceneType, sceneFactory: SceneFactory) {
@@ -86,20 +86,30 @@ public class DefaultEngine: GameEngine, SceneManager, InputReader {
   }
   
   public func popScene() {
-    isPoping = true
+    if sceneStack.isEmpty {
+      isPoping = true
+    }
   }
   
   private func changeScene() {
-    currentSceneType = nextSceneType
-    
+   
     if isPushing {
-      sceneStack.append(currentScene)
+      sceneStack.append(SceneData(scene: currentScene, type: currentSceneType))
+      currentSceneType = nextSceneType
+      
       currentScene = sceneFactory.get(currentSceneType).build()
       currentScene.initialize(sceneMgr: self, renderer: renderer, input: self)
     } else if isPoping {
+      guard let sceneData = sceneStack.popLast() else {
+        return
+      }
+      
       currentScene.shutdown()
-      currentScene = sceneStack.popLast()
+      currentScene = sceneData.scene
+      currentSceneType = sceneData.type
+      nextSceneType = currentSceneType
     } else {
+      currentSceneType = nextSceneType
       currentScene.shutdown()
       currentScene = sceneFactory.get(currentSceneType).build()
       currentScene.initialize(sceneMgr: self, renderer: renderer, input: self)
@@ -107,7 +117,6 @@ public class DefaultEngine: GameEngine, SceneManager, InputReader {
     
     
     isPushing = isPoping = false
-  
   }
   
   
