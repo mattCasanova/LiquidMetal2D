@@ -116,7 +116,8 @@ public class DefaultEngine: GameEngine, SceneManager, InputReader {
     }
     
     
-    isPushing = isPoping = false
+    isPushing = false
+    isPoping = false
   }
   
   
