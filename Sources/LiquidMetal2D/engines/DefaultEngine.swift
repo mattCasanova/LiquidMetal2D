@@ -49,7 +49,7 @@ public class DefaultEngine: GameEngine, SceneManager, InputReader {
     let dt: Float = Float(displayLink.timestamp - lastFrameTime)
     lastFrameTime = displayLink.timestamp
     
-    if (currentSceneType.value != nextSceneType.value) {
+    if (currentSceneType.value != nextSceneType.value || isPoping) {
       changeScene()
       return
     }
