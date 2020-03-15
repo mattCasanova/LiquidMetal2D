@@ -70,8 +70,8 @@ public class DefaultRenderer: Renderer {
   public func resize(scale: CGFloat, layerSize: CGSize) {
     baseRenderer.resize(scale: scale, layerSize: layerSize)
     
-    screenWidth  = Float(view.bounds.size.width)
-    screenHeight = Float(view.bounds.size.height)
+    screenWidth  = Float(baseRenderer.layer.drawableSize.width)
+    screenHeight = Float(baseRenderer.layer.drawableSize.height)
     screenAspect = screenWidth / screenHeight
   }
   

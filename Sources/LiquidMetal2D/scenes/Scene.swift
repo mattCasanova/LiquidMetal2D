@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import MetalMath
 
 public protocol Scene {
   func initialize(sceneMgr: SceneManager, renderer: Renderer, input: InputReader)
@@ -17,3 +18,69 @@ public protocol Scene {
   
   static func build() -> Scene
 }
+
+
+open class DefaultScene: Scene {
+  public var sceneMgr: SceneManager!
+  public var renderer: Renderer!
+  public var input: InputReader!
+  public var objects: [GameObj]
+  
+  public init() {
+    objects = [GameObj]()
+  }
+  
+  public func initialize(sceneMgr: SceneManager, renderer: Renderer, input: InputReader) {
+    self.sceneMgr = sceneMgr
+    self.renderer = renderer
+    self.input = input
+    
+    renderer.setCamera(x: 0, y: 0, distance: CameraData.defaultDistance)
+    renderer.setPerspective(fov: GameMath.toRadian(fromDegree: getFOV()),
+                            aspect: renderer.screenAspect,
+                            nearZ: PerspectiveData.defaultNearZ,
+                            farZ: PerspectiveData.defaultFarZ)
+  }
+  
+  func getFOV() -> Float {
+    if renderer.screenWidth <= renderer.screenHeight { return PerspectiveData.defaultFOV }
+    return PerspectiveData.defaultFOV / (renderer.screenWidth / renderer.screenHeight)
+  }
+  
+  public func draw() {
+    let worldUniforms = TransformUniformData()
+    
+    renderer.beginRenderPass()
+    renderer.renderPerspective()
+    
+    for i in 0..<objects.count {
+      let obj = objects[i]
+      
+      renderer.setTexture(textureId: obj.textureID)
+      worldUniforms.transform.setToScaleX(
+        obj.scale.x,
+        scaleY:  obj.scale.y,
+        radians: obj.rotation,
+        transX:  obj.position.x,
+        transY:  obj.position.y,
+        zOrder:  obj.zOrder)
+      renderer.draw(uniforms: worldUniforms)
+    }
+    
+    renderer.endRenderPass()
+  }
+  
+  public func resize() {
+    renderer.setPerspective(
+      fov: GameMath.toRadian(fromDegree: getFOV()),
+      aspect: renderer.screenAspect,
+      nearZ: PerspectiveData.defaultNearZ,
+      farZ: PerspectiveData.defaultFarZ)
+  }
+  
+  public func update(dt: Float) {}
+  public func shutdown() {}
+  public static func build() -> Scene {return DefaultScene()}
+  
+}
+

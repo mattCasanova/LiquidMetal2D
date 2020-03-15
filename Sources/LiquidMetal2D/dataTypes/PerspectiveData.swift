@@ -11,6 +11,7 @@ import MetalMath
 public class PerspectiveData {
   public static let defaultNearZ: Float = 0.1
   public static let defaultFarZ: Float = 100
+  public static let defaultFOV: Float = 90
   
   public var fov:    Float = 0
   public var aspect: Float = 0
