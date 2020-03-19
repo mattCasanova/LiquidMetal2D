@@ -37,8 +37,6 @@ public class DefaultRenderer: Renderer {
   
   private var samplerState: MTLSamplerState!
   
-  private var texturesMap = [Int : Texture]()
-  private var textureId = 0
   
   public var view: UIView { get { return baseRenderer.view } }
   
@@ -76,14 +74,11 @@ public class DefaultRenderer: Renderer {
   }
   
   public func loadTexture(name: String, ext: String, isMipmaped: Bool, shouldFlip: Bool) -> Int {
-    let currentId = textureId
-    textureId += 1
-    
-    let texture = Texture(name: name, ext: ext, isMipmaped: isMipmaped)
-    texture.loadTexture(device: baseRenderer.device, commandQueue: baseRenderer.commandQueue, flip: shouldFlip)
-    texturesMap[currentId] = texture
-    
-    return currentId
+    return baseRenderer.loadTexture(name: name, ext: ext, isMipmaped: isMipmaped, shouldFlip: shouldFlip)
+  }
+  
+  public func unloadTexture(textureId: Int) {
+    baseRenderer.unloadTexture(textureId: textureId)
   }
   
   public func project(worldCoordinate: Vector2D) -> Vector2D {
@@ -107,7 +102,7 @@ public class DefaultRenderer: Renderer {
   //MARK: Draw Methods
   
   public func setTexture(textureId: Int) {
-    guard let texture = texturesMap[textureId] else { return }
+    guard let texture = baseRenderer.getTexture(id: textureId) else { return }
     renderPassData.encoder.setFragmentTexture(texture.texture, index: 0)
   }
   

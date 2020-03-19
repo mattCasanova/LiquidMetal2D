@@ -21,6 +21,10 @@ public class BaseRenderer {
   
   var viewPort: Array<Int32> = [0, 0, 0, 0]
   
+  
+  private var textures = [Texture]()
+  private var texturesMap = [Int : Texture]()
+  
   public var clearColor: MTLClearColor = MTLClearColor()
   
   public init(parentView: UIView) {
@@ -101,5 +105,42 @@ public class BaseRenderer {
     
     // TODO Error Check
     return try! device.makeRenderPipelineState(descriptor: pipelineStateDescriptor)
+  }
+  
+  public func loadTexture(name: String, ext: String, isMipmaped: Bool, shouldFlip: Bool) -> Int {
+    
+    let fileName = "\(name).\(ext)".lowercased()
+    let foundTexture = textures.first(where: { $0.fileName == fileName })
+    
+    if let safeTexture = foundTexture {
+      safeTexture.loadCount += 1
+      return safeTexture.id
+    }
+    
+    let newTexture = Texture(name: name, ext: ext, isMipmaped: isMipmaped)
+    
+    //TODO Error checking to make sure texture exists
+    newTexture.loadTexture(device: device, commandQueue: commandQueue, flip: shouldFlip)
+    
+    textures.append(newTexture)
+    texturesMap[newTexture.id] = newTexture
+    
+    return newTexture.id
+  }
+  
+  public func unloadTexture(textureId: Int) {
+    guard let texture = texturesMap[textureId] else { return }
+    
+    texture.loadCount -= 1
+    
+    if texture.loadCount <= 0 {
+      texturesMap[textureId] = nil
+      textures.removeAll(where: { $0.id == textureId })
+    }
+    
+  }
+  
+  public func getTexture(id: Int) -> Texture? {
+    return texturesMap[id]
   }
 }

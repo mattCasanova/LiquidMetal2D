@@ -19,6 +19,7 @@ public protocol Renderer {
   func resize(scale: CGFloat, layerSize: CGSize)
   
   func loadTexture(name: String, ext: String, isMipmaped: Bool, shouldFlip: Bool) -> Int
+  func unloadTexture(textureId: Int)
   
   func setPerspective(fov: Float, aspect: Float, nearZ: Float, farZ: Float)
   func setCamera(x: Float, y: Float, distance: Float)
