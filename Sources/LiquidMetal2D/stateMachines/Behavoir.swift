@@ -1,12 +1,12 @@
 //
-//  File.swift
+//  Behavoir.swift
 //  
 //
 //  Created by Matt Casanova on 3/20/20.
 //
 
 
-open class StateMachine {
+open class Behavoir {
   private unowned var current: State
   
   public init(startState: State = NilState()) {
