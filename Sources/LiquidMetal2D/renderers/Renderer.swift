@@ -10,7 +10,7 @@ import UIKit
 
 import MetalMath
 
-public protocol Renderer {
+public protocol Renderer: class {
   var view: UIView  { get }
   var screenHeight: Float { get }
   var screenWidth:  Float  { get }
@@ -28,6 +28,7 @@ public protocol Renderer {
   func project(worldCoordinate: Vector2D) -> Vector2D
   func unProject(screenCoordinate: Vector2D) -> Vector3D
   
+  func getWorldBounds(zOrder: Float) -> Bounds
   
   func beginRenderPass()
   func renderPerspective()

@@ -7,7 +7,7 @@
 
 import MetalMath
 
-public protocol InputReader {
+public protocol InputReader: class {
   func getWorldTouch() -> Vector2D?
   func getScreenTouch() -> Vector2D?
 }

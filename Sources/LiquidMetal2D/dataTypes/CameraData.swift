@@ -15,17 +15,15 @@ public class CameraData {
   public var eye:      Vector2D = Vector2D()
   public var distance: Float    = 0
   
-  public init() {
-    
-  }
+  public init() {}
   
-  public func set(_ x: Float = 0, _ y: Float = 0, _ distance: Float = CameraData.defaultDistance) {
+  public func set(x: Float = 0, y: Float = 0, distance: Float = CameraData.defaultDistance) {
     eye.setX(x, andY: y)
     self.distance = distance
   }
   
-  public func set(_ vector: Vector2D, _ distance: Float = CameraData.defaultDistance) {
-    eye.setX(vector.x, andY: vector.y)
+  public func set(target: Vector2D, _ distance: Float = CameraData.defaultDistance) {
+    eye.setX(target.x, andY: target.y)
     self.distance = distance
   }
   

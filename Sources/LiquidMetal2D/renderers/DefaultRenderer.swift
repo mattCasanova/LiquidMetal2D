@@ -58,7 +58,7 @@ public class DefaultRenderer: Renderer {
   }
   
   public func setCamera(x: Float, y: Float, distance: Float) {
-    cameraData.set(x, y, distance)
+    cameraData.set(x: x, y: y, distance: distance)
   }
   
   public func setClearColor(clearColor: Vector3D) {
@@ -97,7 +97,13 @@ public class DefaultRenderer: Renderer {
     return toReturn
   }
   
-  
+  public func getWorldBounds(zOrder: Float) -> Bounds {
+    let angle = 0.5 * perspectiveData.fov
+    let maxY = tan(angle) * (cameraData.distance - zOrder)
+    let maxX = maxY * screenAspect
+    
+    return Bounds(maxX: maxX, minX: -maxX, maxY: maxY, minY: -maxY)
+  }
   
   //MARK: Draw Methods
   

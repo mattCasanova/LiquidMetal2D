@@ -13,11 +13,11 @@ public class DefaultEngine: GameEngine, SceneManager, InputReader {
   
   private var touchLocation: Vector2D?
   
-  public var timer: CADisplayLink! = nil
+  public var timer: CADisplayLink;
   public var lastFrameTime: Double = 0.0
   
-  public var renderer: Renderer
-  public var sceneFactory: SceneFactory
+  public let renderer: Renderer
+  public let sceneFactory: SceneFactory
   
   public var currentSceneType: SceneType
   public var nextSceneType: SceneType
@@ -34,13 +34,13 @@ public class DefaultEngine: GameEngine, SceneManager, InputReader {
     
     self.renderer = renderer
     self.sceneFactory = sceneFactory
+    self.timer = CADisplayLink(target: self, selector: #selector(gameLoop(displayLink:)))
     
     currentScene = sceneFactory.get(intitialSceneType).build()
     currentScene.initialize(sceneMgr: self, renderer: renderer, input: self)
   }
   
   public func run() {
-    timer = CADisplayLink(target: self, selector: #selector(gameLoop(displayLink:)))
     timer.add(to: RunLoop.main, forMode: .default)
     lastFrameTime = timer.timestamp
   }
