@@ -50,13 +50,13 @@ open class DefaultScene: Scene {
   public func draw() {
     let worldUniforms = TransformUniformData()
     
-    renderer.beginRenderPass()
-    renderer.renderPerspective()
+    renderer.beginPass()
+    renderer.usePerspective()
     
     for i in 0..<objects.count {
       let obj = objects[i]
       
-      renderer.setTexture(textureId: obj.textureID)
+      renderer.useTexture(textureId: obj.textureID)
       worldUniforms.transform.setToScaleX(
         obj.scale.x,
         scaleY:  obj.scale.y,
@@ -67,7 +67,7 @@ open class DefaultScene: Scene {
       renderer.draw(uniforms: worldUniforms)
     }
     
-    renderer.endRenderPass()
+    renderer.endPass()
   }
   
   public func resize() {

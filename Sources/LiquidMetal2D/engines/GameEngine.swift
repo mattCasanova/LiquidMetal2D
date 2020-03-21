@@ -9,7 +9,7 @@
 import UIKit
 
 public protocol GameEngine: InputWriter {
-  var timer: CADisplayLink { get set }
+  var timer: CADisplayLink! { get set }
   var lastFrameTime: Double  { get set }
   var renderer: Renderer    { get }
   

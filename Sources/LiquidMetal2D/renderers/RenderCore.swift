@@ -12,10 +12,12 @@ import Metal
 import MetalMath
 
 @available(iOS 13.0, *)
-public class BaseRenderer {
-  public let device: MTLDevice!
-  public let layer: CAMetalLayer!
-  public let commandQueue: MTLCommandQueue!
+public class RenderCore {
+  
+  public let device: MTLDevice
+  public let commandQueue: MTLCommandQueue
+  public let layer: CAMetalLayer
+
   public let alphaBlendPipelineState: MTLRenderPipelineState
   public let view: UIView
   
@@ -30,8 +32,16 @@ public class BaseRenderer {
   public init(parentView: UIView) {
     view = parentView
     
-    device                = MTLCreateSystemDefaultDevice()!
-    commandQueue          = device.makeCommandQueue()
+    guard let safeDevice = MTLCreateSystemDefaultDevice() else {
+      fatalError("Unable to Create Metal Device")
+    }
+      
+    guard let safeQueue = safeDevice.makeCommandQueue() else {
+        fatalError("Unable to make command queue")
+    }
+    
+    device                = safeDevice
+    commandQueue          = safeQueue
     
     layer                 = CAMetalLayer()
     layer.device          = device
@@ -40,7 +50,7 @@ public class BaseRenderer {
     layer.frame           = view.layer.frame
     view.layer.addSublayer(layer)
     
-    alphaBlendPipelineState = BaseRenderer.createPipelineState(
+    alphaBlendPipelineState = RenderCore.createPipelineState(
       device: device,
       layer: layer,
       vertexName: "basic_vertex",
@@ -52,17 +62,17 @@ public class BaseRenderer {
     layer.frame             = CGRect(x: 0, y: 0, width: layerSize.width, height: layerSize.height)
     layer.drawableSize      = CGSize(width: layerSize.width * scale, height: layerSize.height * scale)
     
-    viewPort[0] = 0                               //bottom left x
-    viewPort[1] = 0//Int32(layerSize.height)  //bottom left y
-    viewPort[2] = Int32(layerSize.width)  //width
-    viewPort[3] = Int32(layerSize.height)  //height
+    viewPort[0] = 0
+    viewPort[1] = 0
+    viewPort[2] = Int32(layerSize.width)
+    viewPort[3] = Int32(layerSize.height)
   }
   
   public func setClearColor(clearColor: Vector3D) {
     self.clearColor = MTLClearColor(red: Double(clearColor.r), green: Double(clearColor.g), blue: Double(clearColor.b), alpha: 1.0)
   }
   
-  public func createDefaultSampler(device: MTLDevice) -> MTLSamplerState {
+  public func createDefaultSampler() -> MTLSamplerState? {
     let sampler = MTLSamplerDescriptor()
     sampler.minFilter             = MTLSamplerMinMagFilter.nearest
     sampler.magFilter             = MTLSamplerMinMagFilter.nearest
@@ -74,7 +84,7 @@ public class BaseRenderer {
     sampler.normalizedCoordinates = true
     sampler.lodMinClamp           = 0
     sampler.lodMaxClamp           = .greatestFiniteMagnitude
-    return device.makeSamplerState(descriptor: sampler)!
+    return device.makeSamplerState(descriptor: sampler)
   }
   
   private static func createPipelineState(device: MTLDevice, layer: CAMetalLayer, vertexName: String, fragmentName: String) -> MTLRenderPipelineState {

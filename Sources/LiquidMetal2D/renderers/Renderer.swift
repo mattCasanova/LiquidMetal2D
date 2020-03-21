@@ -30,10 +30,10 @@ public protocol Renderer: class {
   
   func getWorldBounds(zOrder: Float) -> Bounds
   
-  func beginRenderPass()
-  func renderPerspective()
-  func setTexture(textureId: Int)
-  func renderOrthographic()
+  func beginPass()
+  func usePerspective()
+  func useOrthographic()
+  func useTexture(textureId: Int)
   func draw(uniforms: UniformData)
-  func endRenderPass()
+  func endPass()
 }
