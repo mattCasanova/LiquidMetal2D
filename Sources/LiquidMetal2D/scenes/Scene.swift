@@ -11,7 +11,7 @@ import MetalMath
 
 public protocol Scene {
   func initialize(sceneMgr: SceneManager, renderer: Renderer, input: InputReader)
-  func onResume()
+  func resume()
   func resize()
   func update(dt: Float)
   func draw()
@@ -81,7 +81,7 @@ open class DefaultScene: Scene {
   
   public func update(dt: Float) {}
   public func shutdown() {}
-  public func onResume() {}
+  public func resume() {}
   public static func build() -> Scene {return DefaultScene()}
   
 }

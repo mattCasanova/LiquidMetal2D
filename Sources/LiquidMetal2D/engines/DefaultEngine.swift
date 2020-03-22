@@ -83,7 +83,7 @@ public class DefaultEngine: GameEngine, SceneManager, InputReader {
   }
   
   public func pushScene(type: SceneType) {
-   isPushing = true
+    isPushing = true
     nextSceneType = type
   }
   
@@ -94,7 +94,7 @@ public class DefaultEngine: GameEngine, SceneManager, InputReader {
   }
   
   private func changeScene() {
-   
+    
     if isPushing {
       sceneStack.append(SceneData(scene: currentScene, type: currentSceneType))
       currentSceneType = nextSceneType
@@ -102,14 +102,15 @@ public class DefaultEngine: GameEngine, SceneManager, InputReader {
       currentScene = sceneFactory.get(currentSceneType).build()
       currentScene.initialize(sceneMgr: self, renderer: renderer, input: self)
     } else if isPoping {
-      guard let sceneData = sceneStack.popLast() else {
-        return
-      }
+      
+      guard let sceneData = sceneStack.popLast() else { return }
       
       currentScene.shutdown()
       currentScene = sceneData.scene
       currentSceneType = sceneData.type
       nextSceneType = currentSceneType
+      
+      currentScene.resume()
     } else {
       currentSceneType = nextSceneType
       currentScene.shutdown()
