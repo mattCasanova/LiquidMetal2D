@@ -102,9 +102,13 @@ public class DefaultRenderer: Renderer {
     return toReturn
   }
   
-  public func getWorldBounds(zOrder: Float) -> Bounds {
+  public func getWorldBoundsFromCamera(zOrder: Float) -> Bounds {
+    return getWorldBounds(cameraDistance: cameraData.distance, zOrder: zOrder)
+  }
+  
+  public func getWorldBounds(cameraDistance: Float, zOrder: Float) -> Bounds {
     let angle = 0.5 * perspectiveData.fov
-    let maxY = tan(angle) * (cameraData.distance - zOrder)
+    let maxY = tan(angle) * (cameraDistance - zOrder)
     let maxX = maxY * screenAspect
     
     return Bounds(maxX: maxX, minX: -maxX, maxY: maxY, minY: -maxY)

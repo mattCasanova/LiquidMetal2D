@@ -28,7 +28,8 @@ public protocol Renderer: class {
   func project(worldCoordinate: Vector2D) -> Vector2D
   func unProject(screenCoordinate: Vector2D) -> Vector3D
   
-  func getWorldBounds(zOrder: Float) -> Bounds
+  func getWorldBoundsFromCamera(zOrder: Float) -> Bounds
+  func getWorldBounds(cameraDistance: Float, zOrder: Float) -> Bounds
   
   func beginPass()
   func usePerspective()
