@@ -80,7 +80,7 @@ open class DefaultScene: Scene {
   }
   
   public func update(dt: Float) {}
-  public func shutdown() {}
+  public func shutdown() { objects.removeAll() }
   public func resume() {}
   public static func build() -> Scene {return DefaultScene()}
   

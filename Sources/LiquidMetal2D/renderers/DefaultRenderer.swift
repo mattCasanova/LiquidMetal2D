@@ -87,19 +87,33 @@ public class DefaultRenderer: Renderer {
   }
   
   public func project(worldCoordinate: Vector2D) -> Vector2D {
-    let viewPort = UnsafeMutablePointer<Int32>(mutating: renderCore.viewPort)
-    
-    let toReturn3D = Vector3D.init(screenProject: Vector3D(vector2D: worldCoordinate), modelView: cameraData.make(), projection: perspectiveData.make(), viewPort: viewPort)
-    return Vector2D(vector3D: toReturn3D)
+    renderCore.viewPort.withUnsafeMutableBufferPointer({ bufferPointer in
+      let viewPort = bufferPointer.baseAddress!
+      
+      let toReturn3D = Vector3D.init(
+        screenProject: Vector3D(vector2D: worldCoordinate),
+        modelView: cameraData.make(),
+        projection: perspectiveData.make(),
+        viewPort: viewPort)
+        return Vector2D(vector3D: toReturn3D)
+    })
   }
   
   public func unProject(screenCoordinate: Vector2D) -> Vector3D {
-    let viewPort = UnsafeMutablePointer<Int32>(mutating: renderCore.viewPort)
-    let toReturn = Vector3D.init(screenUnproject: Vector3D(vector2D: screenCoordinate), modelView: cameraData.make(), projection: perspectiveData.make(), viewPort: viewPort)
     
-    //Because openGl and metal view ports have different y origin
-    toReturn.y = -toReturn.y
-    return toReturn
+    renderCore.viewPort.withUnsafeMutableBufferPointer({ bufferPointer in
+      let viewPort = bufferPointer.baseAddress!
+      let toReturn = Vector3D.init(
+        screenUnproject: Vector3D(vector2D: screenCoordinate),
+        modelView: cameraData.make(),
+        projection: perspectiveData.make(),
+        viewPort: viewPort)
+      //Because openGl and metal view ports have different y origin
+      toReturn.y = -toReturn.y
+      return toReturn
+      
+    })
+  
   }
   
   public func getWorldBoundsFromCamera(zOrder: Float) -> Bounds {

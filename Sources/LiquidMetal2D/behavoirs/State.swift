@@ -12,3 +12,12 @@ public protocol State: class {
   func update(dt: Float)
   func exit()
 }
+
+public class NilState: State {
+  
+  public init() {}
+  
+  public func enter() {}
+  public func exit() {}
+  public func update(dt: Float) {}
+}
