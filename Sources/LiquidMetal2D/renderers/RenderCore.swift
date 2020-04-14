@@ -9,6 +9,8 @@
 
 import UIKit
 import Metal
+import simd
+import MetalTypes
 import MetalMath
 
 @available(iOS 13.0, *)
@@ -68,8 +70,8 @@ public class RenderCore {
     viewPort[3] = Int32(layerSize.height)
   }
   
-  public func setClearColor(clearColor: Vector3D) {
-    self.clearColor = MTLClearColor(red: Double(clearColor.r), green: Double(clearColor.g), blue: Double(clearColor.b), alpha: 1.0)
+  public func setClearColor(color: simd_float3) {
+    self.clearColor = MTLClearColor(red: Double(color.r), green: Double(color.g), blue: Double(color.b), alpha: 1.0)
   }
   
   public func createDefaultSampler() -> MTLSamplerState? {
@@ -117,7 +119,7 @@ public class RenderCore {
     return try! device.makeRenderPipelineState(descriptor: pipelineStateDescriptor)
   }
   
-  public func loadTexture(name: String, ext: String, isMipmaped: Bool, shouldFlip: Bool) -> Int {
+  public func loadTexture(name: String, ext: String, isMipmaped: Bool) -> Int {
     
     let fileName = "\(name).\(ext)".lowercased()
     let foundTexture = textures.first(where: { $0.fileName == fileName })
@@ -130,7 +132,7 @@ public class RenderCore {
     let newTexture = Texture(name: name, ext: ext, isMipmaped: isMipmaped)
     
     //TODO Error checking to make sure texture exists
-    newTexture.loadTexture(device: device, commandQueue: commandQueue, flip: shouldFlip)
+    newTexture.loadTexture(device: device, commandQueue: commandQueue)
     
     textures.append(newTexture)
     texturesMap[newTexture.id] = newTexture

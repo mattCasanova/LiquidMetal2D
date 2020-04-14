@@ -7,7 +7,8 @@
 //
 
 import UIKit
-import MetalMath
+import simd
+
 
 open class LiquidViewController: UIViewController {
   public var gameEngine: GameEngine!
@@ -47,7 +48,7 @@ open class LiquidViewController: UIViewController {
       return
     }
     
-    gameEngine.setTouch(location: Vector2D(x: Float(raw.x), y: Float(raw.y)))
+    gameEngine.setTouch(location: simd_float2(Float(raw.x), Float(raw.y)))
   }
   
   open override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -60,7 +61,7 @@ open class LiquidViewController: UIViewController {
       return
     }
        
-    gameEngine.setTouch(location: Vector2D(x: Float(raw.x), y: Float(raw.y)))
+    gameEngine.setTouch(location: simd_float2(Float(raw.x), Float(raw.y)))
   }
 }
 

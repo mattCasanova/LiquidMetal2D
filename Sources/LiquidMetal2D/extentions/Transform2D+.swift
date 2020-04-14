@@ -6,7 +6,7 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-import MetalMath
+import MetalTypes
 
 public extension Transform2D {
     static func *(lhs: Transform2D, rhs: Transform2D) -> Transform2D {

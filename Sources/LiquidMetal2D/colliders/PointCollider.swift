@@ -5,6 +5,7 @@
 //  Created by Matt Casanova on 3/23/20.
 //
 
+import simd
 import MetalMath
 
 public class PointCollider: Collider {
@@ -18,15 +19,15 @@ public class PointCollider: Collider {
     return collider.doesCollideWith(point: obj.position)
   }
   
-  public func doesCollideWith(point: Vector2D) -> Bool {
-    return point.isVectorEqual(obj.position)
+  public func doesCollideWith(point: simd_float2) -> Bool {
+    return simd_epsilon_equal(lhs: point, rhs: obj.position)
   }
   
-  public func doesCollideWith(circleCenter: Vector2D, radius: Float) -> Bool {
-    return Intersect.point(obj.position, vsCircle: circleCenter, withRadius: radius)
+  public func doesCollideWith(circleCenter: simd_float2, radius: Float) -> Bool {
+    return Intersect.pointCircle(point: obj.position, circle: circleCenter, radius: radius)
   }
   
-  public func doesCollideWith(aabbCenter: Vector2D, width: Float, height: Float) -> Bool {
-    return Intersect.point(obj.position, vsAABB: aabbCenter, withWidth: width, andHeight: height)
+  public func doesCollideWith(aabbCenter: simd_float2, width: Float, height: Float) -> Bool {
+    return Intersect.pointAABB(point: obj.position, center: aabbCenter, width: width, height: height)
   }
 }

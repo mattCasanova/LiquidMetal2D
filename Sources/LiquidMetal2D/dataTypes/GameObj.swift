@@ -6,12 +6,13 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
+import simd
 import MetalMath
 
 open class GameObj {
-  public var position = Vector2D()
-  public var velocity = Vector2D()
-  public var scale = Vector2D()
+  public var position = simd_float2()
+  public var velocity = simd_float2()
+  public var scale = simd_float2()
   public var zOrder: Float = 0.0
   public var rotation: Float = 0.0
   public var textureID = 0

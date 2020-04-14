@@ -6,7 +6,8 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-import Foundation
+
+import simd
 import MetalMath
 
 public protocol Scene {
@@ -35,9 +36,10 @@ open class DefaultScene: Scene {
     self.sceneMgr = sceneMgr
     self.renderer = renderer
     self.input = input
+
     
-    renderer.setCamera(x: 0, y: 0, distance: CameraData.defaultDistance)
-    renderer.setPerspective(fov: GameMath.toRadian(fromDegree: getFOV()),
+    renderer.setCamera(point: simd_float3(0, 0, Camera2D.defaultDistance))
+    renderer.setPerspective(fov:  degreeToRadian(getFOV()),
                             aspect: renderer.screenAspect,
                             nearZ: PerspectiveData.defaultNearZ,
                             farZ: PerspectiveData.defaultFarZ)
@@ -73,7 +75,7 @@ open class DefaultScene: Scene {
   
   public func resize() {
     renderer.setPerspective(
-      fov: GameMath.toRadian(fromDegree: getFOV()),
+      fov: degreeToRadian(getFOV()),
       aspect: renderer.screenAspect,
       nearZ: PerspectiveData.defaultNearZ,
       farZ: PerspectiveData.defaultFarZ)

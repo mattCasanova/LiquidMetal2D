@@ -43,7 +43,7 @@ vertex VertexOut basic_vertex(
     return VertexOut(position, inVert.texCoord);
 }
 
-fragment float4 basic_fragment(VertexOut interpolated [[ stage_in ]], texture2d<float> tex2D [[ texture(0) ]], sampler sampler2D [[ sampler(0) ]]) {
+fragment half4 basic_fragment(VertexOut interpolated [[ stage_in ]], texture2d<half> tex2D [[ texture(0) ]], sampler sampler2D [[ sampler(0) ]]) {
     return tex2D.sample(sampler2D, interpolated.texCoord);
 }
 

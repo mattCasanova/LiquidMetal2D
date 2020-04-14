@@ -7,8 +7,9 @@
 //
 
 import Foundation
+import MetalTypes
 import MetalMath
-import simd
+
 
 public class TransformUniformData: UniformData {
   public var transform: Transform2D = Transform2D()

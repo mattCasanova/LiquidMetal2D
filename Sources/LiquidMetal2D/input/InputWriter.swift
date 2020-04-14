@@ -5,8 +5,7 @@
 //  Created by Matt Casanova on 3/6/20.
 //
 
-import MetalMath
-
+import simd
 public protocol InputWriter {
-  func setTouch(location: Vector2D?)
+  func setTouch(location: simd_float2?)
 }

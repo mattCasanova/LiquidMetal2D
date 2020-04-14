@@ -6,6 +6,7 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
+import MetalTypes
 import MetalMath
 
 public class PerspectiveData {

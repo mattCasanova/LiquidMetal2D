@@ -39,7 +39,7 @@ public class Texture: NSObject {
     super.init()
   }
   
-  public func loadTexture(device: MTLDevice, commandQueue: MTLCommandQueue, flip: Bool) {
+  public func loadTexture(device: MTLDevice, commandQueue: MTLCommandQueue) {
     guard let image = UIImage(contentsOfFile: path)?.cgImage else { return }
     
     let colorSpace = CGColorSpaceCreateDeviceRGB()
@@ -60,11 +60,6 @@ public class Texture: NSObject {
     
     let bounds = CGRect(x: 0, y: 0, width: mWidth, height: mHeight)
     context.clear(bounds)
-    
-    if !flip {
-      context.scaleBy(x: 1, y: -1)
-    }
-    
     context.draw(image, in: bounds)
     
     let textureDescriptor = MTLTextureDescriptor.texture2DDescriptor(

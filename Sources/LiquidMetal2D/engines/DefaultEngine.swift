@@ -7,11 +7,13 @@
 //
 
 import UIKit
+import MetalTypes
+import simd
 import MetalMath
 
 public class DefaultEngine: GameEngine, SceneManager, InputReader {  
   
-  private var touchLocation: Vector2D?
+  private var touchLocation: simd_float2?
   
   public var timer: CADisplayLink!;
   public var lastFrameTime: Double = 0.0
@@ -63,16 +65,16 @@ public class DefaultEngine: GameEngine, SceneManager, InputReader {
   }
   
   //MARK: InputReader, InputWriter
-  public func getWorldTouch() -> Vector2D? {
+  public func getWorldTouch() -> simd_float2? {
     guard let touch = touchLocation else { return nil }
-    return Vector2D(vector3D: renderer.unProject(screenCoordinate: touch))
+    return simd_float2(simd3: renderer.unProject(screenPoint: touch))
   }
   
-  public func getScreenTouch() -> Vector2D? {
+  public func getScreenTouch() -> simd_float2? {
     return touchLocation
   }
   
-  public func setTouch(location: Vector2D?) {
+  public func setTouch(location: simd_float2?) {
     touchLocation = location
   }
   
