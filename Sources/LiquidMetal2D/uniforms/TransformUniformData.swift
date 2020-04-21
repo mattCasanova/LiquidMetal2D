@@ -7,22 +7,22 @@
 //
 
 import Foundation
-import MetalTypes
+import simd
 import MetalMath
 
 
 public class TransformUniformData: UniformData {
-  public var transform: Transform2D = Transform2D()
-  public var size: Int = TransformUniformData.typeSize()
-  
-  public init() {  }
+    public var transform: simd_float4x4 = simd_float4x4()
+    public var size: Int = TransformUniformData.typeSize()
     
-  public func setBuffer(buffer: UnsafeMutableRawPointer, offsetIndex: Int) {
-    memcpy(buffer + (offsetIndex * size), transform.raw(), size)
-  }
+    public init() {  }
     
-  public static func typeSize() -> Int {
-    return 64
-  }
+    public func setBuffer(buffer: UnsafeMutableRawPointer, offsetIndex: Int) {
+        memcpy(buffer + (offsetIndex * size), &transform, size)
+    }
+    
+    public static func typeSize() -> Int {
+        return MemoryLayout<simd_float4x4>.size
+    }
     
 }

@@ -9,6 +9,6 @@ import simd
 import MetalMath
 
 public protocol InputReader: class {
-  func getWorldTouch() -> simd_float2?
-  func getScreenTouch() -> simd_float2?
+    func getWorldTouch(forZ z: Float) -> simd_float3?
+    func getScreenTouch() -> simd_float2?
 }

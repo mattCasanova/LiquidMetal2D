@@ -7,9 +7,8 @@
 //
 
 import UIKit
-import MetalMath
 
-public class Texture: NSObject {
+public class Texture {
   
   private static var sIdCounter = 0
   
@@ -36,7 +35,6 @@ public class Texture: NSObject {
     self.fileName = "\(name).\(ext)".lowercased()
     self.path = Bundle.main.path(forResource: name, ofType: ext)
     self.isMipmapped = isMipmaped
-    super.init()
   }
   
   public func loadTexture(device: MTLDevice, commandQueue: MTLCommandQueue) {

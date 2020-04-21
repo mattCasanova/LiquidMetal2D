@@ -8,12 +8,11 @@
 
 import UIKit
 import Metal
-import MetalTypes
 import simd
 import MetalMath
 
 @available(iOS 13.0, *)
-public class DefaultRenderer: Renderer {
+public class DefaultRenderer: Renderer {    
     
     private let renderCore: RenderCore
     private var renderPass: RenderPass!
@@ -34,8 +33,6 @@ public class DefaultRenderer: Renderer {
     private let worldBufferProvider: BufferProvider
     private var worldBufferContents: UnsafeMutableRawPointer!
     
-    private let perspectiveData = PerspectiveData()
-    private let camera = Camera2D()
     
     private var samplerState: MTLSamplerState
     
@@ -61,11 +58,11 @@ public class DefaultRenderer: Renderer {
     
     
     public func setPerspective(fov: Float, aspect: Float,nearZ: Float, farZ: Float) {
-        perspectiveData.set(aspect: aspect, fov: fov, nearZ: nearZ, farZ: farZ)
+        renderCore.perspective.set(aspect: aspect, fov: fov, nearZ: nearZ, farZ: farZ)
     }
     
     public func setCamera(point: simd_float3) {
-        camera.set(point: point)
+        renderCore.camera2D.set(point: point)
     }
     
     public func setClearColor(color: simd_float3) {
@@ -88,47 +85,47 @@ public class DefaultRenderer: Renderer {
         renderCore.unloadTexture(textureId: textureId)
     }
     
-    public func project(worldPoint: simd_float2) -> simd_float2 {
-        renderCore.viewPort.withUnsafeMutableBufferPointer({ bufferPointer in
-            let viewPort = bufferPointer.baseAddress!
-            
-            let toReturn3D = Vector3D.init(
-                screenProject: Vector3D(x: worldPoint.x, y: worldPoint.y),
-                modelView: camera.make(),
-                projection: perspectiveData.make(),
-                viewPort: viewPort)
-            
-            return simd_float2(toReturn3D.x, toReturn3D.y)
-        })
+    public func project(world: simd_float3) -> simd_float3 {
+        return renderCore.project(worldPoint: world)
     }
     
-    public func unProject(screenPoint: simd_float2) -> simd_float3 {
+    public func unproject(screen: simd_float2, forWorldZ worldZ: Float) -> simd_float3 {
+        return unproject(screenWithWorldZ: screen.to3D(worldZ))
+    }
+    
+    public func unproject(screenWithWorldZ: simd_float3) -> simd_float3 {
+        let projected = renderCore.project(worldPoint: simd_float3(0, 0, screenWithWorldZ.z))
+        var unprojected = renderCore.unproject(screenPoint: simd_float3(screenWithWorldZ.x, screenWithWorldZ.y, projected.z))
         
-        renderCore.viewPort.withUnsafeMutableBufferPointer({ bufferPointer in
-            let viewPort = bufferPointer.baseAddress!
-            let toReturn = Vector3D.init(
-                screenUnproject: Vector3D(x: screenPoint.x, y: screenPoint.y),
-                modelView: camera.make(),
-                projection: perspectiveData.make(),
-                viewPort: viewPort)
-            //Because openGl and metal view ports have different y origin
-            toReturn.y = -toReturn.y
-            
-            return simd_float3(toReturn.x, toReturn.y, toReturn.z)
-        })
+        unprojected.z = screenWithWorldZ.z
+        return unprojected
+    }
+    
+    public func getUnprojectRay(forScreenPoint point: simd_float2) -> UnprojectRay {
+        let near = renderCore.unproject(screenPoint: simd_float3(point.x, point.y, 0))
+        let far = renderCore.unproject(screenPoint: simd_float3(point.x, point.y, 1))
         
+        
+        let zMag = abs(far.z - near.z)
+        let nearFactor = abs(near.z) / zMag
+        let farFactor = abs(far.z) / zMag
+        
+        let origin = (near * farFactor) + (far * nearFactor)
+        let vector = (near - far) / zMag
+        
+        return UnprojectRay(origin: origin, vector: vector)
     }
     
-    public func getWorldBoundsFromCamera(zOrder: Float) -> Bounds {
-        return getWorldBounds(cameraDistance: camera.distance, zOrder: zOrder)
+    public func getWorldBoundsFromCamera(zOrder: Float) -> WorldBounds {
+        return getWorldBounds(cameraDistance: renderCore.camera2D.distance, zOrder: zOrder)
     }
     
-    public func getWorldBounds(cameraDistance: Float, zOrder: Float) -> Bounds {
-        let angle = 0.5 * perspectiveData.fov
+    public func getWorldBounds(cameraDistance: Float, zOrder: Float) -> WorldBounds {
+        let angle = 0.5 * renderCore.perspective.fov
         let maxY = tan(angle) * (cameraDistance - zOrder)
         let maxX = maxY * screenAspect
         
-        return Bounds(maxX: maxX, minX: -maxX, maxY: maxY, minY: -maxY)
+        return WorldBounds(maxX: maxX, minX: -maxX, maxY: maxY, minY: -maxY)
     }
     
     //MARK: Draw Methods
@@ -140,7 +137,7 @@ public class DefaultRenderer: Renderer {
     
     public func usePerspective() {
         let contents = projectionBuffer.contents()
-        projectionUniforms.transform = perspectiveData.make() * camera.make()
+        projectionUniforms.transform = renderCore.perspective.make() * renderCore.camera2D.make()
         projectionUniforms.setBuffer(buffer: contents, offsetIndex: 0)
         renderPass.encoder.setVertexBuffer(projectionBuffer, offset: 0, index: 1)
     }

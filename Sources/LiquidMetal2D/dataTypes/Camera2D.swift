@@ -6,7 +6,6 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-import MetalTypes
 import simd
 import MetalMath
 
@@ -34,7 +33,7 @@ public class Camera2D {
         self.distance = distance
     }
     
-    public func make() -> Transform2D {
-        return Transform2D.initLook(at: Vector2D(x: eye.x, y: eye.y), distance: distance)
+    public func make() -> simd_float4x4 {
+        return simd_float4x4.makeLookAt2D(simd_float3(eye, distance))
     }
 }

@@ -7,123 +7,121 @@
 //
 
 import UIKit
-import MetalTypes
 import simd
 import MetalMath
 
-public class DefaultEngine: GameEngine, SceneManager, InputReader {  
-  
-  private var touchLocation: simd_float2?
-  
-  public var timer: CADisplayLink!;
-  public var lastFrameTime: Double = 0.0
-  
-  public let renderer: Renderer
-  public let sceneFactory: SceneFactory
-  
-  public var currentSceneType: SceneType
-  public var nextSceneType: SceneType
-  public var currentScene: Scene
-  
-  private var isPushing = false
-  private var isPoping = false
-  private var sceneStack = [SceneData]()
-  
-  
-  public init(renderer: Renderer, intitialSceneType: SceneType, sceneFactory: SceneFactory) {
-    currentSceneType = intitialSceneType
-    nextSceneType = intitialSceneType
+public class DefaultEngine: GameEngine, SceneManager, InputReader {
+    private var touchLocation: simd_float2?
     
-    self.renderer = renderer
-    self.sceneFactory = sceneFactory
+    public var timer: CADisplayLink!;
+    public var lastFrameTime: Double = 0.0
+    
+    public let renderer: Renderer
+    public let sceneFactory: SceneFactory
+    
+    public var currentSceneType: SceneType
+    public var nextSceneType: SceneType
+    public var currentScene: Scene
+    
+    private var isPushing = false
+    private var isPoping = false
+    private var sceneStack = [SceneData]()
     
     
-    currentScene = sceneFactory.get(intitialSceneType).build()
-    currentScene.initialize(sceneMgr: self, renderer: renderer, input: self)
-  }
-  
-  public func run() {
-    timer = CADisplayLink(target: self, selector: #selector(gameLoop(displayLink:)))
-    timer.add(to: RunLoop.main, forMode: .default)
-    lastFrameTime = timer.timestamp
-  }
-  
-  @objc public func gameLoop(displayLink: CADisplayLink) {
-    let dt: Float = Float(displayLink.timestamp - lastFrameTime)
-    lastFrameTime = displayLink.timestamp
-    
-    if (currentSceneType.value != nextSceneType.value || isPoping) {
-      changeScene()
-      return
+    public init(renderer: Renderer, intitialSceneType: SceneType, sceneFactory: SceneFactory) {
+        currentSceneType = intitialSceneType
+        nextSceneType = intitialSceneType
+        
+        self.renderer = renderer
+        self.sceneFactory = sceneFactory
+        
+        
+        currentScene = sceneFactory.get(intitialSceneType).build()
+        currentScene.initialize(sceneMgr: self, renderer: renderer, input: self)
     }
     
-    autoreleasepool {
-      currentScene.update(dt: dt)
-      currentScene.draw()
+    public func run() {
+        timer = CADisplayLink(target: self, selector: #selector(gameLoop(displayLink:)))
+        timer.add(to: RunLoop.main, forMode: .default)
+        lastFrameTime = timer.timestamp
     }
     
-  }
-  
-  //MARK: InputReader, InputWriter
-  public func getWorldTouch() -> simd_float2? {
-    guard let touch = touchLocation else { return nil }
-    return simd_float2(simd3: renderer.unProject(screenPoint: touch))
-  }
-  
-  public func getScreenTouch() -> simd_float2? {
-    return touchLocation
-  }
-  
-  public func setTouch(location: simd_float2?) {
-    touchLocation = location
-  }
-  
-  
-  //MARK: Scene Manager Methods
-  public func setScene(type: SceneType) {
-    nextSceneType = type
-  }
-  
-  public func pushScene(type: SceneType) {
-    isPushing = true
-    nextSceneType = type
-  }
-  
-  public func popScene() {
-    if !sceneStack.isEmpty {
-      isPoping = true
+    @objc public func gameLoop(displayLink: CADisplayLink) {
+        let dt: Float = Float(displayLink.timestamp - lastFrameTime)
+        lastFrameTime = displayLink.timestamp
+        
+        if (currentSceneType.value != nextSceneType.value || isPoping) {
+            changeScene()
+            return
+        }
+        
+        autoreleasepool {
+            currentScene.update(dt: dt)
+            currentScene.draw()
+        }
+        
     }
-  }
-  
-  private func changeScene() {
     
-    if isPushing {
-      sceneStack.append(SceneData(scene: currentScene, type: currentSceneType))
-      currentSceneType = nextSceneType
-      
-      currentScene = sceneFactory.get(currentSceneType).build()
-      currentScene.initialize(sceneMgr: self, renderer: renderer, input: self)
-    } else if isPoping {
-      
-      guard let sceneData = sceneStack.popLast() else { return }
-      
-      currentScene.shutdown()
-      currentScene = sceneData.scene
-      currentSceneType = sceneData.type
-      nextSceneType = currentSceneType
-      
-      currentScene.resume()
-    } else {
-      currentSceneType = nextSceneType
-      currentScene.shutdown()
-      currentScene = sceneFactory.get(currentSceneType).build()
-      currentScene.initialize(sceneMgr: self, renderer: renderer, input: self)
+    //MARK: InputReader, InputWriter
+    public func getWorldTouch(forZ z: Float) -> simd_float3? {
+        guard let touch = touchLocation else { return nil }
+        return renderer.unproject(screenWithWorldZ: touch.to3D(z))
+    }
+    
+    public func getScreenTouch() -> simd_float2? {
+        return touchLocation
+    }
+    
+    public func setTouch(location: simd_float2?) {
+        touchLocation = location
     }
     
     
-    isPushing = false
-    isPoping = false
-  }
-  
-  
+    //MARK: Scene Manager Methods
+    public func setScene(type: SceneType) {
+        nextSceneType = type
+    }
+    
+    public func pushScene(type: SceneType) {
+        isPushing = true
+        nextSceneType = type
+    }
+    
+    public func popScene() {
+        if !sceneStack.isEmpty {
+            isPoping = true
+        }
+    }
+    
+    private func changeScene() {
+        
+        if isPushing {
+            sceneStack.append(SceneData(scene: currentScene, type: currentSceneType))
+            currentSceneType = nextSceneType
+            
+            currentScene = sceneFactory.get(currentSceneType).build()
+            currentScene.initialize(sceneMgr: self, renderer: renderer, input: self)
+        } else if isPoping {
+            
+            guard let sceneData = sceneStack.popLast() else { return }
+            
+            currentScene.shutdown()
+            currentScene = sceneData.scene
+            currentSceneType = sceneData.type
+            nextSceneType = currentSceneType
+            
+            currentScene.resume()
+        } else {
+            currentSceneType = nextSceneType
+            currentScene.shutdown()
+            currentScene = sceneFactory.get(currentSceneType).build()
+            currentScene.initialize(sceneMgr: self, renderer: renderer, input: self)
+        }
+        
+        
+        isPushing = false
+        isPoping = false
+    }
+    
+    
 }
