@@ -8,12 +8,11 @@
 
 import Foundation
 import simd
-import MetalMath
 
 
-public class TransformUniformData: UniformData {
+public class ProjectionUniform: UniformData {
     public var transform: simd_float4x4 = simd_float4x4()
-    public var size: Int = TransformUniformData.typeSize()
+    public var size: Int = ProjectionUniform.typeSize()
     
     public init() {  }
     

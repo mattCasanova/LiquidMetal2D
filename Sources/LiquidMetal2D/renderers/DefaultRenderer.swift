@@ -26,7 +26,7 @@ public class DefaultRenderer: Renderer {
     
     private let vertexBuffer: MTLBuffer
     
-    private let projectionUniforms = TransformUniformData()
+    private let projectionUniforms = ProjectionUniform()
     private var projectionBuffer: MTLBuffer!
     private let projectionBufferProvider: BufferProvider
     

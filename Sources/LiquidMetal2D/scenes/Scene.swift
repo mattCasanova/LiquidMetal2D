@@ -51,7 +51,7 @@ open class DefaultScene: Scene {
     }
     
     public func draw() {
-        let worldUniforms = TransformUniformData()
+        let worldUniforms = WorldUniform()
         
         renderer.beginPass()
         renderer.usePerspective()

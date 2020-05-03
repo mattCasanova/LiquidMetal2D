@@ -80,9 +80,9 @@ public class RenderCore {
         sampler.magFilter             = MTLSamplerMinMagFilter.nearest
         sampler.mipFilter             = MTLSamplerMipFilter.nearest
         sampler.maxAnisotropy         = 1
-        sampler.sAddressMode          = MTLSamplerAddressMode.clampToEdge
-        sampler.tAddressMode          = MTLSamplerAddressMode.clampToEdge
-        sampler.rAddressMode          = MTLSamplerAddressMode.clampToEdge
+        sampler.sAddressMode          = MTLSamplerAddressMode.repeat
+        sampler.tAddressMode          = MTLSamplerAddressMode.repeat
+        sampler.rAddressMode          = MTLSamplerAddressMode.repeat
         sampler.normalizedCoordinates = true
         sampler.lodMinClamp           = 0
         sampler.lodMaxClamp           = .greatestFiniteMagnitude
