@@ -42,13 +42,17 @@ public class DefaultEngine: GameEngine, SceneManager, InputReader {
     
     public func run() {
         timer = CADisplayLink(target: self, selector: #selector(gameLoop(displayLink:)))
-        timer.add(to: RunLoop.main, forMode: .default)
         lastFrameTime = timer.timestamp
+        timer.add(to: RunLoop.main, forMode: .default)
     }
     
     @objc public func gameLoop(displayLink: CADisplayLink) {
         let dt: Float = Float(displayLink.timestamp - lastFrameTime)
         lastFrameTime = displayLink.timestamp
+        
+        guard dt < 5 else { return }
+        
+
         
         if (currentSceneType.value != nextSceneType.value || isPoping) {
             changeScene()
