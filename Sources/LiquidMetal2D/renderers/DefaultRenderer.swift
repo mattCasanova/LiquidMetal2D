@@ -12,7 +12,7 @@ import simd
 import MetalMath
 
 @available(iOS 13.0, *)
-public class DefaultRenderer: Renderer {    
+public class DefaultRenderer: Renderer, @unchecked Sendable {    
     
     private let renderCore: RenderCore
     private var renderPass: RenderPass!

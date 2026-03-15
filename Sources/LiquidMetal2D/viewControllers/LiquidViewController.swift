@@ -16,10 +16,12 @@ open class LiquidViewController: UIViewController {
   open override func viewDidLoad() {
     super.viewDidLoad()
     
-    NotificationCenter.default.addObserver(forName: UIDevice.orientationDidChangeNotification,
-                                           object: nil,
-                                           queue: .main,
-                                           using: didRotate)
+    NotificationCenter.default.addObserver(
+      forName: UIDevice.orientationDidChangeNotification,
+      object: nil,
+      queue: .main) { [weak self] _ in
+        self?.handleRotation()
+      }
     
   }
   
@@ -31,6 +33,10 @@ open class LiquidViewController: UIViewController {
   }
   
   open func didRotate(_ notification: Notification) {
+    handleRotation()
+  }
+
+  private func handleRotation() {
     guard let window = view.window else { return }
     gameEngine.resize(scale: window.screen.nativeScale, layerSize: view.bounds.size)
   }

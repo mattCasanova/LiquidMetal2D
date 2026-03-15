@@ -2,14 +2,64 @@ import XCTest
 @testable import LiquidMetal2D
 
 final class LiquidMetal2DTests: XCTestCase {
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct
-        // results.
-        XCTAssertEqual(LiquidMetal2D().text, "Hello, World!")
+
+    func testGameObjDefaults() {
+        let obj = GameObj()
+        XCTAssertEqual(obj.position.x, 0)
+        XCTAssertEqual(obj.position.y, 0)
+        XCTAssertEqual(obj.rotation, 0)
+        XCTAssertEqual(obj.zOrder, 0)
+        XCTAssertEqual(obj.textureID, 0)
     }
 
-    static var allTests = [
-        ("testExample", testExample),
-    ]
+    func testCamera2DDefaults() {
+        let camera = Camera2D()
+        XCTAssertEqual(camera.eye.x, 0)
+        XCTAssertEqual(camera.eye.y, 0)
+        XCTAssertEqual(camera.distance, 0)
+    }
+
+    func testCamera2DSet() {
+        let camera = Camera2D()
+        camera.set(x: 5, y: 10, distance: 50)
+        XCTAssertEqual(camera.eye.x, 5)
+        XCTAssertEqual(camera.eye.y, 10)
+        XCTAssertEqual(camera.distance, 50)
+    }
+
+    func testWorldBounds() {
+        let bounds = WorldBounds(maxX: 10, minX: -10, maxY: 5, minY: -5)
+        XCTAssertEqual(bounds.maxX, 10)
+        XCTAssertEqual(bounds.minX, -10)
+        XCTAssertEqual(bounds.maxY, 5)
+        XCTAssertEqual(bounds.minY, -5)
+    }
+
+    func testPerspectiveProjectionSet() {
+        let proj = PerspectiveProjection()
+        proj.set(aspect: 1.5, fov: 1.0, nearZ: 0.1, farZ: 100)
+        XCTAssertEqual(proj.aspect, 1.5)
+        XCTAssertEqual(proj.fov, 1.0)
+        XCTAssertEqual(proj.nearZ, 0.1)
+        XCTAssertEqual(proj.farZ, 100)
+    }
+
+    func testSchedulerAddAndClear() {
+        let scheduler = Scheduler()
+        var called = false
+        let task = Task(time: 1.0, action: { called = true }, count: 1)
+        scheduler.add(task: task)
+        scheduler.update(dt: 1.1)
+        XCTAssertTrue(called)
+    }
+
+    func testSchedulerInfiniteTask() {
+        let scheduler = Scheduler()
+        var callCount = 0
+        let task = Task(time: 0.5, action: { callCount += 1 }, count: Task.INFINITE)
+        scheduler.add(task: task)
+        scheduler.update(dt: 0.6)
+        scheduler.update(dt: 0.6)
+        XCTAssertEqual(callCount, 2)
+    }
 }

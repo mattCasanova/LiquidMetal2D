@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol State: class {
+public protocol State: AnyObject {
   func enter()
   func update(dt: Float)
   func exit()

@@ -5,7 +5,7 @@
 //  Created by Matt Casanova on 3/20/20.
 //
 
-public protocol Behavoir: class {
+public protocol Behavoir: AnyObject {
   var current: State! { get set }
 
   func setStartState(startState: State)

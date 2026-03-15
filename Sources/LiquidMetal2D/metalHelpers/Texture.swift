@@ -10,7 +10,7 @@ import UIKit
 
 public class Texture {
   
-  private static var sIdCounter = 0
+  nonisolated(unsafe) private static var sIdCounter = 0
   
   private static let BYTES_PER_PIXEL = 4
   private static let BITS_PER_COMPONENT = 8

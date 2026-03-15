@@ -10,7 +10,7 @@ import UIKit
 import simd
 import MetalMath
 
-public protocol Renderer: class {
+public protocol Renderer: AnyObject {
     var view: UIView  { get }
     var screenHeight: Float { get }
     var screenWidth:  Float  { get }
