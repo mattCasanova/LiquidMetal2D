@@ -35,12 +35,12 @@ public enum Intersect {
         let pointLineVector = point - start
 
         // If the sin of the angle between the two vectors in greater than zero, the point isn't on the line
-        if abs(simd_cross(lineVector, pointLineVector).z) > epsilon {
+        if abs(lineVector.cross(pointLineVector)) > epsilon {
             return false
         }
 
         let projectedLength = simd_dot(pointLineVector, simd_normalize(lineVector))
-        return isInRange(value: simd_length_squared(lineVector), low: 0, high: (projectedLength * projectedLength))
+        return isInRange(value: projectedLength * projectedLength, low: 0, high: simd_length_squared(lineVector))
     }
 
     public static func circleCircle(
