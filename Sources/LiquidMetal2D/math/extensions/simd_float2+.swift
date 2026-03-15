@@ -56,6 +56,15 @@ public extension simd_float2 {
         self.y = repeating
     }
 
+    /// Returns the z-component of the cross product of two 2D vectors (treating them as 3D with z=0).
+    /// While a true cross product requires 3D vectors, the z-component of the result is useful in 2D
+    /// for determining the sign of the angle between two vectors — positive means `other` is
+    /// counterclockwise from `self`, negative means clockwise. This is commonly used to decide
+    /// which direction to rotate toward a target.
+    func cross(_ other: simd_float2) -> Float {
+        return x * other.y - y * other.x
+    }
+
     func to3D(_ z: Float = 0) -> simd_float3 {
         return simd_float3(x, y, z)
     }
