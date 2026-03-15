@@ -13,6 +13,15 @@ public extension simd_float2 {
     /// The angle between this vector and the x axis
     var angle: Float { atan2(y, x) }
 
+    /// The length (magnitude) of this vector
+    var length: Float { simd_length(self) }
+
+    /// The squared length of this vector (avoids a sqrt — use for comparisons)
+    var lengthSquared: Float { simd_length_squared(self) }
+
+    /// Returns a unit vector in the same direction, or zero if length is zero
+    var normalized: simd_float2 { simd_normalize(self) }
+
     /// Convenience access for getting the u component when treating this like a texture coordinate
     var u: Float {
         get { x }

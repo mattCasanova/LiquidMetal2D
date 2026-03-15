@@ -7,7 +7,9 @@
 
 import simd
 
-public class Intersect {
+/// Namespace for 2D intersection/collision tests.
+/// Uses an enum instead of a class to prevent accidental instantiation.
+public enum Intersect {
     public static func pointCircle(point: simd_float2, circle: simd_float2, radius: Float) -> Bool {
         return simd_length_squared(point - circle) - (radius * radius) < epsilon
     }

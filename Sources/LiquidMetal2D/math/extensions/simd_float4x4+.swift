@@ -70,7 +70,7 @@ public extension simd_float4x4 {
     // MARK: - Mutating Methods
 
     mutating func setToZero() {
-        memset(&self, 0, MemoryLayout<simd_float4x4>.size)
+        self = simd_float4x4()
     }
 
     mutating func setDiagonal(_ diagonal: simd_float4) {

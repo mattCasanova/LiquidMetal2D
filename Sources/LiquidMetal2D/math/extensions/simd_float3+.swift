@@ -10,6 +10,15 @@ import simd
 public extension simd_float3 {
     var xy: simd_float2 { simd_float2(x, y) }
 
+    /// The length (magnitude) of this vector
+    var length: Float { simd_length(self) }
+
+    /// The squared length of this vector (avoids a sqrt — use for comparisons)
+    var lengthSquared: Float { simd_length_squared(self) }
+
+    /// Returns a unit vector in the same direction, or zero if length is zero
+    var normalized: simd_float3 { simd_normalize(self) }
+
     var r: Float {
         get { x }
         set { x = newValue }
