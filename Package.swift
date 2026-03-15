@@ -14,13 +14,11 @@ let package = Package(
             targets: ["LiquidMetal2D"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/mattCasanova/MetalMath.git", from: "0.2.0"),
         .package(url: "https://github.com/realm/SwiftLint", from: "0.63.2"),
     ],
     targets: [
         .target(
             name: "LiquidMetal2D",
-            dependencies: ["MetalMath"],
             plugins: [
                 .plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLint"),
             ]),

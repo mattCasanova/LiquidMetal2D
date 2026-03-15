@@ -7,7 +7,6 @@
 //
 
 import simd
-import MetalMath
 
 public class PerspectiveProjection {
     public static let defaultNearZ: Float = 0.1

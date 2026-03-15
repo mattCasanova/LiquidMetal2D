@@ -6,7 +6,6 @@
 //
 
 import simd
-import MetalMath
 
 public class CircleCollider: Collider, Circle {
     private unowned let obj: GameObj

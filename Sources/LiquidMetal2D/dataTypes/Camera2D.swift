@@ -7,7 +7,6 @@
 //
 
 import simd
-import MetalMath
 
 public class Camera2D {
     

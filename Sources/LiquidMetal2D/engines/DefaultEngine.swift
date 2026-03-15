@@ -8,7 +8,6 @@
 
 import UIKit
 import simd
-import MetalMath
 
 public class DefaultEngine: GameEngine, SceneManager, InputReader {
     private var touchLocation: simd_float2?

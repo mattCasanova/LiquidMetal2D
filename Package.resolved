@@ -1,5 +1,5 @@
 {
-  "originHash" : "edb6bdfdd606fbce2b6f846a94f3d46ef88f873d46947a392088ce411f0ec66f",
+  "originHash" : "c4bd44493e84f09e51c32d96e56cf47c3da5e40ad4ac9429ccd4b1a806ead21e",
   "pins" : [
     {
       "identity" : "collectionconcurrencykit",
@@ -17,15 +17,6 @@
       "state" : {
         "revision" : "e45a26384239e028ec87fbcc788f513b67e10d8f",
         "version" : "1.9.0"
-      }
-    },
-    {
-      "identity" : "metalmath",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/mattCasanova/MetalMath.git",
-      "state" : {
-        "revision" : "060e8636f8b0f10cf841b921cd61ec01a00ce711",
-        "version" : "0.2.1"
       }
     },
     {

@@ -6,7 +6,6 @@
 //
 
 import simd
-import MetalMath
 
 public protocol Collider {
     func doesCollideWith(collider: Collider) -> Bool

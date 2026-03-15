@@ -6,7 +6,6 @@
 //
 
 import simd
-import MetalMath
 
 public class PointCollider: Collider {
     private unowned let obj: GameObj

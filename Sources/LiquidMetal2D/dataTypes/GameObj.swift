@@ -7,7 +7,6 @@
 //
 
 import simd
-import MetalMath
 
 open class GameObj {
   public var position = simd_float2()

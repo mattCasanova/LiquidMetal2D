@@ -7,7 +7,6 @@
 //
 
 import simd
-import MetalMath
 
 @MainActor
 public protocol Scene {

@@ -8,7 +8,6 @@
 
 import UIKit
 import simd
-import MetalMath
 
 @MainActor
 public protocol Renderer: AnyObject {

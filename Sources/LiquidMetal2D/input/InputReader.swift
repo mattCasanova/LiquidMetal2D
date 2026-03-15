@@ -6,7 +6,6 @@
 //
 
 import simd
-import MetalMath
 
 @MainActor
 public protocol InputReader: AnyObject {

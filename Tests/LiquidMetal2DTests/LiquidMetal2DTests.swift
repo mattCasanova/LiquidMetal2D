@@ -47,16 +47,16 @@ final class LiquidMetal2DTests: XCTestCase {
     func testSchedulerAddAndClear() {
         let scheduler = Scheduler()
         var called = false
-        let task = Task(time: 1.0, action: { called = true }, count: 1)
+        let task = ScheduledTask(time: 1.0, action: { called = true }, count: 1)
         scheduler.add(task: task)
         scheduler.update(dt: 1.1)
         XCTAssertTrue(called)
     }
 
-    func testSchedulerInfiniteTask() {
+    func testSchedulerInfiniteScheduledTask() {
         let scheduler = Scheduler()
         var callCount = 0
-        let task = Task(time: 0.5, action: { callCount += 1 }, count: Task.INFINITE)
+        let task = ScheduledTask(time: 0.5, action: { callCount += 1 }, count: ScheduledTask.INFINITE)
         scheduler.add(task: task)
         scheduler.update(dt: 0.6)
         scheduler.update(dt: 0.6)

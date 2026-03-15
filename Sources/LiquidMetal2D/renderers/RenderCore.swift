@@ -9,7 +9,6 @@
 import UIKit
 import Metal
 import simd
-import MetalMath
 
 @available(iOS 13.0, *)
 @MainActor
