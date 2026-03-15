@@ -9,66 +9,64 @@
 import UIKit
 import simd
 
-
 open class LiquidViewController: UIViewController {
-  public var gameEngine: GameEngine!
-  
-  open override func viewDidLoad() {
-    super.viewDidLoad()
-    
-    NotificationCenter.default.addObserver(
-      forName: UIDevice.orientationDidChangeNotification,
-      object: nil,
-      queue: .main) { [weak self] _ in
-        self?.handleRotation()
-      }
-    
-  }
-  
-  open override func viewDidLayoutSubviews() {
-    super.viewDidLayoutSubviews()
-    
-    guard let window = view.window else { return }
-    gameEngine.resize(scale: window.screen.nativeScale, layerSize: view.bounds.size)
-  }
-  
-  open func didRotate(_ notification: Notification) {
-    handleRotation()
-  }
+    public var gameEngine: GameEngine!
 
-  private func handleRotation() {
-    guard let window = view.window else { return }
-    gameEngine.resize(scale: window.screen.nativeScale, layerSize: view.bounds.size)
-  }
-  
-  open override func viewWillDisappear(_ animated: Bool) {
-    super.viewWillDisappear(animated)
-    NotificationCenter.default.removeObserver(self, name: UIDevice.orientationDidChangeNotification, object: nil)
-  }
-  
-  open override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-    super.touchesBegan(touches, with: event)
-    
-    guard let raw = touches.first?.location(in: self.view) else {
-      gameEngine.setTouch(location: nil)
-      return
+    open override func viewDidLoad() {
+        super.viewDidLoad()
+
+        NotificationCenter.default.addObserver(
+            forName: UIDevice.orientationDidChangeNotification,
+            object: nil,
+            queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated {
+                    self?.handleRotation()
+                }
+            }
     }
-    
-    gameEngine.setTouch(location: simd_float2(Float(raw.x), Float(raw.y)))
-  }
-  
-  open override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-    gameEngine.setTouch(location: nil)
-  }
-  
-  open override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-    guard let raw = touches.first?.location(in: self.view) else {
-      gameEngine.setTouch(location: nil)
-      return
+
+    open override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+
+        guard let window = view.window else { return }
+        gameEngine.resize(scale: window.screen.nativeScale, layerSize: view.bounds.size)
     }
-       
-    gameEngine.setTouch(location: simd_float2(Float(raw.x), Float(raw.y)))
-  }
+
+    open func didRotate(_ notification: Notification) {
+        handleRotation()
+    }
+
+    private func handleRotation() {
+        guard let window = view.window else { return }
+        gameEngine.resize(scale: window.screen.nativeScale, layerSize: view.bounds.size)
+    }
+
+    open override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        NotificationCenter.default.removeObserver(self, name: UIDevice.orientationDidChangeNotification, object: nil)
+    }
+
+    open override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+
+        guard let raw = touches.first?.location(in: self.view) else {
+            gameEngine.setTouch(location: nil)
+            return
+        }
+
+        gameEngine.setTouch(location: simd_float2(Float(raw.x), Float(raw.y)))
+    }
+
+    open override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        gameEngine.setTouch(location: nil)
+    }
+
+    open override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let raw = touches.first?.location(in: self.view) else {
+            gameEngine.setTouch(location: nil)
+            return
+        }
+
+        gameEngine.setTouch(location: simd_float2(Float(raw.x), Float(raw.y)))
+    }
 }
-
-

@@ -6,6 +6,7 @@
 //
 
 import simd
+@MainActor
 public protocol InputWriter {
   func setTouch(location: simd_float2?)
 }

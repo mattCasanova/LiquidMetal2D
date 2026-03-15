@@ -8,6 +8,7 @@
 
 import Foundation
 
+@MainActor
 public protocol SceneManager: AnyObject {
     func setScene(type: SceneType)
     func pushScene(type: SceneType)
