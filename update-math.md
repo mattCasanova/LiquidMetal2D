@@ -9,31 +9,38 @@ Audit of the math code in LiquidMetal2D revealed several improvements ranging fr
 ### Math.swift — Constants & Utility Functions
 
 - [ ] **Replace custom pi with `Float.pi`** — use Swift's full-precision constant. `piOverTwo` and `twoPi` derive from it.
-- [ ] **Fix `wrap` stack overflow bug** — recursive implementation will crash if value is far outside range. Replace with modulo arithmetic using `truncatingRemainder(dividingBy:)`.
+- [ ] **Fix `wrap` stack overflow risk** — recursive implementation works for reasonable values but is theoretically risky for extreme ones. Replace with modulo arithmetic using `truncatingRemainder(dividingBy:)`.
 - [ ] **Add `simd_clamp` convenience** — keep the generic `clamp` (one-liner: `min(max(value, low), high)`) and add a simd-specific overload for `simd_float2` that calls `simd_clamp` under the hood.
 - [ ] **Add comment to `nextPowerOfTwo`** — document that passing an already-power-of-two value intentionally returns the NEXT power of two (e.g., 4 → 8).
 - [ ] **Move all functions into a `GameMath` enum** — namespace them to avoid polluting global scope. Constants become static properties (`GameMath.pi`, `GameMath.epsilon`). Matches the `Intersect` enum pattern.
 
 ### Intersect.swift — Collision Tests
 
-- [ ] **`pointLineSegment` range check may be inverted** — line 43 compares `simd_length_squared(lineVector)` as the value and `projectedLength * projectedLength` as the high bound. Should be the other way: check if the projection falls within the line's length range. Needs verification with test cases.
-- [ ] **`simd_cross` on float2** — line 38 calls `simd_cross(lineVector, pointLineVector)` which requires float3. Should use the `lineVector.cross(pointLineVector)` helper we added. Cleaner and avoids any implicit conversion weirdness.
-- [ ] **`circleLineSegment` edge case** — the early-out check on line 90 compares `(adjustedEndLength * adjustedEndLength) > simd_length_squared(lineVector)` but `adjustedEndLength` includes the radius offset while the line length doesn't. Could miss circles overlapping the segment endpoints. Needs verification with test cases.
+- [x] **`pointLineSegment` range check was inverted** — FIXED in 0.3.3. The `isInRange` arguments were swapped — it was checking if the line length was in range of the projection instead of vice versa. Confirmed with 3 failing tests, now all passing.
+- [x] **`simd_cross` on float2** — FIXED in 0.3.3. Replaced with `lineVector.cross(pointLineVector)` using our helper.
+- [x] **`circleLineSegment` edge case** — VERIFIED correct. Wrote 8 edge case tests (perpendicular near miss, endpoint overlap, before start, past end, diagonal, etc.) — all passed. No bug here.
 
 ### Circle.swift — Protocol Design
 
 - [ ] **Make Circle properties get-only** — currently `center` and `radius` are `{ get set }`. Intersection tests only need `{ get }`. Making them read-only is less restrictive for conforming types.
 
+### Previously completed (earlier commits)
+
+- [x] **Intersect class → enum** — prevents accidental instantiation (0.3.2)
+- [x] **setToZero() cleanup** — replaced `memset` with `self = simd_float4x4()` (0.3.2)
+- [x] **Added length/lengthSquared/normalized** — to simd_float2 and simd_float3 (0.3.2)
+- [x] **Added cross() helper** — 2D cross product on simd_float2 (0.3.1)
+- [x] **99 tests written** — covering math utilities, SIMD extensions, matrices, and all intersection methods (0.3.3)
+
 ## Notes
 
 - Moving to `GameMath` enum is a **breaking API change** for any code calling `degreeToRadian()`, `clamp()`, etc. as free functions. The Demo project will need updating.
-- The Intersect issues (pointLineSegment, circleLineSegment) should be verified with unit tests before and after changes to make sure we don't break working collision detection.
-- The `simd_cross` call might actually work via implicit promotion to float3 — need to verify it compiles without the cross helper. Either way, switching to `.cross()` is cleaner.
+- The `wrap` function works for all tested values including 1000 and -1000, but the recursive approach is still theoretically O(n) for extreme inputs.
 
 ## Verification
 
-1. All existing tests pass
-2. Add new tests for `wrap` edge cases (large values, negative values)
-3. Add tests for `pointLineSegment` and `circleLineSegment` to verify correctness before/after fix
-4. Demo project updated to use `GameMath.` prefix
+1. ~~Add new tests for math, SIMD, intersect~~ — done (99 tests)
+2. ~~Verify pointLineSegment bug and fix~~ — done
+3. ~~Verify circleLineSegment edge cases~~ — done, all pass
+4. Demo project updated to use `GameMath.` prefix (when enum migration happens)
 5. Build and run demo to verify no regressions

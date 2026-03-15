@@ -7,7 +7,7 @@
 
 import simd
 
-public class CircleCollider: Collider, Circle {
+public class CircleCollider: Collider, MutableCircle {
     private unowned let obj: GameObj
     public var radius: Float
 

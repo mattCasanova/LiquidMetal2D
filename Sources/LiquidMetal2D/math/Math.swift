@@ -1,83 +1,122 @@
 //
-//  MetalMath.swift
+//  GameMath.swift
 //
 //
 //  Created by Matt Casanova on 4/2/20.
 //
 
-public let epsilon: Float   = 0.00001
-public let pi: Float        = 3.14159265358979
-public let piOverTwo: Float = pi / 2
-public let twoPi: Float     = 2 * pi
+import simd
 
-let radianConversion = 180 / pi
-let degreeConversion = pi / 180
+/// Namespace for math constants and utility functions.
+public enum GameMath {
 
-public func radianToDegree(_ radian: Float) -> Float {
-    return radian * radianConversion
-}
+    // MARK: - Constants
 
-public func degreeToRadian(_ degree: Float) -> Float {
-    return degree * degreeConversion
-}
+    public static let epsilon: Float   = 0.00001
+    public static let pi: Float        = Float.pi
+    public static let piOverTwo: Float = Float.pi / 2
+    public static let twoPi: Float     = Float.pi * 2
 
-public func clamp<T: Comparable>(value: T, low: T, high: T) -> T {
-    if value < low {
-        return low
+    private static let radianConversion: Float = 180 / Float.pi
+    private static let degreeConversion: Float = Float.pi / 180
+
+    // MARK: - Angle Conversion
+
+    public static func radianToDegree(_ radian: Float) -> Float {
+        return radian * radianConversion
     }
 
-    if value > high {
-        return high
+    public static func degreeToRadian(_ degree: Float) -> Float {
+        return degree * degreeConversion
     }
 
-    return value
-}
+    // MARK: - Clamping
 
-public func wrapEdge<T: Comparable>(value: T, low: T, high: T) -> T {
-    if value < low {
-        return high
+    /// Clamps a value to the range [low, high].
+    public static func clamp<T: Comparable>(value: T, low: T, high: T) -> T {
+        return min(max(value, low), high)
     }
 
-    if value > high {
-        return low
-    }
-    return value
-}
-
-public func wrap<T: Comparable & Numeric>(value: T, low: T, high: T) -> T {
-    if value < low {
-        return wrap(value: high + value - low, low: low, high: high)
+    /// Clamps a simd_float2 component-wise to the range [low, high].
+    public static func clamp(value: simd_float2, low: simd_float2, high: simd_float2) -> simd_float2 {
+        return simd_clamp(value, low, high)
     }
 
-    if value > high {
-        return wrap(value: low + value - high, low: low, high: high)
+    /// Clamps a simd_float3 component-wise to the range [low, high].
+    public static func clamp(value: simd_float3, low: simd_float3, high: simd_float3) -> simd_float3 {
+        return simd_clamp(value, low, high)
     }
 
-    return value
+    // MARK: - Wrapping
+
+    /// Snaps to the opposite edge when value crosses a boundary.
+    /// Unlike `wrap`, this doesn't preserve the overshoot amount.
+    public static func wrapEdge<T: Comparable>(value: T, low: T, high: T) -> T {
+        if value < low { return high }
+        if value > high { return low }
+        return value
+    }
+
+    /// Wraps a float value into the range [low, high] using modulo arithmetic.
+    /// Safe for any input magnitude — no recursion or stack overflow risk.
+    public static func wrap(value: Float, low: Float, high: Float) -> Float {
+        let range = high - low
+        guard range > 0 else { return low }
+
+        let offset = (value - low).truncatingRemainder(dividingBy: range)
+        return offset >= 0 ? low + offset : low + offset + range
+    }
+
+    // MARK: - Range Checking
+
+    public static func isInRange<T: Comparable>(value: T, low: T, high: T) -> Bool {
+        return value >= low && value <= high
+    }
+
+    // MARK: - Float Comparison
+
+    public static func isFloatEqual(_ x: Float, _ y: Float) -> Bool {
+        return abs(x - y) < epsilon
+    }
+
+    // MARK: - Power of Two
+
+    public static func isPowerOfTwo(_ value: Int) -> Bool {
+        // A power of two only has one bit set. Subtracting 1 flips all lower bits.
+        // AND-ing them together gives 0 only for powers of two.
+        return (value > 0) && (value & (value - 1)) == 0
+    }
+
+    /// Returns the next power of two greater than the input value.
+    /// Note: if the input is already a power of two, this returns the NEXT one
+    /// (e.g., 4 → 8, 64 → 128). This is intentional.
+    public static func nextPowerOfTwo(_ value: Int) -> Int {
+        var x = value
+        x |= x >> 1
+        x |= x >> 2
+        x |= x >> 4
+        x |= x >> 8
+        x |= x >> 16
+        x += 1
+        return x
+    }
 }
 
-public func isInRange<T: Comparable>(value: T, low: T, high: T) -> Bool {
-    return (value >= low && value <= high)
-}
+// MARK: - Global Convenience Aliases
 
-public func isFloatEqual(_ x: Float, _ y: Float) -> Bool {
-    return abs(x - y) < epsilon
-}
+// These allow calling GameMath functions without the prefix for common operations.
+// Keeps game code concise while still having the enum namespace available.
+public let epsilon = GameMath.epsilon
+public let pi = GameMath.pi
+public let piOverTwo = GameMath.piOverTwo
+public let twoPi = GameMath.twoPi
 
-public func isPowerOfTwo(_ value: Int) -> Bool {
-    // Make sure it is a positive number. Since a power of two only has one bit
-    // turned on, if we subtract 1 and 'and' them together no bits should be on.
-    return ((value > 0) && (value & (value - 1)) == 0)
-}
-
-public func nextPowerOfTwo(_ value: Int) -> Int {
-    // Turn on all of the bits lower than the highest on bit. Then add one.
-    var x = value
-    x |= x >> 1
-    x |= x >> 2
-    x |= x >> 4
-    x |= x >> 8
-    x |= x >> 16
-    x += 1
-    return x
-}
+public func radianToDegree(_ radian: Float) -> Float { GameMath.radianToDegree(radian) }
+public func degreeToRadian(_ degree: Float) -> Float { GameMath.degreeToRadian(degree) }
+public func clamp<T: Comparable>(value: T, low: T, high: T) -> T { GameMath.clamp(value: value, low: low, high: high) }
+public func wrapEdge<T: Comparable>(value: T, low: T, high: T) -> T { GameMath.wrapEdge(value: value, low: low, high: high) }
+public func wrap(value: Float, low: Float, high: Float) -> Float { GameMath.wrap(value: value, low: low, high: high) }
+public func isInRange<T: Comparable>(value: T, low: T, high: T) -> Bool { GameMath.isInRange(value: value, low: low, high: high) }
+public func isFloatEqual(_ x: Float, _ y: Float) -> Bool { GameMath.isFloatEqual(x, y) }
+public func isPowerOfTwo(_ value: Int) -> Bool { GameMath.isPowerOfTwo(value) }
+public func nextPowerOfTwo(_ value: Int) -> Int { GameMath.nextPowerOfTwo(value) }
