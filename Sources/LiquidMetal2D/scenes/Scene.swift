@@ -36,7 +36,7 @@ open class DefaultScene: Scene {
         self.input = input
 
         renderer.setCamera(point: simd_float3(0, 0, Camera2D.defaultDistance))
-        renderer.setPerspective(fov: degreeToRadian(getFOV()),
+        renderer.setPerspective(fov: GameMath.degreeToRadian(getFOV()),
                                 aspect: renderer.screenAspect,
                                 nearZ: PerspectiveProjection.defaultNearZ,
                                 farZ: PerspectiveProjection.defaultFarZ)
@@ -72,7 +72,7 @@ open class DefaultScene: Scene {
 
     public func resize() {
         renderer.setPerspective(
-            fov: degreeToRadian(getFOV()),
+            fov: GameMath.degreeToRadian(getFOV()),
             aspect: renderer.screenAspect,
             nearZ: PerspectiveProjection.defaultNearZ,
             farZ: PerspectiveProjection.defaultFarZ)

@@ -85,5 +85,5 @@ public extension simd_float2 {
 
 public func simd_epsilon_equal(lhs: simd_float2, rhs: simd_float2) -> Bool {
     let diff = simd_abs(lhs - rhs)
-    return diff.x < epsilon && diff.y < epsilon
+    return diff.x < GameMath.epsilon && diff.y < GameMath.epsilon
 }

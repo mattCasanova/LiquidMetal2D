@@ -101,22 +101,3 @@ public enum GameMath {
         return x
     }
 }
-
-// MARK: - Global Convenience Aliases
-
-// These allow calling GameMath functions without the prefix for common operations.
-// Keeps game code concise while still having the enum namespace available.
-public let epsilon = GameMath.epsilon
-public let pi = GameMath.pi
-public let piOverTwo = GameMath.piOverTwo
-public let twoPi = GameMath.twoPi
-
-public func radianToDegree(_ radian: Float) -> Float { GameMath.radianToDegree(radian) }
-public func degreeToRadian(_ degree: Float) -> Float { GameMath.degreeToRadian(degree) }
-public func clamp<T: Comparable>(value: T, low: T, high: T) -> T { GameMath.clamp(value: value, low: low, high: high) }
-public func wrapEdge<T: Comparable>(value: T, low: T, high: T) -> T { GameMath.wrapEdge(value: value, low: low, high: high) }
-public func wrap(value: Float, low: Float, high: Float) -> Float { GameMath.wrap(value: value, low: low, high: high) }
-public func isInRange<T: Comparable>(value: T, low: T, high: T) -> Bool { GameMath.isInRange(value: value, low: low, high: high) }
-public func isFloatEqual(_ x: Float, _ y: Float) -> Bool { GameMath.isFloatEqual(x, y) }
-public func isPowerOfTwo(_ value: Int) -> Bool { GameMath.isPowerOfTwo(value) }
-public func nextPowerOfTwo(_ value: Int) -> Int { GameMath.nextPowerOfTwo(value) }

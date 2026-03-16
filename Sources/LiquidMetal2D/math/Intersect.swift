@@ -11,11 +11,11 @@ import simd
 /// Uses an enum instead of a class to prevent accidental instantiation.
 public enum Intersect {
     public static func pointCircle(point: simd_float2, circle: simd_float2, radius: Float) -> Bool {
-        return simd_length_squared(point - circle) - (radius * radius) < epsilon
+        return simd_length_squared(point - circle) - (radius * radius) < GameMath.epsilon
     }
 
     public static func pointCircle(point: simd_float2, circle: Circle) -> Bool {
-        return simd_length_squared(point - circle.center) - (circle.radius * circle.radius) < epsilon
+        return simd_length_squared(point - circle.center) - (circle.radius * circle.radius) < GameMath.epsilon
     }
 
     public static func pointAABB(point: simd_float2, center: simd_float2, width: Float, height: Float) -> Bool {
@@ -26,8 +26,8 @@ public enum Intersect {
         let adjustedPoint = point - center
 
         // If the new point is inside the rect, it is intersecting
-        return isInRange(value: adjustedPoint.x, low: -halfWidth, high: halfWidth) &&
-            isInRange(value: adjustedPoint.y, low: -halfHeight, high: halfHeight)
+        return GameMath.isInRange(value: adjustedPoint.x, low: -halfWidth, high: halfWidth) &&
+            GameMath.isInRange(value: adjustedPoint.y, low: -halfHeight, high: halfHeight)
     }
 
     public static func pointLineSegment(point: simd_float2, start: simd_float2, end: simd_float2) -> Bool {
@@ -35,24 +35,24 @@ public enum Intersect {
         let pointLineVector = point - start
 
         // If the sin of the angle between the two vectors in greater than zero, the point isn't on the line
-        if abs(lineVector.cross(pointLineVector)) > epsilon {
+        if abs(lineVector.cross(pointLineVector)) > GameMath.epsilon {
             return false
         }
 
         let projectedLength = simd_dot(pointLineVector, simd_normalize(lineVector))
-        return isInRange(value: projectedLength * projectedLength, low: 0, high: simd_length_squared(lineVector))
+        return GameMath.isInRange(value: projectedLength * projectedLength, low: 0, high: simd_length_squared(lineVector))
     }
 
     public static func circleCircle(
         center1: simd_float2, center2: simd_float2, radius1: Float, radius2: Float
     ) -> Bool {
         let radius = radius1 + radius2
-        return simd_length_squared(center1 - center2) - (radius * radius) < epsilon
+        return simd_length_squared(center1 - center2) - (radius * radius) < GameMath.epsilon
     }
 
     public static func circleCircle(_ first: Circle, _ second: Circle) -> Bool {
         let radius = first.radius + second.radius
-        return simd_length_squared(first.center - second.center) - (radius * radius) < epsilon
+        return simd_length_squared(first.center - second.center) - (radius * radius) < GameMath.epsilon
     }
 
     public static func circleAABB(
@@ -68,8 +68,8 @@ public enum Intersect {
             simd_float2(-halfWidth, -halfHeight),
             simd_float2(halfWidth, halfHeight))
 
-        if isInRange(value: adjustedPoint.x, low: -halfWidth, high: halfWidth) &&
-            isInRange(value: adjustedPoint.y, low: -halfHeight, high: halfHeight) {
+        if GameMath.isInRange(value: adjustedPoint.x, low: -halfWidth, high: halfWidth) &&
+            GameMath.isInRange(value: adjustedPoint.y, low: -halfHeight, high: halfHeight) {
             return true
         }
 
