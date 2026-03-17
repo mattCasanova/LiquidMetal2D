@@ -10,9 +10,13 @@ public enum GameMath {
 
     // MARK: - Constants
 
+    /// Tolerance used for floating-point comparisons.
     public static let epsilon: Float   = 0.00001
+    /// The constant pi (3.14159...).
     public static let pi: Float        = Float.pi
+    /// Half of pi (pi / 2).
     public static let piOverTwo: Float = pi / 2
+    /// Two times pi (2 * pi), a full rotation in radians.
     public static let twoPi: Float     = pi * 2
 
     private static let radianConversion: Float = 180 / pi
@@ -20,10 +24,12 @@ public enum GameMath {
 
     // MARK: - Angle Conversion
 
+    /// Converts radians to degrees.
     public static func radianToDegree(_ radian: Float) -> Float {
         return radian * radianConversion
     }
 
+    /// Converts degrees to radians.
     public static func degreeToRadian(_ degree: Float) -> Float {
         return degree * degreeConversion
     }
@@ -67,18 +73,21 @@ public enum GameMath {
 
     // MARK: - Range Checking
 
+    /// Returns `true` if `value` is within the closed range [low, high].
     public static func isInRange<T: Comparable>(value: T, low: T, high: T) -> Bool {
         return value >= low && value <= high
     }
 
     // MARK: - Float Comparison
 
+    /// Returns `true` if two floats are equal within `epsilon` tolerance.
     public static func isFloatEqual(_ x: Float, _ y: Float) -> Bool {
         return abs(x - y) < epsilon
     }
 
     // MARK: - Power of Two
 
+    /// Returns `true` if the given integer is a power of two.
     public static func isPowerOfTwo(_ value: Int) -> Bool {
         // A power of two only has one bit set. Subtracting 1 flips all lower bits.
         // AND-ing them together gives 0 only for powers of two.
@@ -101,14 +110,17 @@ public enum GameMath {
 
     // MARK: - Interpolation
 
+    /// Linearly interpolates between two floats by factor `t` (0–1).
     public static func lerp(a: Float, b: Float, t: Float) -> Float {
         return a + (b - a) * t
     }
 
+    /// Linearly interpolates between two Vec2 values by factor `t` (0–1).
     public static func lerp(a: Vec2, b: Vec2, t: Float) -> Vec2 {
         return a + (b - a) * t
     }
 
+    /// Linearly interpolates between two Vec3 values by factor `t` (0–1).
     public static func lerp(a: Vec3, b: Vec3, t: Float) -> Vec3 {
         return a + (b - a) * t
     }
@@ -119,6 +131,13 @@ public enum GameMath {
     }
 
     /// Remaps a value from one range to another.
+    /// - Parameters:
+    ///   - value: The input value to remap.
+    ///   - fromLow: Lower bound of the source range.
+    ///   - fromHigh: Upper bound of the source range.
+    ///   - toLow: Lower bound of the destination range.
+    ///   - toHigh: Upper bound of the destination range.
+    /// - Returns: The value mapped from [fromLow, fromHigh] into [toLow, toHigh].
     public static func remap(value: Float, fromLow: Float, fromHigh: Float, toLow: Float, toHigh: Float) -> Float {
         let t = inverseLerp(a: fromLow, b: fromHigh, value: value)
         return lerp(a: toLow, b: toHigh, t: t)

@@ -48,19 +48,32 @@ public extension Vec2 {
         self.y = y
     }
 
+    /// Sets the x and y components from texture coordinates u and v.
     mutating func set(u: Float, v: Float) {
         self.x = u
         self.y = v
     }
 
+    /// Sets this vector to a unit vector at the given angle (radians).
     mutating func set(angle: Float) {
         self.x = cos(angle)
         self.y = sin(angle)
     }
 
+    /// Sets both components to the same value.
     mutating func set(repeating: Float) {
         self.x = repeating
         self.y = repeating
+    }
+
+    /// Returns the dot product of this vector and `other`.
+    func dot(_ other: Vec2) -> Float {
+        return simd_dot(self, other)
+    }
+
+    /// Returns the distance from this vector to `other`.
+    func distance(to other: Vec2) -> Float {
+        return simd_distance(self, other)
     }
 
     /// Returns the z-component of the cross product of two 2D vectors (treating them as 3D with z=0).
@@ -68,18 +81,11 @@ public extension Vec2 {
     /// for determining the sign of the angle between two vectors — positive means `other` is
     /// counterclockwise from `self`, negative means clockwise. This is commonly used to decide
     /// which direction to rotate toward a target.
-    func dot(_ other: Vec2) -> Float {
-        return simd_dot(self, other)
-    }
-
-    func distance(to other: Vec2) -> Float {
-        return simd_distance(self, other)
-    }
-
     func cross(_ other: Vec2) -> Float {
         return x * other.y - y * other.x
     }
 
+    /// Returns a random Vec2 with each component sampled from the given ranges.
     static func random(x: ClosedRange<Float>, y: ClosedRange<Float>) -> Vec2 {
         return Vec2(Float.random(in: x), Float.random(in: y))
     }
@@ -90,15 +96,18 @@ public extension Vec2 {
         return Vec2(cos(angle), sin(angle))
     }
 
+    /// Extends this Vec2 to a Vec3 with the given z component (default 0).
     func to3D(_ z: Float = 0) -> Vec3 {
         return Vec3(x, y, z)
     }
 
+    /// Extends this Vec2 to a Vec4 with the given z and w components.
     func to4D(z: Float, w: Float) -> Vec4 {
         return Vec4(x, y, z, w)
     }
 }
 
+/// Returns `true` if two Vec2 values are equal within `GameMath.epsilon` tolerance.
 public func simd_epsilon_equal(lhs: Vec2, rhs: Vec2) -> Bool {
     let diff = simd_abs(lhs - rhs)
     return diff.x < GameMath.epsilon && diff.y < GameMath.epsilon
