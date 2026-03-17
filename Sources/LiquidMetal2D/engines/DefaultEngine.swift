@@ -8,113 +8,89 @@
 
 import UIKit
 
-public class DefaultEngine: GameEngine, SceneManager, InputReader {
+/// Default game engine implementation. Runs the main game loop via
+/// CADisplayLink and delegates scene management to a ``SceneManager``.
+///
+/// Conforms to ``GameEngine`` (loop + rendering) and ``InputReader``
+/// (touch input). Create one in your `UIViewController.viewDidLoad()`:
+///
+/// ```swift
+/// gameEngine = DefaultEngine(
+///     renderer: renderer,
+///     initialSceneType: MyScenes.menu,
+///     sceneFactory: factory)
+/// gameEngine.run()
+/// ```
+public class DefaultEngine: GameEngine, InputReader {
+    /// Frames with a delta time above this threshold are skipped.
+    /// Prevents physics explosions after backgrounding or debugger pauses.
+    private static let maxFrameTime: Float = 5
+
     private var touchLocation: Vec2?
 
     public var timer: CADisplayLink!
     public var lastFrameTime: Double = 0.0
 
     public let renderer: Renderer
-    public let sceneFactory: SceneFactory
+    public let sceneManager: SceneManager
 
-    public var currentSceneType: AnyHashable
-    public var nextSceneType: AnyHashable
-    public var currentScene: Scene
-
-    private var isPushing = false
-    private var isPoping = false
-    private var sceneStack = [SceneData]()
-
-    public init(renderer: Renderer, intitialSceneType: some SceneType, sceneFactory: SceneFactory) {
-        currentSceneType = intitialSceneType
-        nextSceneType = intitialSceneType
-
+    /// Creates the engine, builds the initial scene, and prepares for the game loop.
+    ///
+    /// - Parameters:
+    ///   - renderer: The renderer to use for all drawing.
+    ///   - initialSceneType: The first scene to display.
+    ///   - sceneFactory: Registry mapping scene types to builders.
+    public init(renderer: Renderer, initialSceneType: some SceneType, sceneFactory: SceneFactory) {
         self.renderer = renderer
-        self.sceneFactory = sceneFactory
+        self.sceneManager = SceneManager(
+            initialSceneType: initialSceneType,
+            sceneFactory: sceneFactory,
+            renderer: renderer)
 
-        currentScene = sceneFactory.get(intitialSceneType).build()
-        currentScene.initialize(sceneMgr: self, renderer: renderer, input: self)
+        sceneManager.start(input: self)
     }
 
+    /// Starts the game loop by attaching a CADisplayLink to the main run loop.
     public func run() {
         timer = CADisplayLink(target: self, selector: #selector(gameLoop(displayLink:)))
         lastFrameTime = timer.timestamp
         timer.add(to: RunLoop.main, forMode: .default)
     }
 
+    /// Called every frame by the display link. Skips frames with excessive
+    /// delta time, performs pending scene transitions, then updates and draws.
     @objc public func gameLoop(displayLink: CADisplayLink) {
         let dt: Float = Float(displayLink.timestamp - lastFrameTime)
         lastFrameTime = displayLink.timestamp
 
-        guard dt < 5 else { return }
+        if dt > DefaultEngine.maxFrameTime { return }
 
-        if currentSceneType != nextSceneType || isPoping {
-            changeScene()
+        if sceneManager.needsTransition {
+            sceneManager.performTransition()
             return
         }
 
         autoreleasepool {
-            currentScene.update(dt: dt)
-            currentScene.draw()
+            sceneManager.currentScene.update(dt: dt)
+            sceneManager.currentScene.draw()
         }
     }
 
     // MARK: - InputReader, InputWriter
 
+    /// Returns the touch location unprojected to world coordinates at the given z depth.
     public func getWorldTouch(forZ z: Float) -> Vec3? {
         guard let touch = touchLocation else { return nil }
         return renderer.unproject(screenWithWorldZ: touch.to3D(z))
     }
 
+    /// Returns the raw screen-space touch location, or nil if no touch is active.
     public func getScreenTouch() -> Vec2? {
         return touchLocation
     }
 
+    /// Sets the current touch location. Pass nil to clear.
     public func setTouch(location: Vec2?) {
         touchLocation = location
-    }
-
-    // MARK: - Scene Manager Methods
-
-    public func setScene(type: some SceneType) {
-        nextSceneType = type
-    }
-
-    public func pushScene(type: some SceneType) {
-        isPushing = true
-        nextSceneType = type
-    }
-
-    public func popScene() {
-        if !sceneStack.isEmpty {
-            isPoping = true
-        }
-    }
-
-    private func changeScene() {
-        if isPushing {
-            sceneStack.append(SceneData(scene: currentScene, type: currentSceneType))
-            currentSceneType = nextSceneType
-
-            currentScene = sceneFactory.get(currentSceneType).build()
-            currentScene.initialize(sceneMgr: self, renderer: renderer, input: self)
-        } else if isPoping {
-            guard let sceneData = sceneStack.popLast() else { return }
-
-            currentScene.shutdown()
-            currentScene = sceneData.scene
-            currentSceneType = sceneData.type
-            nextSceneType = currentSceneType
-
-            currentScene.resume()
-        } else {
-            currentSceneType = nextSceneType
-            currentScene.shutdown()
-            currentScene = sceneFactory.get(currentSceneType).build()
-            currentScene.initialize(sceneMgr: self, renderer: renderer, input: self)
-        }
-
-        isPushing = false
-        isPoping = false
     }
 }

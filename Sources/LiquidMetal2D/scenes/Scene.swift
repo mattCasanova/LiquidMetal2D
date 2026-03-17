@@ -6,22 +6,52 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
+/// A single screen or state in the game (menu, gameplay, pause, etc.).
+///
+/// Scenes are created by a ``SceneBuilder`` and managed by ``SceneManager``.
+/// The lifecycle is: `build()` → `initialize` → `update`/`draw` loop →
+/// `shutdown`. Pushed scenes may also receive `resume()` after a pop.
 @MainActor
 public protocol Scene {
+    /// Called once after building to inject dependencies.
     func initialize(sceneMgr: SceneManager, renderer: Renderer, input: InputReader)
+
+    /// Called when this scene is restored from the stack after a pop.
     func resume()
+
+    /// Called when the screen size or orientation changes.
     func resize()
+
+    /// Called every frame to advance game logic.
+    /// - Parameter dt: Delta time in seconds since the last frame.
     func update(dt: Float)
+
+    /// Called every frame after update to render the scene.
     func draw()
+
+    /// Called when the scene is being replaced or popped. Clean up resources here.
     func shutdown()
 
+    /// Factory method. Return a new instance of this scene.
     static func build() -> Scene
 }
 
+/// Base scene class with default implementations and standard setup.
+///
+/// Subclass this for scenes that use the standard 2D perspective camera
+/// and render a list of ``GameObj`` instances. Override `update(dt:)` for
+/// game logic and optionally `draw()` for custom rendering.
 open class DefaultScene: Scene {
+    /// The scene manager for triggering transitions.
     public var sceneMgr: SceneManager!
+
+    /// The renderer for drawing.
     public var renderer: Renderer!
+
+    /// The input reader for touch input.
     public var input: InputReader!
+
+    /// The list of game objects to draw each frame.
     public var objects: [GameObj]
 
     public init() {
@@ -45,6 +75,7 @@ open class DefaultScene: Scene {
         return PerspectiveProjection.defaultFOV / (renderer.screenWidth / renderer.screenHeight)
     }
 
+    /// Draws all objects in the ``objects`` array using their transform and texture.
     public func draw() {
         let worldUniforms = WorldUniform()
 

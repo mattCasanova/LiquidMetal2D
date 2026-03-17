@@ -5,6 +5,16 @@
 //  Created by Matt Casanova on 3/6/20.
 //
 
+/// Registry that maps scene types to their builders.
+///
+/// Register scenes during setup, then ``SceneManager`` uses `get(_:)` to
+/// build scenes on demand during transitions.
+///
+/// ```swift
+/// let factory = SceneFactory()
+/// factory.addScene(type: MyScenes.menu, builder: TSceneBuilder<MenuScene>())
+/// factory.addScene(type: MyScenes.gameplay, builder: TSceneBuilder<GameplayScene>())
+/// ```
 public class SceneFactory {
 
     private var builderMap = [AnyHashable: SceneBuilder]()
@@ -12,19 +22,22 @@ public class SceneFactory {
     public init() {
     }
 
+    /// Registers a scene builder for the given type.
     public func addScene(type: some SceneType, builder: SceneBuilder) {
-        builderMap[type] = builder
+        builderMap[AnyHashable(type)] = builder
     }
 
+    /// Removes the builder registered for the given type.
     public func removeScene(_ type: some SceneType) {
-        builderMap.removeValue(forKey: type)
+        builderMap.removeValue(forKey: AnyHashable(type))
     }
 
-    public func get(_ type: some SceneType) -> SceneBuilder {
-        return builderMap[type]!
-    }
-
-    public func get(_ type: AnyHashable) -> SceneBuilder {
-        return builderMap[type]!
+    /// Returns the builder for the given type.
+    /// Crashes with a descriptive message if the type was never registered.
+    public func get(_ type: any SceneType) -> SceneBuilder {
+        guard let builder = builderMap[AnyHashable(type)] else {
+            fatalError("No scene registered for type: \(type)")
+        }
+        return builder
     }
 }
