@@ -7,20 +7,24 @@
 
 public class SceneFactory {
 
-    private var builderMap = [Int: SceneBuilder]()
+    private var builderMap = [AnyHashable: SceneBuilder]()
 
     public init() {
     }
 
-    public func addScene(type: SceneType, builder: SceneBuilder) {
-        builderMap[type.value] = builder
+    public func addScene(type: some SceneType, builder: SceneBuilder) {
+        builderMap[type] = builder
     }
 
-    public func removeScene(_ type: SceneType) {
-        builderMap.removeValue(forKey: type.value)
+    public func removeScene(_ type: some SceneType) {
+        builderMap.removeValue(forKey: type)
     }
 
-    public func get(_ type: SceneType) -> SceneBuilder {
-        return builderMap[type.value]!
+    public func get(_ type: some SceneType) -> SceneBuilder {
+        return builderMap[type]!
+    }
+
+    public func get(_ type: AnyHashable) -> SceneBuilder {
+        return builderMap[type]!
     }
 }

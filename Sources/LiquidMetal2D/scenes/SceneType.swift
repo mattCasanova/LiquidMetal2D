@@ -6,8 +6,4 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-import Foundation
-
-public protocol SceneType {
-    var value: Int { get }
-}
+public protocol SceneType: Hashable {}

@@ -17,15 +17,15 @@ public class DefaultEngine: GameEngine, SceneManager, InputReader {
     public let renderer: Renderer
     public let sceneFactory: SceneFactory
 
-    public var currentSceneType: SceneType
-    public var nextSceneType: SceneType
+    public var currentSceneType: AnyHashable
+    public var nextSceneType: AnyHashable
     public var currentScene: Scene
 
     private var isPushing = false
     private var isPoping = false
     private var sceneStack = [SceneData]()
 
-    public init(renderer: Renderer, intitialSceneType: SceneType, sceneFactory: SceneFactory) {
+    public init(renderer: Renderer, intitialSceneType: some SceneType, sceneFactory: SceneFactory) {
         currentSceneType = intitialSceneType
         nextSceneType = intitialSceneType
 
@@ -48,7 +48,7 @@ public class DefaultEngine: GameEngine, SceneManager, InputReader {
 
         guard dt < 5 else { return }
 
-        if currentSceneType.value != nextSceneType.value || isPoping {
+        if currentSceneType != nextSceneType || isPoping {
             changeScene()
             return
         }
@@ -76,11 +76,11 @@ public class DefaultEngine: GameEngine, SceneManager, InputReader {
 
     // MARK: - Scene Manager Methods
 
-    public func setScene(type: SceneType) {
+    public func setScene(type: some SceneType) {
         nextSceneType = type
     }
 
-    public func pushScene(type: SceneType) {
+    public func pushScene(type: some SceneType) {
         isPushing = true
         nextSceneType = type
     }

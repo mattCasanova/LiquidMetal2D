@@ -6,11 +6,9 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-import Foundation
-
 @MainActor
 public protocol SceneManager: AnyObject {
-    func setScene(type: SceneType)
-    func pushScene(type: SceneType)
+    func setScene(type: some SceneType)
+    func pushScene(type: some SceneType)
     func popScene()
 }

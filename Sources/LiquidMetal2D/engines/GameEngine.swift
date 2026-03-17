@@ -14,8 +14,8 @@ public protocol GameEngine: InputWriter {
     var lastFrameTime: Double { get set }
     var renderer: Renderer { get }
 
-    var currentSceneType: SceneType { get }
-    var nextSceneType: SceneType { get }
+    var currentSceneType: AnyHashable { get }
+    var nextSceneType: AnyHashable { get }
     var currentScene: Scene { get }
 
     func run()

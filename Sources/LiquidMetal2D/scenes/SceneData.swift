@@ -5,15 +5,12 @@
 //  Created by Matt Casanova on 3/13/20.
 //
 
-import Foundation
-
 public class SceneData {
   public var scene: Scene
-  public var type: SceneType
-  
-  public init(scene: Scene, type: SceneType) {
+  public var type: AnyHashable
+
+  public init(scene: Scene, type: AnyHashable) {
     self.scene = scene
     self.type = type
   }
-  
 }
