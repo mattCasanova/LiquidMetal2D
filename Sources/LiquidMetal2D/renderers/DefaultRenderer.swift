@@ -109,7 +109,7 @@ public class DefaultRenderer: Renderer, @unchecked Sendable {
         let maxY = tan(angle) * (cameraDistance - zOrder)
         let maxX = maxY * screenAspect
 
-        return WorldBounds(maxX: maxX, minX: -maxX, maxY: maxY, minY: -maxY)
+        return WorldBounds(minX: -maxX, maxX: maxX, minY: -maxY, maxY: maxY)
     }
 
     // MARK: - Draw Methods

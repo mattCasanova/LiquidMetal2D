@@ -28,11 +28,16 @@ final class LiquidMetal2DTests: XCTestCase {
     }
 
     func testWorldBounds() {
-        let bounds = WorldBounds(maxX: 10, minX: -10, maxY: 5, minY: -5)
-        XCTAssertEqual(bounds.maxX, 10)
+        let bounds = WorldBounds(minX: -10, maxX: 10, minY: -5, maxY: 5)
         XCTAssertEqual(bounds.minX, -10)
-        XCTAssertEqual(bounds.maxY, 5)
+        XCTAssertEqual(bounds.maxX, 10)
         XCTAssertEqual(bounds.minY, -5)
+        XCTAssertEqual(bounds.maxY, 5)
+        XCTAssertEqual(bounds.width, 20)
+        XCTAssertEqual(bounds.height, 10)
+        XCTAssertTrue(bounds.contains(Vec2(0, 0)))
+        XCTAssertTrue(bounds.contains(Vec2(10, 5)))
+        XCTAssertFalse(bounds.contains(Vec2(11, 0)))
     }
 
     func testPerspectiveProjectionSet() {

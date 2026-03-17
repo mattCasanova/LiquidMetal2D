@@ -106,8 +106,8 @@ public enum Intersect {
         return (pointLineLengthSquared - (projectedLength * projectedLength)) < (radius * radius)
     }
 
-    /// Returns `true` if two axis-aligned bounding boxes overlap or touch.
     // swiftlint:disable:next function_parameter_count
+    /// Returns `true` if two axis-aligned bounding boxes overlap or touch.
     public static func aabbAABB(
         center1: Vec2, width1: Float, height1: Float,
         center2: Vec2, width2: Float, height2: Float
