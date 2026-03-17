@@ -1,11 +1,11 @@
 //
-//  Behavoir.swift
+//  Behavior.swift
 //
 //
 //  Created by Matt Casanova on 3/20/20.
 //
 
-public protocol Behavoir: AnyObject {
+public protocol Behavior: AnyObject {
     var current: State! { get set }
 
     func setStartState(startState: State)
@@ -13,7 +13,7 @@ public protocol Behavoir: AnyObject {
     func update(dt: Float)
 }
 
-public extension Behavoir {
+public extension Behavior {
     func setStartState(startState: State = NilState()) {
         current = startState
         current.enter()
@@ -30,7 +30,7 @@ public extension Behavoir {
     }
 }
 
-public class NilBehavoir: Behavoir {
+public class NilBehavior: Behavior {
     public var current: State!
 
     public init() {
