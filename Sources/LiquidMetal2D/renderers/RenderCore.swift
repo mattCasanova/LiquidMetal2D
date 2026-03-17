@@ -22,7 +22,7 @@ public class RenderCore {
 
     public let alphaBlendPipelineState: MTLRenderPipelineState
 
-    var viewPort: [Int32] = [0, 0, 0, 0]
+    var viewport = MTLViewport(originX: 0, originY: 0, width: 0, height: 0, znear: 0, zfar: 1)
 
     public let perspective = PerspectiveProjection()
     public let camera2D = Camera2D()
@@ -60,10 +60,11 @@ public class RenderCore {
         layer.frame             = CGRect(x: 0, y: 0, width: layerSize.width, height: layerSize.height)
         layer.drawableSize      = CGSize(width: layerSize.width * scale, height: layerSize.height * scale)
 
-        viewPort[0] = 0
-        viewPort[1] = 0
-        viewPort[2] = Int32(layerSize.width)
-        viewPort[3] = Int32(layerSize.height)
+        viewport = MTLViewport(
+            originX: 0, originY: 0,
+            width: Double(layer.drawableSize.width),
+            height: Double(layer.drawableSize.height),
+            znear: 0, zfar: 1)
     }
 
     public func setClearColor(color: Vec3) {

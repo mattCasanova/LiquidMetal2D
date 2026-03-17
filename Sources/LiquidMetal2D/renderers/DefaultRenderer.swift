@@ -147,6 +147,7 @@ public class DefaultRenderer: Renderer, @unchecked Sendable {
             worldProvider.signal()
         }
 
+        renderPass.encoder.setViewport(renderCore.viewport)
         renderPass.encoder.setRenderPipelineState(renderCore.alphaBlendPipelineState)
         renderPass.encoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
         renderPass.encoder.setFragmentSamplerState(samplerState, index: 0)
