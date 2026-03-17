@@ -5,7 +5,6 @@
 //  Created by Matt Casanova on 3/23/20.
 //
 
-
 public class CircleCollider: Collider, MutableCircle {
     private unowned let obj: GameObj
     public var radius: Float

@@ -5,7 +5,6 @@
 //  Created by Matt Casanova on 4/4/20.
 //
 
-
 /// Namespace for 2D intersection/collision tests.
 /// Uses an enum instead of a class to prevent accidental instantiation.
 public enum Intersect {

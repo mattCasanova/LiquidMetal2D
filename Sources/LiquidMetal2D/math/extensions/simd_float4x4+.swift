@@ -5,7 +5,6 @@
 //  Created by Matt Casanova on 4/14/20.
 //
 
-
 public extension Mat4 {
 
     // MARK: - Static Methods

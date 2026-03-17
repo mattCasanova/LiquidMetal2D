@@ -6,7 +6,6 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-
 public class Camera2D {
     
     public static let defaultDistance: Float = 50

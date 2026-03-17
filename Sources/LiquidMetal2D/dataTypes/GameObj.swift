@@ -6,7 +6,6 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-
 open class GameObj {
   public var position = Vec2()
   public var velocity = Vec2()

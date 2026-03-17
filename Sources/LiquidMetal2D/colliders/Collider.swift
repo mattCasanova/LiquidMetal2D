@@ -5,7 +5,6 @@
 //  Created by Matt Casanova on 3/23/20.
 //
 
-
 public protocol Collider {
     func doesCollideWith(collider: Collider) -> Bool
     func doesCollideWith(point: Vec2) -> Bool

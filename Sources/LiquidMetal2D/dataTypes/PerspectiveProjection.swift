@@ -6,7 +6,6 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-
 public class PerspectiveProjection {
     public static let defaultNearZ: Float = 0.1
     public static let defaultFarZ: Float = 100

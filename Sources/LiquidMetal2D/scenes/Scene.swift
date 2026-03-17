@@ -6,7 +6,6 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-
 @MainActor
 public protocol Scene {
     func initialize(sceneMgr: SceneManager, renderer: Renderer, input: InputReader)

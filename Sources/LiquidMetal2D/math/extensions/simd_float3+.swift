@@ -5,7 +5,6 @@
 //  Created by Matt Casanova on 4/13/20.
 //
 
-
 public extension Vec3 {
     var xy: Vec2 { Vec2(x, y) }
 

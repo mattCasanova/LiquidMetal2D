@@ -5,7 +5,6 @@
 //  Created by Matt Casanova on 4/7/20.
 //
 
-
 /// Extension for Vec2 that adds convenience methods for setting or converting between types
 public extension Vec2 {
 

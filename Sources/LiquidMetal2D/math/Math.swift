@@ -5,7 +5,6 @@
 //  Created by Matt Casanova on 4/2/20.
 //
 
-
 /// Namespace for math constants and utility functions.
 public enum GameMath {
 
