@@ -22,9 +22,9 @@ import UIKit
 /// gameEngine.run()
 /// ```
 public class DefaultEngine: GameEngine, InputReader {
-    /// Frames with a delta time above this threshold are skipped.
-    /// Prevents physics explosions after backgrounding or debugger pauses.
-    private static let maxFrameTime: Float = 5
+    /// Maximum delta time per frame (~15 FPS). Larger deltas are clamped
+    /// to this value to prevent physics explosions after backgrounding.
+    private static let maxFrameTime: Float = 1.0 / 15.0
 
     private var touchLocation: Vec2?
 
@@ -60,10 +60,11 @@ public class DefaultEngine: GameEngine, InputReader {
     /// Called every frame by the display link. Skips frames with excessive
     /// delta time, performs pending scene transitions, then updates and draws.
     @objc public func gameLoop(displayLink: CADisplayLink) {
-        let dt: Float = Float(displayLink.timestamp - lastFrameTime)
+        let rawDt: Float = Float(displayLink.timestamp - lastFrameTime)
         lastFrameTime = displayLink.timestamp
 
-        if dt > DefaultEngine.maxFrameTime { return }
+        if rawDt <= 0 { return }
+        let dt = min(rawDt, DefaultEngine.maxFrameTime)
 
         if sceneManager.needsTransition {
             sceneManager.performTransition()
