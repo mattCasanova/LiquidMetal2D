@@ -68,8 +68,26 @@ public extension Vec2 {
     /// for determining the sign of the angle between two vectors — positive means `other` is
     /// counterclockwise from `self`, negative means clockwise. This is commonly used to decide
     /// which direction to rotate toward a target.
+    func dot(_ other: Vec2) -> Float {
+        return simd_dot(self, other)
+    }
+
+    func distance(to other: Vec2) -> Float {
+        return simd_distance(self, other)
+    }
+
     func cross(_ other: Vec2) -> Float {
         return x * other.y - y * other.x
+    }
+
+    static func random(x: ClosedRange<Float>, y: ClosedRange<Float>) -> Vec2 {
+        return Vec2(Float.random(in: x), Float.random(in: y))
+    }
+
+    /// Random unit vector (point on unit circle).
+    static func randomDirection() -> Vec2 {
+        let angle = Float.random(in: 0...GameMath.twoPi)
+        return Vec2(cos(angle), sin(angle))
     }
 
     func to3D(_ z: Float = 0) -> Vec3 {

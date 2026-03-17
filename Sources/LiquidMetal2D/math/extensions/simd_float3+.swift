@@ -48,6 +48,18 @@ public extension Vec3 {
         self.z = repeating
     }
 
+    static func random(x: ClosedRange<Float>, y: ClosedRange<Float>, z: ClosedRange<Float>) -> Vec3 {
+        return Vec3(Float.random(in: x), Float.random(in: y), Float.random(in: z))
+    }
+
+    func dot(_ other: Vec3) -> Float {
+        return simd_dot(self, other)
+    }
+
+    func distance(to other: Vec3) -> Float {
+        return simd_distance(self, other)
+    }
+
     func to4D(_ w: Float = 0) -> Vec4 {
         return Vec4(x, y, z, w)
     }

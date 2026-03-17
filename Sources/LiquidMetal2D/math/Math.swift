@@ -12,11 +12,11 @@ public enum GameMath {
 
     public static let epsilon: Float   = 0.00001
     public static let pi: Float        = Float.pi
-    public static let piOverTwo: Float = Float.pi / 2
-    public static let twoPi: Float     = Float.pi * 2
+    public static let piOverTwo: Float = pi / 2
+    public static let twoPi: Float     = pi * 2
 
-    private static let radianConversion: Float = 180 / Float.pi
-    private static let degreeConversion: Float = Float.pi / 180
+    private static let radianConversion: Float = 180 / pi
+    private static let degreeConversion: Float = pi / 180
 
     // MARK: - Angle Conversion
 
@@ -97,5 +97,58 @@ public enum GameMath {
         x |= x >> 16
         x += 1
         return x
+    }
+
+    // MARK: - Interpolation
+
+    public static func lerp(a: Float, b: Float, t: Float) -> Float {
+        return a + (b - a) * t
+    }
+
+    public static func lerp(a: Vec2, b: Vec2, t: Float) -> Vec2 {
+        return a + (b - a) * t
+    }
+
+    public static func lerp(a: Vec3, b: Vec3, t: Float) -> Vec3 {
+        return a + (b - a) * t
+    }
+
+    /// Given a value between a and b, returns the normalized t (0–1).
+    public static func inverseLerp(a: Float, b: Float, value: Float) -> Float {
+        return (value - a) / (b - a)
+    }
+
+    /// Remaps a value from one range to another.
+    public static func remap(value: Float, fromLow: Float, fromHigh: Float, toLow: Float, toHigh: Float) -> Float {
+        let t = inverseLerp(a: fromLow, b: fromHigh, value: value)
+        return lerp(a: toLow, b: toHigh, t: t)
+    }
+
+    // MARK: - Smoothstep
+
+    /// Hermite interpolation — smooth ease-in/ease-out between 0 and 1.
+    public static func smoothstep(edge0: Float, edge1: Float, x: Float) -> Float {
+        let t = clamp(value: (x - edge0) / (edge1 - edge0), low: 0.0, high: 1.0)
+        return t * t * (3 - 2 * t)
+    }
+
+    /// Smoother version of smoothstep with zero first and second derivatives at edges.
+    public static func smootherstep(edge0: Float, edge1: Float, x: Float) -> Float {
+        let t = clamp(value: (x - edge0) / (edge1 - edge0), low: 0.0, high: 1.0)
+        return t * t * t * (t * (t * 6 - 15) + 10)
+    }
+
+    // MARK: - Bezier Curves
+
+    /// Quadratic bezier: B(t) = (1-t)²P0 + 2(1-t)tP1 + t²P2
+    public static func quadraticBezier(p0: Vec2, p1: Vec2, p2: Vec2, t: Float) -> Vec2 {
+        let u = 1 - t
+        return u * u * p0 + 2 * u * t * p1 + t * t * p2
+    }
+
+    /// Cubic bezier: B(t) = (1-t)³P0 + 3(1-t)²tP1 + 3(1-t)t²P2 + t³P3
+    public static func cubicBezier(p0: Vec2, p1: Vec2, p2: Vec2, p3: Vec2, t: Float) -> Vec2 {
+        let u = 1 - t
+        return u * u * u * p0 + 3 * u * u * t * p1 + 3 * u * t * t * p2 + t * t * t * p3
     }
 }

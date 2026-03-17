@@ -766,3 +766,252 @@ final class CircleColliderTests: XCTestCase {
         XCTAssertEqual(collider.radius, 5)
     }
 }
+
+// MARK: - Vector Instance Method Tests
+
+final class VectorMethodTests: XCTestCase {
+
+    func testDotVec2() {
+        let a = Vec2(1, 0)
+        let b = Vec2(0, 1)
+        XCTAssertEqual(a.dot(b), 0)
+        XCTAssertEqual(a.dot(a), 1)
+    }
+
+    func testDotVec3() {
+        let a = Vec3(1, 2, 3)
+        let b = Vec3(4, 5, 6)
+        XCTAssertEqual(a.dot(b), 32)
+    }
+
+    func testNormalizeVec2() {
+        let v = Vec2(3, 0).normalized
+        XCTAssertTrue(GameMath.isFloatEqual(v.x, 1))
+        XCTAssertTrue(GameMath.isFloatEqual(v.y, 0))
+    }
+
+    func testNormalizeVec3() {
+        let v = Vec3(0, 0, 5).normalized
+        XCTAssertTrue(GameMath.isFloatEqual(v.z, 1))
+    }
+
+    func testLength() {
+        XCTAssertTrue(GameMath.isFloatEqual(Vec2(3, 4).length, 5))
+        XCTAssertTrue(GameMath.isFloatEqual(Vec3(0, 3, 4).length, 5))
+    }
+
+    func testLengthSquared() {
+        XCTAssertTrue(GameMath.isFloatEqual(Vec2(3, 4).lengthSquared, 25))
+    }
+
+    func testDistanceVec2() {
+        let d = Vec2(0, 0).distance(to: Vec2(3, 4))
+        XCTAssertTrue(GameMath.isFloatEqual(d, 5))
+    }
+
+    func testDistanceVec3() {
+        let d = Vec3(0, 0, 0).distance(to: Vec3(0, 3, 4))
+        XCTAssertTrue(GameMath.isFloatEqual(d, 5))
+    }
+}
+
+// MARK: - Interpolation Tests
+
+final class InterpolationTests: XCTestCase {
+
+    func testLerpFloat() {
+        XCTAssertTrue(GameMath.isFloatEqual(GameMath.lerp(a: 0, b: 10, t: 0), 0))
+        XCTAssertTrue(GameMath.isFloatEqual(GameMath.lerp(a: 0, b: 10, t: 1), 10))
+        XCTAssertTrue(GameMath.isFloatEqual(GameMath.lerp(a: 0, b: 10, t: 0.5), 5))
+        XCTAssertTrue(GameMath.isFloatEqual(GameMath.lerp(a: -5, b: 5, t: 0.5), 0))
+    }
+
+    func testLerpVec2() {
+        let result = GameMath.lerp(a: Vec2(0, 0), b: Vec2(10, 20), t: 0.5)
+        XCTAssertTrue(GameMath.isFloatEqual(result.x, 5))
+        XCTAssertTrue(GameMath.isFloatEqual(result.y, 10))
+    }
+
+    func testLerpVec3() {
+        let result = GameMath.lerp(a: Vec3(0, 0, 0), b: Vec3(10, 20, 30), t: 0.25)
+        XCTAssertTrue(GameMath.isFloatEqual(result.x, 2.5))
+        XCTAssertTrue(GameMath.isFloatEqual(result.y, 5))
+        XCTAssertTrue(GameMath.isFloatEqual(result.z, 7.5))
+    }
+
+    func testInverseLerp() {
+        XCTAssertTrue(GameMath.isFloatEqual(GameMath.inverseLerp(a: 0, b: 10, value: 5), 0.5))
+        XCTAssertTrue(GameMath.isFloatEqual(GameMath.inverseLerp(a: 0, b: 10, value: 0), 0))
+        XCTAssertTrue(GameMath.isFloatEqual(GameMath.inverseLerp(a: 0, b: 10, value: 10), 1))
+    }
+
+    func testRemap() {
+        let result = GameMath.remap(value: 5, fromLow: 0, fromHigh: 10, toLow: 0, toHigh: 100)
+        XCTAssertTrue(GameMath.isFloatEqual(result, 50))
+    }
+
+    func testRemapDifferentRanges() {
+        let result = GameMath.remap(value: 0.5, fromLow: 0, fromHigh: 1, toLow: -100, toHigh: 100)
+        XCTAssertTrue(GameMath.isFloatEqual(result, 0))
+    }
+}
+
+// MARK: - Smoothstep Tests
+
+final class SmoothstepTests: XCTestCase {
+
+    func testSmoothstepEdges() {
+        XCTAssertTrue(GameMath.isFloatEqual(GameMath.smoothstep(edge0: 0, edge1: 1, x: 0), 0))
+        XCTAssertTrue(GameMath.isFloatEqual(GameMath.smoothstep(edge0: 0, edge1: 1, x: 1), 1))
+    }
+
+    func testSmoothstepMiddle() {
+        XCTAssertTrue(GameMath.isFloatEqual(GameMath.smoothstep(edge0: 0, edge1: 1, x: 0.5), 0.5))
+    }
+
+    func testSmoothstepClamped() {
+        XCTAssertTrue(GameMath.isFloatEqual(GameMath.smoothstep(edge0: 0, edge1: 1, x: -1), 0))
+        XCTAssertTrue(GameMath.isFloatEqual(GameMath.smoothstep(edge0: 0, edge1: 1, x: 2), 1))
+    }
+
+    func testSmootherstepEdges() {
+        XCTAssertTrue(GameMath.isFloatEqual(GameMath.smootherstep(edge0: 0, edge1: 1, x: 0), 0))
+        XCTAssertTrue(GameMath.isFloatEqual(GameMath.smootherstep(edge0: 0, edge1: 1, x: 1), 1))
+    }
+
+    func testSmootherstepMiddle() {
+        XCTAssertTrue(GameMath.isFloatEqual(GameMath.smootherstep(edge0: 0, edge1: 1, x: 0.5), 0.5))
+    }
+}
+
+// MARK: - Random Tests
+
+final class RandomTests: XCTestCase {
+
+    func testRandomInRange() {
+        for _ in 0..<100 {
+            let v = Float.random(in: -5...5)
+            XCTAssertTrue(v >= -5 && v <= 5)
+        }
+    }
+
+    func testRandomVec2InRange() {
+        for _ in 0..<100 {
+            let v = Vec2.random(x: 0...1, y: -1...1)
+            XCTAssertTrue(v.x >= 0 && v.x <= 1)
+            XCTAssertTrue(v.y >= -1 && v.y <= 1)
+        }
+    }
+
+    func testRandomDirectionIsUnitLength() {
+        for _ in 0..<100 {
+            let v = Vec2.randomDirection()
+            XCTAssertTrue(GameMath.isFloatEqual(v.length, 1))
+        }
+    }
+}
+
+// MARK: - Bezier Tests
+
+final class BezierTests: XCTestCase {
+
+    func testQuadraticBezierEndpoints() {
+        let p0 = Vec2(0, 0)
+        let p1 = Vec2(5, 10)
+        let p2 = Vec2(10, 0)
+        let start = GameMath.quadraticBezier(p0: p0, p1: p1, p2: p2, t: 0)
+        let end = GameMath.quadraticBezier(p0: p0, p1: p1, p2: p2, t: 1)
+        XCTAssertTrue(simd_epsilon_equal(lhs: start, rhs: p0))
+        XCTAssertTrue(simd_epsilon_equal(lhs: end, rhs: p2))
+    }
+
+    func testCubicBezierEndpoints() {
+        let p0 = Vec2(0, 0)
+        let p1 = Vec2(2, 10)
+        let p2 = Vec2(8, 10)
+        let p3 = Vec2(10, 0)
+        let start = GameMath.cubicBezier(p0: p0, p1: p1, p2: p2, p3: p3, t: 0)
+        let end = GameMath.cubicBezier(p0: p0, p1: p1, p2: p2, p3: p3, t: 1)
+        XCTAssertTrue(simd_epsilon_equal(lhs: start, rhs: p0))
+        XCTAssertTrue(simd_epsilon_equal(lhs: end, rhs: p3))
+    }
+
+    func testQuadraticBezierMidpoint() {
+        let p0 = Vec2(0, 0)
+        let p1 = Vec2(5, 10)
+        let p2 = Vec2(10, 0)
+        let mid = GameMath.quadraticBezier(p0: p0, p1: p1, p2: p2, t: 0.5)
+        XCTAssertTrue(GameMath.isFloatEqual(mid.x, 5))
+        XCTAssertTrue(GameMath.isFloatEqual(mid.y, 5))
+    }
+}
+
+// MARK: - Easing Tests
+
+final class EasingTests: XCTestCase {
+
+    func testAllEasingsBoundaries() {
+        let easings: [(String, (Float) -> Float)] = [
+            ("easeInQuad", Easing.easeInQuad),
+            ("easeOutQuad", Easing.easeOutQuad),
+            ("easeInOutQuad", Easing.easeInOutQuad),
+            ("easeInCubic", Easing.easeInCubic),
+            ("easeOutCubic", Easing.easeOutCubic),
+            ("easeInOutCubic", Easing.easeInOutCubic),
+            ("easeInQuart", Easing.easeInQuart),
+            ("easeOutQuart", Easing.easeOutQuart),
+            ("easeInOutQuart", Easing.easeInOutQuart),
+            ("easeInSine", Easing.easeInSine),
+            ("easeOutSine", Easing.easeOutSine),
+            ("easeInOutSine", Easing.easeInOutSine),
+            ("easeInExpo", Easing.easeInExpo),
+            ("easeOutExpo", Easing.easeOutExpo),
+            ("easeInOutExpo", Easing.easeInOutExpo),
+            ("easeOutBounce", Easing.easeOutBounce),
+            ("easeInBounce", Easing.easeInBounce),
+            ("easeInOutBounce", Easing.easeInOutBounce)
+        ]
+
+        for (name, easing) in easings {
+            XCTAssertTrue(
+                GameMath.isFloatEqual(easing(0), 0),
+                "\(name)(0) should be 0, got \(easing(0))")
+            XCTAssertTrue(
+                GameMath.isFloatEqual(easing(1), 1),
+                "\(name)(1) should be 1, got \(easing(1))")
+        }
+    }
+
+    func testEaseInQuadShape() {
+        // ease-in should be below linear at midpoint
+        XCTAssertTrue(Easing.easeInQuad(0.5) < 0.5)
+    }
+
+    func testEaseOutQuadShape() {
+        // ease-out should be above linear at midpoint
+        XCTAssertTrue(Easing.easeOutQuad(0.5) > 0.5)
+    }
+
+    func testEaseInOutQuadSymmetry() {
+        XCTAssertTrue(GameMath.isFloatEqual(Easing.easeInOutQuad(0.5), 0.5))
+    }
+
+    func testElasticOvershoots() {
+        // Elastic should overshoot past 1 at some point
+        var foundOvershoot = false
+        for i in 1..<20 {
+            let t = Float(i) / 20.0
+            if Easing.easeOutElastic(t) > 1.0 {
+                foundOvershoot = true
+                break
+            }
+        }
+        XCTAssertTrue(foundOvershoot, "easeOutElastic should overshoot past 1")
+    }
+
+    func testBackOvershoots() {
+        // Back easing should go below 0 at start (easeIn) or above 1 near end (easeOut)
+        XCTAssertTrue(Easing.easeInBack(0.2) < 0, "easeInBack should go below 0")
+        XCTAssertTrue(Easing.easeOutBack(0.8) > 1, "easeOutBack should overshoot past 1")
+    }
+}
