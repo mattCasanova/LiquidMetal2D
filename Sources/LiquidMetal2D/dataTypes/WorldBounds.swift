@@ -1,5 +1,5 @@
 //
-//  Bounds.swift
+//  WorldBounds.swift
 //  
 //
 //  Created by Matt Casanova on 3/20/20.

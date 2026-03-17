@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  simd_float4+.swift
 //
 //
 //  Created by Matt Casanova on 4/15/20.
@@ -77,5 +77,8 @@ public extension simd_float4 {
 
 public func simd_epsilon_equal(lhs: simd_float4, rhs: simd_float4) -> Bool {
     let diff = simd_abs(lhs - rhs)
-    return diff.x < GameMath.epsilon && diff.y < GameMath.epsilon && diff.z < GameMath.epsilon && diff.w < GameMath.epsilon
+    return diff.x < GameMath.epsilon
+    && diff.y < GameMath.epsilon
+    && diff.z < GameMath.epsilon
+    && diff.w < GameMath.epsilon
 }

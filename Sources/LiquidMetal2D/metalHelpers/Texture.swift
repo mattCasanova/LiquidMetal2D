@@ -85,7 +85,7 @@ public class Texture {
         mId = Texture.sIdCounter
         loadCount += 1
 
-        print("Loaded Texture \(fileName)")
+        DebugPrint("Loaded Texture %@", fileName)
     }
 
     func generateMipmapLayers(

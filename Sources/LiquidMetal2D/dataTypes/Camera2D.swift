@@ -1,5 +1,5 @@
 //
-//  CameraData.swift
+//  Camera2D.swift
 //  LiquidMetal
 //
 //  Created by Matt Casanova on 2/27/20.

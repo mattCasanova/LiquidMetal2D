@@ -1,5 +1,5 @@
 //
-//  Gfx.swift
+//  DefaultRenderer.swift
 //  LiquidMetal
 //
 //  Created by Matt Casanova on 2/24/20.
@@ -98,17 +98,7 @@ public class DefaultRenderer: Renderer, @unchecked Sendable {
     }
 
     public func getUnprojectRay(forScreenPoint point: simd_float2) -> UnprojectRay {
-        let near = renderCore.unproject(screenPoint: simd_float3(point.x, point.y, 0))
-        let far = renderCore.unproject(screenPoint: simd_float3(point.x, point.y, 1))
-
-        let zMag = abs(far.z - near.z)
-        let nearFactor = abs(near.z) / zMag
-        let farFactor = abs(far.z) / zMag
-
-        let origin = (near * farFactor) + (far * nearFactor)
-        let vector = (near - far) / zMag
-
-        return UnprojectRay(origin: origin, vector: vector)
+        return renderCore.getUnprojectRay(forScreenPoint: point)
     }
 
     public func getWorldBoundsFromCamera(zOrder: Float) -> WorldBounds {

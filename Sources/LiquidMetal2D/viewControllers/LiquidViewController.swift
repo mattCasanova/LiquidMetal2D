@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  LiquidViewController.swift
 //  LiquidMetal
 //
 //  Created by Matt Casanova on 2/3/20.
@@ -30,10 +30,6 @@ open class LiquidViewController: UIViewController {
 
         guard let window = view.window else { return }
         gameEngine.resize(scale: window.screen.nativeScale, layerSize: view.bounds.size)
-    }
-
-    open func didRotate(_ notification: Notification) {
-        handleRotation()
     }
 
     private func handleRotation() {

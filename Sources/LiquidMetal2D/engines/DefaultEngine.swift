@@ -1,5 +1,5 @@
 //
-//  DefaultSceneManager.swift
+//  DefaultEngine.swift
 //  LiquidMetal
 //
 //  Created by Matt Casanova on 2/26/20.

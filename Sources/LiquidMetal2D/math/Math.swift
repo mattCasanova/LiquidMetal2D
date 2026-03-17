@@ -1,5 +1,5 @@
 //
-//  GameMath.swift
+//  Math.swift
 //
 //
 //  Created by Matt Casanova on 4/2/20.

@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  PointCollider.swift
 //  
 //
 //  Created by Matt Casanova on 3/23/20.

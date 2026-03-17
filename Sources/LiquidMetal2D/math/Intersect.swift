@@ -40,7 +40,10 @@ public enum Intersect {
         }
 
         let projectedLength = simd_dot(pointLineVector, simd_normalize(lineVector))
-        return GameMath.isInRange(value: projectedLength * projectedLength, low: 0, high: simd_length_squared(lineVector))
+        return GameMath.isInRange(
+            value: projectedLength * projectedLength,
+            low: 0,
+            high: simd_length_squared(lineVector))
     }
 
     public static func circleCircle(

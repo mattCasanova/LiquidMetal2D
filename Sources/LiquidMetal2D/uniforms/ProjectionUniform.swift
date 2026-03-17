@@ -1,5 +1,5 @@
 //
-//  TransformUniformData.swift
+//  ProjectionUniform.swift
 //  LiquidMetal
 //
 //  Created by Matt Casanova on 2/23/20.
