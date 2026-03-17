@@ -7,10 +7,9 @@
 //
 
 import Foundation
-import simd
 
 public class ProjectionUniform: UniformData {
-    public var transform: simd_float4x4 = simd_float4x4()
+    public var transform: Mat4 = Mat4()
     public var size: Int = ProjectionUniform.typeSize()
 
     public init() {}
@@ -20,6 +19,6 @@ public class ProjectionUniform: UniformData {
     }
 
     public static func typeSize() -> Int {
-        return MemoryLayout<simd_float4x4>.size
+        return MemoryLayout<Mat4>.size
     }
 }

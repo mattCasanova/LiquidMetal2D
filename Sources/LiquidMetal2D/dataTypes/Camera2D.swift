@@ -6,18 +6,17 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-import simd
 
 public class Camera2D {
     
     public static let defaultDistance: Float = 50
     
-    public var eye             = simd_float2()
+    public var eye             = Vec2()
     public var distance: Float = 0
     
     public init() {}
     
-    public func set(point: simd_float3) {
+    public func set(point: Vec3) {
         eye.set(point.x, point.y)
         distance = point.z
     }
@@ -27,12 +26,12 @@ public class Camera2D {
         self.distance = distance
     }
     
-    public func set(target: simd_float2, distance: Float = Camera2D.defaultDistance) {
+    public func set(target: Vec2, distance: Float = Camera2D.defaultDistance) {
         eye.set(target.x, target.y)
         self.distance = distance
     }
     
-    public func make() -> simd_float4x4 {
-        return simd_float4x4.makeLookAt2D(simd_float3(eye, distance))
+    public func make() -> Mat4 {
+        return Mat4.makeLookAt2D(Vec3(eye, distance))
     }
 }

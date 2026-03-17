@@ -1,16 +1,15 @@
 //
-//  simd_float4+.swift
+//  Vec4+.swift
 //
 //
 //  Created by Matt Casanova on 4/15/20.
 //
 
-import simd
 
-public extension simd_float4 {
-    var xyz: simd_float3 { simd_float3(x, y, z) }
+public extension Vec4 {
+    var xyz: Vec3 { Vec3(x, y, z) }
 
-    var rgb: simd_float3 { simd_float3(x, y, z) }
+    var rgb: Vec3 { Vec3(x, y, z) }
 
     var r: Float {
         get { x }
@@ -75,7 +74,7 @@ public extension simd_float4 {
     }
 }
 
-public func simd_epsilon_equal(lhs: simd_float4, rhs: simd_float4) -> Bool {
+public func simd_epsilon_equal(lhs: Vec4, rhs: Vec4) -> Bool {
     let diff = simd_abs(lhs - rhs)
     return diff.x < GameMath.epsilon
     && diff.y < GameMath.epsilon

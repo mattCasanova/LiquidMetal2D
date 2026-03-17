@@ -5,7 +5,6 @@
 //  Created by Matt Casanova on 4/2/20.
 //
 
-import simd
 
 /// Namespace for math constants and utility functions.
 public enum GameMath {
@@ -37,13 +36,13 @@ public enum GameMath {
         return min(max(value, low), high)
     }
 
-    /// Clamps a simd_float2 component-wise to the range [low, high].
-    public static func clamp(value: simd_float2, low: simd_float2, high: simd_float2) -> simd_float2 {
+    /// Clamps a Vec2 component-wise to the range [low, high].
+    public static func clamp(value: Vec2, low: Vec2, high: Vec2) -> Vec2 {
         return simd_clamp(value, low, high)
     }
 
-    /// Clamps a simd_float3 component-wise to the range [low, high].
-    public static func clamp(value: simd_float3, low: simd_float3, high: simd_float3) -> simd_float3 {
+    /// Clamps a Vec3 component-wise to the range [low, high].
+    public static func clamp(value: Vec3, low: Vec3, high: Vec3) -> Vec3 {
         return simd_clamp(value, low, high)
     }
 

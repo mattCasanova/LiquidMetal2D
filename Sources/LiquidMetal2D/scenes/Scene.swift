@@ -6,7 +6,6 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-import simd
 
 @MainActor
 public protocol Scene {
@@ -35,7 +34,7 @@ open class DefaultScene: Scene {
         self.renderer = renderer
         self.input = input
 
-        renderer.setCamera(point: simd_float3(0, 0, Camera2D.defaultDistance))
+        renderer.setCamera(point: Vec3(0, 0, Camera2D.defaultDistance))
         renderer.setPerspective(fov: GameMath.degreeToRadian(getFOV()),
                                 aspect: renderer.screenAspect,
                                 nearZ: PerspectiveProjection.defaultNearZ,
@@ -61,7 +60,7 @@ open class DefaultScene: Scene {
             worldUniforms.transform.setToTransform2D(
                 scale: obj.scale,
                 angle: obj.rotation,
-                translate: simd_float3(obj.position, obj.zOrder)
+                translate: Vec3(obj.position, obj.zOrder)
             )
 
             renderer.draw(uniforms: worldUniforms)

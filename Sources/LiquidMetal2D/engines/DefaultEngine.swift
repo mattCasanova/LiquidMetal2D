@@ -7,10 +7,9 @@
 //
 
 import UIKit
-import simd
 
 public class DefaultEngine: GameEngine, SceneManager, InputReader {
-    private var touchLocation: simd_float2?
+    private var touchLocation: Vec2?
 
     public var timer: CADisplayLink!
     public var lastFrameTime: Double = 0.0
@@ -62,16 +61,16 @@ public class DefaultEngine: GameEngine, SceneManager, InputReader {
 
     // MARK: - InputReader, InputWriter
 
-    public func getWorldTouch(forZ z: Float) -> simd_float3? {
+    public func getWorldTouch(forZ z: Float) -> Vec3? {
         guard let touch = touchLocation else { return nil }
         return renderer.unproject(screenWithWorldZ: touch.to3D(z))
     }
 
-    public func getScreenTouch() -> simd_float2? {
+    public func getScreenTouch() -> Vec2? {
         return touchLocation
     }
 
-    public func setTouch(location: simd_float2?) {
+    public func setTouch(location: Vec2?) {
         touchLocation = location
     }
 

@@ -6,7 +6,6 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-import simd
 
 public class PerspectiveProjection {
     public static let defaultNearZ: Float = 0.1
@@ -28,7 +27,7 @@ public class PerspectiveProjection {
         self.farZ   = farZ
     }
 
-    public func make() -> simd_float4x4 {
-        return simd_float4x4.makePerspective(fovRadian: fov, aspect: aspect, n: nearZ, f: farZ)
+    public func make() -> Mat4 {
+        return Mat4.makePerspective(fovRadian: fov, aspect: aspect, n: nearZ, f: farZ)
     }
 }

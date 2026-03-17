@@ -1,14 +1,13 @@
 //
-//  simd_float2+.swift
+//  Vec2+.swift
 //
 //
 //  Created by Matt Casanova on 4/7/20.
 //
 
-import simd
 
-/// Extension for simd_float2 that adds convenience methods for setting or converting between types
-public extension simd_float2 {
+/// Extension for Vec2 that adds convenience methods for setting or converting between types
+public extension Vec2 {
 
     /// The angle between this vector and the x axis
     var angle: Float { atan2(y, x) }
@@ -20,7 +19,7 @@ public extension simd_float2 {
     var lengthSquared: Float { simd_length_squared(self) }
 
     /// Returns a unit vector in the same direction, or zero if length is zero
-    var normalized: simd_float2 { simd_normalize(self) }
+    var normalized: Vec2 { simd_normalize(self) }
 
     /// Convenience access for getting the u component when treating this like a texture coordinate
     var u: Float {
@@ -40,7 +39,7 @@ public extension simd_float2 {
     }
 
     /// Construct a 2D point/vector from a 3D point/vector. The z component will be lost.
-    init(simd3: simd_float3) {
+    init(simd3: Vec3) {
         self.init(simd3.x, simd3.y)
     }
 
@@ -70,20 +69,20 @@ public extension simd_float2 {
     /// for determining the sign of the angle between two vectors — positive means `other` is
     /// counterclockwise from `self`, negative means clockwise. This is commonly used to decide
     /// which direction to rotate toward a target.
-    func cross(_ other: simd_float2) -> Float {
+    func cross(_ other: Vec2) -> Float {
         return x * other.y - y * other.x
     }
 
-    func to3D(_ z: Float = 0) -> simd_float3 {
-        return simd_float3(x, y, z)
+    func to3D(_ z: Float = 0) -> Vec3 {
+        return Vec3(x, y, z)
     }
 
-    func to4D(z: Float, w: Float) -> simd_float4 {
-        return simd_float4(x, y, z, w)
+    func to4D(z: Float, w: Float) -> Vec4 {
+        return Vec4(x, y, z, w)
     }
 }
 
-public func simd_epsilon_equal(lhs: simd_float2, rhs: simd_float2) -> Bool {
+public func simd_epsilon_equal(lhs: Vec2, rhs: Vec2) -> Bool {
     let diff = simd_abs(lhs - rhs)
     return diff.x < GameMath.epsilon && diff.y < GameMath.epsilon
 }

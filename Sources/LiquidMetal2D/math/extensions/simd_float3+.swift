@@ -1,14 +1,13 @@
 //
-//  simd_float3+.swift
+//  Vec3+.swift
 //
 //
 //  Created by Matt Casanova on 4/13/20.
 //
 
-import simd
 
-public extension simd_float3 {
-    var xy: simd_float2 { simd_float2(x, y) }
+public extension Vec3 {
+    var xy: Vec2 { Vec2(x, y) }
 
     /// The length (magnitude) of this vector
     var length: Float { simd_length(self) }
@@ -17,7 +16,7 @@ public extension simd_float3 {
     var lengthSquared: Float { simd_length_squared(self) }
 
     /// Returns a unit vector in the same direction, or zero if length is zero
-    var normalized: simd_float3 { simd_normalize(self) }
+    var normalized: Vec3 { simd_normalize(self) }
 
     var r: Float {
         get { x }
@@ -50,12 +49,12 @@ public extension simd_float3 {
         self.z = repeating
     }
 
-    func to4D(_ w: Float = 0) -> simd_float4 {
-        return simd_float4(x, y, z, w)
+    func to4D(_ w: Float = 0) -> Vec4 {
+        return Vec4(x, y, z, w)
     }
 }
 
-public func simd_epsilon_equal(lhs: simd_float3, rhs: simd_float3) -> Bool {
+public func simd_epsilon_equal(lhs: Vec3, rhs: Vec3) -> Bool {
     let diff = simd_abs(lhs - rhs)
     return diff.x < GameMath.epsilon && diff.y < GameMath.epsilon && diff.z < GameMath.epsilon
 }

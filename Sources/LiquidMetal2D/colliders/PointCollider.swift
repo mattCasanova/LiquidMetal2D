@@ -5,7 +5,6 @@
 //  Created by Matt Casanova on 3/23/20.
 //
 
-import simd
 
 public class PointCollider: Collider {
     private unowned let obj: GameObj
@@ -18,7 +17,7 @@ public class PointCollider: Collider {
         return collider.doesCollideWith(point: obj.position)
     }
     
-    public func doesCollideWith(point: simd_float2) -> Bool {
+    public func doesCollideWith(point: Vec2) -> Bool {
         return simd_epsilon_equal(lhs: point, rhs: obj.position)
     }
     
@@ -26,7 +25,7 @@ public class PointCollider: Collider {
         return Intersect.pointCircle(point: obj.position, circle: circle)
     }
     
-    public func doesCollideWith(aabbCenter: simd_float2, width: Float, height: Float) -> Bool {
+    public func doesCollideWith(aabbCenter: Vec2, width: Float, height: Float) -> Bool {
         return Intersect.pointAABB(point: obj.position, center: aabbCenter, width: width, height: height)
     }
 }

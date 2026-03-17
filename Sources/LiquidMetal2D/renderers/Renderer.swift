@@ -7,7 +7,6 @@
 //
 
 import UIKit
-import simd
 
 @MainActor
 public protocol Renderer: AnyObject {
@@ -22,13 +21,13 @@ public protocol Renderer: AnyObject {
     func unloadTexture(textureId: Int)
 
     func setPerspective(fov: Float, aspect: Float, nearZ: Float, farZ: Float)
-    func setCamera(point: simd_float3)
-    func setClearColor(color: simd_float3)
+    func setCamera(point: Vec3)
+    func setClearColor(color: Vec3)
 
-    func project(world: simd_float3) -> simd_float3
-    func unproject(screen: simd_float2, forWorldZ worldZ: Float) -> simd_float3
-    func unproject(screenWithWorldZ: simd_float3) -> simd_float3
-    func getUnprojectRay(forScreenPoint point: simd_float2) -> UnprojectRay
+    func project(world: Vec3) -> Vec3
+    func unproject(screen: Vec2, forWorldZ worldZ: Float) -> Vec3
+    func unproject(screenWithWorldZ: Vec3) -> Vec3
+    func getUnprojectRay(forScreenPoint point: Vec2) -> UnprojectRay
 
     func getWorldBoundsFromCamera(zOrder: Float) -> WorldBounds
     func getWorldBounds(cameraDistance: Float, zOrder: Float) -> WorldBounds

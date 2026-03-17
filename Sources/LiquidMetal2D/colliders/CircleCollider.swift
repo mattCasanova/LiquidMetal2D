@@ -5,13 +5,12 @@
 //  Created by Matt Casanova on 3/23/20.
 //
 
-import simd
 
 public class CircleCollider: Collider, MutableCircle {
     private unowned let obj: GameObj
     public var radius: Float
 
-    public var center: simd_float2 {
+    public var center: Vec2 {
         get { obj.position }
         set { obj.position.set(newValue.x, newValue.y) }
     }
@@ -25,7 +24,7 @@ public class CircleCollider: Collider, MutableCircle {
         return collider.doesCollideWith(circle: self)
     }
 
-    public func doesCollideWith(point: simd_float2) -> Bool {
+    public func doesCollideWith(point: Vec2) -> Bool {
         return Intersect.pointCircle(point: point, circle: self)
     }
 
@@ -33,7 +32,7 @@ public class CircleCollider: Collider, MutableCircle {
         return Intersect.circleCircle(self, circle)
     }
 
-    public func doesCollideWith(aabbCenter: simd_float2, width: Float, height: Float) -> Bool {
+    public func doesCollideWith(aabbCenter: Vec2, width: Float, height: Float) -> Bool {
         return Intersect.circleAABB(
             circleCenter: obj.position, radius: radius,
             aabbCenter: aabbCenter, width: width, height: height)

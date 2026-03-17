@@ -8,7 +8,6 @@
 
 import UIKit
 import Metal
-import simd
 
 @MainActor
 public class RenderCore {
@@ -67,7 +66,7 @@ public class RenderCore {
         viewPort[3] = Int32(layerSize.height)
     }
 
-    public func setClearColor(color: simd_float3) {
+    public func setClearColor(color: Vec3) {
         self.clearColor = MTLClearColor(red: Double(color.r), green: Double(color.g), blue: Double(color.b), alpha: 1.0)
     }
 
@@ -150,9 +149,9 @@ public class RenderCore {
         return texturesMap[id]
     }
 
-    public func getUnprojectRay(forScreenPoint point: simd_float2) -> UnprojectRay {
-        let near = unproject(screenPoint: simd_float3(point.x, point.y, 0))
-        let far = unproject(screenPoint: simd_float3(point.x, point.y, 1))
+    public func getUnprojectRay(forScreenPoint point: Vec2) -> UnprojectRay {
+        let near = unproject(screenPoint: Vec3(point.x, point.y, 0))
+        let far = unproject(screenPoint: Vec3(point.x, point.y, 1))
 
         let zMag = abs(far.z - near.z)
         let nearFactor = abs(near.z) / zMag
@@ -164,13 +163,13 @@ public class RenderCore {
         return UnprojectRay(origin: origin, vector: vector)
     }
 
-    public func unproject(screenPoint: simd_float3) -> simd_float3 {
+    public func unproject(screenPoint: Vec3) -> Vec3 {
         let viewX = Float(view.frame.origin.x)
         let viewY = Float(view.frame.origin.y)
         let width = Float(view.bounds.width)
         let height = Float(view.bounds.height)
 
-        let clipPoint = simd_float4(
+        let clipPoint = Vec4(
             2 * (screenPoint.x - viewX) / width - 1,
             2 * (screenPoint.y - viewY) / height - 1,
             2 * screenPoint.z - 1,
@@ -180,14 +179,14 @@ public class RenderCore {
         var worldPoint = (perspective.make() * camera2D.make()).inverse * clipPoint
         worldPoint.w = 1 / worldPoint.w
 
-        return simd_float3(
+        return Vec3(
             worldPoint.x * worldPoint.w,
             worldPoint.y * worldPoint.w * -1,
             worldPoint.z * worldPoint.w
         )
     }
 
-    public func project(worldPoint: simd_float3) -> simd_float3 {
+    public func project(worldPoint: Vec3) -> Vec3 {
         var clipPoint = perspective.make() * camera2D.make() * worldPoint.to4D(1)
         clipPoint.w = 1 / clipPoint.w
 
@@ -201,7 +200,7 @@ public class RenderCore {
         let width = Float(view.bounds.width)
         let height = Float(view.bounds.height)
 
-        return simd_float3(
+        return Vec3(
             (clipPoint.x * 0.5 + 0.5) * width + viewX,
             (clipPoint.y * 0.5 + 0.5) * height + viewY,
             (1.0 + clipPoint.z) * 0.5 // Between 0 and 1

@@ -8,7 +8,6 @@
 
 import UIKit
 import Metal
-import simd
 
 @MainActor
 public class DefaultRenderer: Renderer, @unchecked Sendable {
@@ -56,11 +55,11 @@ public class DefaultRenderer: Renderer, @unchecked Sendable {
         renderCore.perspective.set(aspect: aspect, fov: fov, nearZ: nearZ, farZ: farZ)
     }
 
-    public func setCamera(point: simd_float3) {
+    public func setCamera(point: Vec3) {
         renderCore.camera2D.set(point: point)
     }
 
-    public func setClearColor(color: simd_float3) {
+    public func setClearColor(color: Vec3) {
         renderCore.setClearColor(color: color)
     }
 
@@ -80,24 +79,24 @@ public class DefaultRenderer: Renderer, @unchecked Sendable {
         renderCore.unloadTexture(textureId: textureId)
     }
 
-    public func project(world: simd_float3) -> simd_float3 {
+    public func project(world: Vec3) -> Vec3 {
         return renderCore.project(worldPoint: world)
     }
 
-    public func unproject(screen: simd_float2, forWorldZ worldZ: Float) -> simd_float3 {
+    public func unproject(screen: Vec2, forWorldZ worldZ: Float) -> Vec3 {
         return unproject(screenWithWorldZ: screen.to3D(worldZ))
     }
 
-    public func unproject(screenWithWorldZ: simd_float3) -> simd_float3 {
-        let projected = renderCore.project(worldPoint: simd_float3(0, 0, screenWithWorldZ.z))
+    public func unproject(screenWithWorldZ: Vec3) -> Vec3 {
+        let projected = renderCore.project(worldPoint: Vec3(0, 0, screenWithWorldZ.z))
         var unprojected = renderCore.unproject(
-            screenPoint: simd_float3(screenWithWorldZ.x, screenWithWorldZ.y, projected.z))
+            screenPoint: Vec3(screenWithWorldZ.x, screenWithWorldZ.y, projected.z))
 
         unprojected.z = screenWithWorldZ.z
         return unprojected
     }
 
-    public func getUnprojectRay(forScreenPoint point: simd_float2) -> UnprojectRay {
+    public func getUnprojectRay(forScreenPoint point: Vec2) -> UnprojectRay {
         return renderCore.getUnprojectRay(forScreenPoint: point)
     }
 

@@ -1,5 +1,4 @@
 import XCTest
-import simd
 @testable import LiquidMetal2D
 
 // MARK: - Math Utility Tests
@@ -64,17 +63,17 @@ final class MathUtilityTests: XCTestCase {
     // MARK: Clamp (SIMD)
 
     func testClampSimdFloat2() {
-        let value = simd_float2(-1, 5)
+        let value = Vec2(-1, 5)
         let result = GameMath.clamp(
-            value: value, low: simd_float2(0, 0), high: simd_float2(3, 3))
+            value: value, low: Vec2(0, 0), high: Vec2(3, 3))
         XCTAssertEqual(result.x, 0)
         XCTAssertEqual(result.y, 3)
     }
 
     func testClampSimdFloat3() {
-        let value = simd_float3(-1, 2, 10)
+        let value = Vec3(-1, 2, 10)
         let result = GameMath.clamp(
-            value: value, low: simd_float3(0, 0, 0), high: simd_float3(5, 5, 5))
+            value: value, low: Vec3(0, 0, 0), high: Vec3(5, 5, 5))
         XCTAssertEqual(result.x, 0)
         XCTAssertEqual(result.y, 2)
         XCTAssertEqual(result.z, 5)
@@ -205,28 +204,28 @@ final class MathUtilityTests: XCTestCase {
 final class SimdFloat2ExtensionTests: XCTestCase {
 
     func testAngle() {
-        let right = simd_float2(1, 0)
+        let right = Vec2(1, 0)
         XCTAssertTrue(GameMath.isFloatEqual(right.angle, 0))
 
-        let up = simd_float2(0, 1)
+        let up = Vec2(0, 1)
         XCTAssertTrue(GameMath.isFloatEqual(up.angle, GameMath.piOverTwo))
 
-        let left = simd_float2(-1, 0)
+        let left = Vec2(-1, 0)
         XCTAssertTrue(GameMath.isFloatEqual(left.angle, GameMath.pi))
     }
 
     func testLength() {
-        let v = simd_float2(3, 4)
+        let v = Vec2(3, 4)
         XCTAssertTrue(GameMath.isFloatEqual(v.length, 5))
     }
 
     func testLengthSquared() {
-        let v = simd_float2(3, 4)
+        let v = Vec2(3, 4)
         XCTAssertTrue(GameMath.isFloatEqual(v.lengthSquared, 25))
     }
 
     func testNormalized() {
-        let v = simd_float2(3, 4)
+        let v = Vec2(3, 4)
         let n = v.normalized
         XCTAssertTrue(GameMath.isFloatEqual(n.length, 1.0))
         XCTAssertTrue(GameMath.isFloatEqual(n.x, 0.6))
@@ -234,18 +233,18 @@ final class SimdFloat2ExtensionTests: XCTestCase {
     }
 
     func testInitFromAngle() {
-        let v = simd_float2(angle: 0)
+        let v = Vec2(angle: 0)
         XCTAssertTrue(GameMath.isFloatEqual(v.x, 1))
         XCTAssertTrue(GameMath.isFloatEqual(v.y, 0))
 
-        let v90 = simd_float2(angle: GameMath.piOverTwo)
+        let v90 = Vec2(angle: GameMath.piOverTwo)
         XCTAssertTrue(GameMath.isFloatEqual(v90.x, 0))
         XCTAssertTrue(GameMath.isFloatEqual(v90.y, 1))
     }
 
     func testCross() {
-        let right = simd_float2(1, 0)
-        let up = simd_float2(0, 1)
+        let right = Vec2(1, 0)
+        let up = Vec2(0, 1)
 
         XCTAssertTrue(right.cross(up) > 0)
         XCTAssertTrue(up.cross(right) < 0)
@@ -253,7 +252,7 @@ final class SimdFloat2ExtensionTests: XCTestCase {
     }
 
     func testTextureCoordinateAliases() {
-        var v = simd_float2(0.5, 0.75)
+        var v = Vec2(0.5, 0.75)
         XCTAssertEqual(v.u, 0.5)
         XCTAssertEqual(v.v, 0.75)
         v.u = 0.1
@@ -263,32 +262,32 @@ final class SimdFloat2ExtensionTests: XCTestCase {
     }
 
     func testTo3D() {
-        let v = simd_float2(1, 2)
-        XCTAssertEqual(v.to3D(3), simd_float3(1, 2, 3))
+        let v = Vec2(1, 2)
+        XCTAssertEqual(v.to3D(3), Vec3(1, 2, 3))
     }
 
     func testTo3DDefaultZ() {
-        let v = simd_float2(1, 2)
-        XCTAssertEqual(v.to3D(), simd_float3(1, 2, 0))
+        let v = Vec2(1, 2)
+        XCTAssertEqual(v.to3D(), Vec3(1, 2, 0))
     }
 
     func testEpsilonEqual() {
-        let a = simd_float2(1, 2)
-        let b = simd_float2(1, 2)
-        let c = simd_float2(1, 3)
+        let a = Vec2(1, 2)
+        let b = Vec2(1, 2)
+        let c = Vec2(1, 3)
         XCTAssertTrue(simd_epsilon_equal(lhs: a, rhs: b))
         XCTAssertFalse(simd_epsilon_equal(lhs: a, rhs: c))
     }
 
     func testSet() {
-        var v = simd_float2()
+        var v = Vec2()
         v.set(5, 10)
         XCTAssertEqual(v.x, 5)
         XCTAssertEqual(v.y, 10)
     }
 
     func testSetAngle() {
-        var v = simd_float2()
+        var v = Vec2()
         v.set(angle: 0)
         XCTAssertTrue(GameMath.isFloatEqual(v.x, 1))
         XCTAssertTrue(GameMath.isFloatEqual(v.y, 0))
@@ -300,29 +299,29 @@ final class SimdFloat2ExtensionTests: XCTestCase {
 final class SimdFloat3ExtensionTests: XCTestCase {
 
     func testXYSwizzle() {
-        let v = simd_float3(1, 2, 3)
-        XCTAssertEqual(v.xy, simd_float2(1, 2))
+        let v = Vec3(1, 2, 3)
+        XCTAssertEqual(v.xy, Vec2(1, 2))
     }
 
     func testLength() {
-        let v = simd_float3(2, 3, 6)
+        let v = Vec3(2, 3, 6)
         XCTAssertTrue(GameMath.isFloatEqual(v.length, 7))
     }
 
     func testLengthSquared() {
-        let v = simd_float3(2, 3, 6)
+        let v = Vec3(2, 3, 6)
         XCTAssertTrue(GameMath.isFloatEqual(v.lengthSquared, 49))
     }
 
     func testNormalized() {
-        let v = simd_float3(0, 0, 5)
+        let v = Vec3(0, 0, 5)
         let n = v.normalized
         XCTAssertTrue(GameMath.isFloatEqual(n.z, 1.0))
         XCTAssertTrue(GameMath.isFloatEqual(n.length, 1.0))
     }
 
     func testRGBAccess() {
-        var v = simd_float3(0.1, 0.2, 0.3)
+        var v = Vec3(0.1, 0.2, 0.3)
         XCTAssertEqual(v.r, 0.1)
         XCTAssertEqual(v.g, 0.2)
         XCTAssertEqual(v.b, 0.3)
@@ -331,19 +330,19 @@ final class SimdFloat3ExtensionTests: XCTestCase {
     }
 
     func testTo4D() {
-        let v = simd_float3(1, 2, 3)
-        XCTAssertEqual(v.to4D(4), simd_float4(1, 2, 3, 4))
+        let v = Vec3(1, 2, 3)
+        XCTAssertEqual(v.to4D(4), Vec4(1, 2, 3, 4))
     }
 
     func testTo4DDefaultW() {
-        let v = simd_float3(1, 2, 3)
-        XCTAssertEqual(v.to4D(), simd_float4(1, 2, 3, 0))
+        let v = Vec3(1, 2, 3)
+        XCTAssertEqual(v.to4D(), Vec4(1, 2, 3, 0))
     }
 
     func testEpsilonEqual3() {
-        let a = simd_float3(1, 2, 3)
-        let b = simd_float3(1, 2, 3)
-        let c = simd_float3(1, 2, 4)
+        let a = Vec3(1, 2, 3)
+        let b = Vec3(1, 2, 3)
+        let c = Vec3(1, 2, 4)
         XCTAssertTrue(simd_epsilon_equal(lhs: a, rhs: b))
         XCTAssertFalse(simd_epsilon_equal(lhs: a, rhs: c))
     }
@@ -354,17 +353,17 @@ final class SimdFloat3ExtensionTests: XCTestCase {
 final class SimdFloat4ExtensionTests: XCTestCase {
 
     func testXYZSwizzle() {
-        let v = simd_float4(1, 2, 3, 4)
-        XCTAssertEqual(v.xyz, simd_float3(1, 2, 3))
+        let v = Vec4(1, 2, 3, 4)
+        XCTAssertEqual(v.xyz, Vec3(1, 2, 3))
     }
 
     func testRGBSwizzle() {
-        let v = simd_float4(0.1, 0.2, 0.3, 0.4)
-        XCTAssertEqual(v.rgb, simd_float3(0.1, 0.2, 0.3))
+        let v = Vec4(0.1, 0.2, 0.3, 0.4)
+        XCTAssertEqual(v.rgb, Vec3(0.1, 0.2, 0.3))
     }
 
     func testRGBAAccess() {
-        var v = simd_float4(0.1, 0.2, 0.3, 0.4)
+        var v = Vec4(0.1, 0.2, 0.3, 0.4)
         XCTAssertEqual(v.r, 0.1)
         XCTAssertEqual(v.g, 0.2)
         XCTAssertEqual(v.b, 0.3)
@@ -374,7 +373,7 @@ final class SimdFloat4ExtensionTests: XCTestCase {
     }
 
     func testTexTransAliases() {
-        var v = simd_float4(1, 2, 3, 4)
+        var v = Vec4(1, 2, 3, 4)
         XCTAssertEqual(v.sx, 1)
         XCTAssertEqual(v.su, 2)
         XCTAssertEqual(v.tx, 3)
@@ -384,28 +383,28 @@ final class SimdFloat4ExtensionTests: XCTestCase {
     }
 
     func testSet4() {
-        var v = simd_float4()
+        var v = Vec4()
         v.set(1, 2, 3, 4)
-        XCTAssertEqual(v, simd_float4(1, 2, 3, 4))
+        XCTAssertEqual(v, Vec4(1, 2, 3, 4))
     }
 
     func testSetRGBA() {
-        var v = simd_float4()
+        var v = Vec4()
         v.set(r: 0.1, g: 0.2, b: 0.3, a: 1.0)
         XCTAssertEqual(v.x, 0.1)
         XCTAssertEqual(v.w, 1.0)
     }
 
     func testSetRepeating() {
-        var v = simd_float4()
+        var v = Vec4()
         v.set(repeating: 5)
-        XCTAssertEqual(v, simd_float4(5, 5, 5, 5))
+        XCTAssertEqual(v, Vec4(5, 5, 5, 5))
     }
 
     func testEpsilonEqual4() {
-        let a = simd_float4(1, 2, 3, 4)
-        let b = simd_float4(1, 2, 3, 4)
-        let c = simd_float4(1, 2, 3, 5)
+        let a = Vec4(1, 2, 3, 4)
+        let b = Vec4(1, 2, 3, 4)
+        let c = Vec4(1, 2, 3, 5)
         XCTAssertTrue(simd_epsilon_equal(lhs: a, rhs: b))
         XCTAssertFalse(simd_epsilon_equal(lhs: a, rhs: c))
     }
@@ -416,7 +415,7 @@ final class SimdFloat4ExtensionTests: XCTestCase {
 final class SimdFloat4x4ExtensionTests: XCTestCase {
 
     func testSetToZero() {
-        var mtx = simd_float4x4(1)
+        var mtx = Mat4(1)
         mtx.setToZero()
         for col in 0..<4 {
             for row in 0..<4 {
@@ -426,8 +425,8 @@ final class SimdFloat4x4ExtensionTests: XCTestCase {
     }
 
     func testSetDiagonal() {
-        var mtx = simd_float4x4()
-        mtx.setDiagonal(simd_float4(2, 3, 4, 5))
+        var mtx = Mat4()
+        mtx.setDiagonal(Vec4(2, 3, 4, 5))
         XCTAssertEqual(mtx[0][0], 2)
         XCTAssertEqual(mtx[1][1], 3)
         XCTAssertEqual(mtx[2][2], 4)
@@ -437,7 +436,7 @@ final class SimdFloat4x4ExtensionTests: XCTestCase {
     }
 
     func testMakeScale2D() {
-        let mtx = simd_float4x4.makeScale2D(simd_float2(2, 3))
+        let mtx = Mat4.makeScale2D(Vec2(2, 3))
         XCTAssertEqual(mtx[0][0], 2)
         XCTAssertEqual(mtx[1][1], 3)
         XCTAssertEqual(mtx[2][2], 1)
@@ -445,7 +444,7 @@ final class SimdFloat4x4ExtensionTests: XCTestCase {
     }
 
     func testMakeTranslate2D() {
-        let mtx = simd_float4x4.makeTranslate2D(simd_float3(5, 10, 15))
+        let mtx = Mat4.makeTranslate2D(Vec3(5, 10, 15))
         XCTAssertEqual(mtx[3][0], 5)
         XCTAssertEqual(mtx[3][1], 10)
         XCTAssertEqual(mtx[3][2], 15)
@@ -456,7 +455,7 @@ final class SimdFloat4x4ExtensionTests: XCTestCase {
     }
 
     func testMakeRotate2D() {
-        let mtx = simd_float4x4.makeRotate2D(GameMath.piOverTwo)
+        let mtx = Mat4.makeRotate2D(GameMath.piOverTwo)
         XCTAssertTrue(GameMath.isFloatEqual(mtx[0][0], cos(GameMath.piOverTwo)))
         XCTAssertTrue(GameMath.isFloatEqual(mtx[0][1], sin(GameMath.piOverTwo)))
         XCTAssertTrue(GameMath.isFloatEqual(mtx[1][0], -sin(GameMath.piOverTwo)))
@@ -464,7 +463,7 @@ final class SimdFloat4x4ExtensionTests: XCTestCase {
     }
 
     func testMakeRotate2DZeroAngle() {
-        let mtx = simd_float4x4.makeRotate2D(0)
+        let mtx = Mat4.makeRotate2D(0)
         XCTAssertTrue(GameMath.isFloatEqual(mtx[0][0], 1))
         XCTAssertTrue(GameMath.isFloatEqual(mtx[1][1], 1))
         XCTAssertTrue(GameMath.isFloatEqual(mtx[0][1], 0))
@@ -472,8 +471,8 @@ final class SimdFloat4x4ExtensionTests: XCTestCase {
     }
 
     func testMakeTransform2DIdentity() {
-        let mtx = simd_float4x4.makeTransform2D(
-            scale: simd_float2(1, 1), angle: 0, translate: simd_float3(0, 0, 0))
+        let mtx = Mat4.makeTransform2D(
+            scale: Vec2(1, 1), angle: 0, translate: Vec3(0, 0, 0))
         XCTAssertTrue(GameMath.isFloatEqual(mtx[0][0], 1))
         XCTAssertTrue(GameMath.isFloatEqual(mtx[1][1], 1))
         XCTAssertTrue(GameMath.isFloatEqual(mtx[3][0], 0))
@@ -481,21 +480,21 @@ final class SimdFloat4x4ExtensionTests: XCTestCase {
     }
 
     func testMakeTransform2DWithTranslation() {
-        let mtx = simd_float4x4.makeTransform2D(
-            scale: simd_float2(1, 1), angle: 0, translate: simd_float3(5, 10, 0))
+        let mtx = Mat4.makeTransform2D(
+            scale: Vec2(1, 1), angle: 0, translate: Vec3(5, 10, 0))
         XCTAssertTrue(GameMath.isFloatEqual(mtx[3][0], 5))
         XCTAssertTrue(GameMath.isFloatEqual(mtx[3][1], 10))
     }
 
     func testMakeTransform2DWithScale() {
-        let mtx = simd_float4x4.makeTransform2D(
-            scale: simd_float2(2, 3), angle: 0, translate: simd_float3(0, 0, 0))
+        let mtx = Mat4.makeTransform2D(
+            scale: Vec2(2, 3), angle: 0, translate: Vec3(0, 0, 0))
         XCTAssertTrue(GameMath.isFloatEqual(mtx[0][0], 2))
         XCTAssertTrue(GameMath.isFloatEqual(mtx[1][1], 3))
     }
 
     func testMakeLookAt2D() {
-        let mtx = simd_float4x4.makeLookAt2D(simd_float3(0, 0, 50))
+        let mtx = Mat4.makeLookAt2D(Vec3(0, 0, 50))
         XCTAssertEqual(mtx[3][0], 0)
         XCTAssertEqual(mtx[3][1], 0)
         XCTAssertEqual(mtx[3][2], -50)
@@ -511,22 +510,22 @@ final class IntersectTests: XCTestCase {
 
     func testPointInsideCircle() {
         XCTAssertTrue(Intersect.pointCircle(
-            point: simd_float2(0, 0), circle: simd_float2(0, 0), radius: 1))
+            point: Vec2(0, 0), circle: Vec2(0, 0), radius: 1))
     }
 
     func testPointOnCircleEdge() {
         XCTAssertTrue(Intersect.pointCircle(
-            point: simd_float2(1, 0), circle: simd_float2(0, 0), radius: 1))
+            point: Vec2(1, 0), circle: Vec2(0, 0), radius: 1))
     }
 
     func testPointOutsideCircle() {
         XCTAssertFalse(Intersect.pointCircle(
-            point: simd_float2(2, 0), circle: simd_float2(0, 0), radius: 1))
+            point: Vec2(2, 0), circle: Vec2(0, 0), radius: 1))
     }
 
     func testPointOffsetCircle() {
         XCTAssertTrue(Intersect.pointCircle(
-            point: simd_float2(5, 5), circle: simd_float2(5, 5.5), radius: 1))
+            point: Vec2(5, 5), circle: Vec2(5, 5.5), radius: 1))
     }
 
     // MARK: Point vs Circle (protocol overload)
@@ -534,55 +533,55 @@ final class IntersectTests: XCTestCase {
     func testPointCircleWithProtocol() {
         let obj = GameObj()
         let collider = CircleCollider(obj: obj, radius: 2)
-        XCTAssertTrue(Intersect.pointCircle(point: simd_float2(0, 0), circle: collider))
-        XCTAssertFalse(Intersect.pointCircle(point: simd_float2(5, 5), circle: collider))
+        XCTAssertTrue(Intersect.pointCircle(point: Vec2(0, 0), circle: collider))
+        XCTAssertFalse(Intersect.pointCircle(point: Vec2(5, 5), circle: collider))
     }
 
     // MARK: Point vs AABB
 
     func testPointInsideAABB() {
         XCTAssertTrue(Intersect.pointAABB(
-            point: simd_float2(0, 0), center: simd_float2(0, 0), width: 2, height: 2))
+            point: Vec2(0, 0), center: Vec2(0, 0), width: 2, height: 2))
     }
 
     func testPointOnAABBEdge() {
         XCTAssertTrue(Intersect.pointAABB(
-            point: simd_float2(1, 0), center: simd_float2(0, 0), width: 2, height: 2))
+            point: Vec2(1, 0), center: Vec2(0, 0), width: 2, height: 2))
     }
 
     func testPointOutsideAABB() {
         XCTAssertFalse(Intersect.pointAABB(
-            point: simd_float2(2, 0), center: simd_float2(0, 0), width: 2, height: 2))
+            point: Vec2(2, 0), center: Vec2(0, 0), width: 2, height: 2))
     }
 
     func testPointOffsetAABB() {
         XCTAssertTrue(Intersect.pointAABB(
-            point: simd_float2(5.5, 5.5), center: simd_float2(5, 5), width: 2, height: 2))
+            point: Vec2(5.5, 5.5), center: Vec2(5, 5), width: 2, height: 2))
     }
 
     // MARK: Point vs Line Segment
 
     func testPointOnLineSegment() {
         let result = Intersect.pointLineSegment(
-            point: simd_float2(5, 0), start: simd_float2(0, 0), end: simd_float2(10, 0))
+            point: Vec2(5, 0), start: Vec2(0, 0), end: Vec2(10, 0))
         XCTAssertTrue(result, "Point at midpoint of line should intersect")
     }
 
     func testPointAtLineStart() {
         let result = Intersect.pointLineSegment(
-            point: simd_float2(0, 0), start: simd_float2(0, 0), end: simd_float2(10, 0))
+            point: Vec2(0, 0), start: Vec2(0, 0), end: Vec2(10, 0))
         XCTAssertTrue(result, "Point at start of line should intersect")
     }
 
     func testPointOffLine() {
         let result = Intersect.pointLineSegment(
-            point: simd_float2(5, 5), start: simd_float2(0, 0), end: simd_float2(10, 0))
+            point: Vec2(5, 5), start: Vec2(0, 0), end: Vec2(10, 0))
         XCTAssertFalse(result, "Point far from line should not intersect")
     }
 
     func testPointBeyondLineEnd() {
         let result = Intersect.pointLineSegment(
-            point: simd_float2(15, 0), start: simd_float2(0, 0), end: simd_float2(10, 0))
+            point: Vec2(15, 0), start: Vec2(0, 0), end: Vec2(10, 0))
         XCTAssertFalse(result, "Point beyond line end should not intersect")
     }
 
@@ -590,17 +589,17 @@ final class IntersectTests: XCTestCase {
 
     func testCirclesOverlapping() {
         XCTAssertTrue(Intersect.circleCircle(
-            center1: simd_float2(0, 0), center2: simd_float2(1, 0), radius1: 1, radius2: 1))
+            center1: Vec2(0, 0), center2: Vec2(1, 0), radius1: 1, radius2: 1))
     }
 
     func testCirclesTouching() {
         XCTAssertTrue(Intersect.circleCircle(
-            center1: simd_float2(0, 0), center2: simd_float2(2, 0), radius1: 1, radius2: 1))
+            center1: Vec2(0, 0), center2: Vec2(2, 0), radius1: 1, radius2: 1))
     }
 
     func testCirclesSeparated() {
         XCTAssertFalse(Intersect.circleCircle(
-            center1: simd_float2(0, 0), center2: simd_float2(5, 0), radius1: 1, radius2: 1))
+            center1: Vec2(0, 0), center2: Vec2(5, 0), radius1: 1, radius2: 1))
     }
 
     // MARK: Circle vs Circle (protocol overload)
@@ -618,95 +617,95 @@ final class IntersectTests: XCTestCase {
 
     func testCircleOverlappingAABB() {
         XCTAssertTrue(Intersect.circleAABB(
-            circleCenter: simd_float2(1.5, 0), radius: 1,
-            aabbCenter: simd_float2(0, 0), width: 2, height: 2))
+            circleCenter: Vec2(1.5, 0), radius: 1,
+            aabbCenter: Vec2(0, 0), width: 2, height: 2))
     }
 
     func testCircleInsideAABB() {
         XCTAssertTrue(Intersect.circleAABB(
-            circleCenter: simd_float2(0, 0), radius: 0.5,
-            aabbCenter: simd_float2(0, 0), width: 2, height: 2))
+            circleCenter: Vec2(0, 0), radius: 0.5,
+            aabbCenter: Vec2(0, 0), width: 2, height: 2))
     }
 
     func testCircleFarFromAABB() {
         XCTAssertFalse(Intersect.circleAABB(
-            circleCenter: simd_float2(5, 0), radius: 1,
-            aabbCenter: simd_float2(0, 0), width: 2, height: 2))
+            circleCenter: Vec2(5, 0), radius: 1,
+            aabbCenter: Vec2(0, 0), width: 2, height: 2))
     }
 
     func testCircleAtAABBCorner() {
         XCTAssertTrue(Intersect.circleAABB(
-            circleCenter: simd_float2(1.5, 1.5), radius: 1,
-            aabbCenter: simd_float2(0, 0), width: 2, height: 2))
+            circleCenter: Vec2(1.5, 1.5), radius: 1,
+            aabbCenter: Vec2(0, 0), width: 2, height: 2))
     }
 
     // MARK: Circle vs Line Segment
 
     func testCircleIntersectsLineSegment() {
         XCTAssertTrue(Intersect.circleLineSegment(
-            center: simd_float2(0, 0), radius: 1,
-            start: simd_float2(-5, 0), end: simd_float2(5, 0)))
+            center: Vec2(0, 0), radius: 1,
+            start: Vec2(-5, 0), end: Vec2(5, 0)))
     }
 
     func testCircleMissesLineSegment() {
         XCTAssertFalse(Intersect.circleLineSegment(
-            center: simd_float2(0, 5), radius: 1,
-            start: simd_float2(-5, 0), end: simd_float2(5, 0)))
+            center: Vec2(0, 5), radius: 1,
+            start: Vec2(-5, 0), end: Vec2(5, 0)))
     }
 
     func testCircleAtLineSegmentEnd() {
         let result = Intersect.circleLineSegment(
-            center: simd_float2(10, 0.5), radius: 1,
-            start: simd_float2(0, 0), end: simd_float2(10, 0))
+            center: Vec2(10, 0.5), radius: 1,
+            start: Vec2(0, 0), end: Vec2(10, 0))
         XCTAssertTrue(result, "Circle overlapping line segment endpoint should intersect")
     }
 
     func testCirclePastLineSegmentEnd() {
         let result = Intersect.circleLineSegment(
-            center: simd_float2(12, 0), radius: 0.5,
-            start: simd_float2(0, 0), end: simd_float2(10, 0))
+            center: Vec2(12, 0), radius: 0.5,
+            start: Vec2(0, 0), end: Vec2(10, 0))
         XCTAssertFalse(result, "Circle past line segment end should not intersect")
     }
 
     func testCircleBeforeLineSegmentStart() {
         let result = Intersect.circleLineSegment(
-            center: simd_float2(-2, 0), radius: 0.5,
-            start: simd_float2(0, 0), end: simd_float2(10, 0))
+            center: Vec2(-2, 0), radius: 0.5,
+            start: Vec2(0, 0), end: Vec2(10, 0))
         XCTAssertFalse(result, "Circle before line segment start should not intersect")
     }
 
     func testCircleOverlapsLineSegmentStart() {
         let result = Intersect.circleLineSegment(
-            center: simd_float2(-0.5, 0), radius: 1,
-            start: simd_float2(0, 0), end: simd_float2(10, 0))
+            center: Vec2(-0.5, 0), radius: 1,
+            start: Vec2(0, 0), end: Vec2(10, 0))
         XCTAssertTrue(result, "Circle overlapping line segment start should intersect")
     }
 
     func testCirclePerpendicularNearMiss() {
         let result = Intersect.circleLineSegment(
-            center: simd_float2(5, 1.5), radius: 1,
-            start: simd_float2(0, 0), end: simd_float2(10, 0))
+            center: Vec2(5, 1.5), radius: 1,
+            start: Vec2(0, 0), end: Vec2(10, 0))
         XCTAssertFalse(result, "Circle near but not touching line should not intersect")
     }
 
     func testCirclePerpendicularJustTouching() {
         let result = Intersect.circleLineSegment(
-            center: simd_float2(5, 0.9), radius: 1,
-            start: simd_float2(0, 0), end: simd_float2(10, 0))
+            center: Vec2(5, 0.9), radius: 1,
+            start: Vec2(0, 0), end: Vec2(10, 0))
         XCTAssertTrue(result, "Circle just touching line should intersect")
     }
 
     func testCircleIntersectsDiagonalLine() {
         let result = Intersect.circleLineSegment(
-            center: simd_float2(5, 5), radius: 1,
-            start: simd_float2(0, 0), end: simd_float2(10, 10))
+            center: Vec2(5, 5), radius: 1,
+            start: Vec2(0, 0), end: Vec2(10, 10))
         XCTAssertTrue(result, "Circle on diagonal line should intersect")
     }
 
     func testCircleCenteredOnLineEnd() {
         let result = Intersect.circleLineSegment(
-            center: simd_float2(10, 0), radius: 1,
-            start: simd_float2(0, 0), end: simd_float2(10, 0))
+            center: Vec2(10, 0), radius: 1,
+            start: Vec2(0, 0), end: Vec2(10, 0))
         XCTAssertTrue(result, "Circle centered on line endpoint should intersect")
     }
 
@@ -714,20 +713,20 @@ final class IntersectTests: XCTestCase {
 
     func testAABBsOverlapping() {
         XCTAssertTrue(Intersect.aabbAABB(
-            center1: simd_float2(0, 0), width1: 2, height1: 2,
-            center2: simd_float2(1, 0), width2: 2, height2: 2))
+            center1: Vec2(0, 0), width1: 2, height1: 2,
+            center2: Vec2(1, 0), width2: 2, height2: 2))
     }
 
     func testAABBsSeparated() {
         XCTAssertFalse(Intersect.aabbAABB(
-            center1: simd_float2(0, 0), width1: 2, height1: 2,
-            center2: simd_float2(5, 0), width2: 2, height2: 2))
+            center1: Vec2(0, 0), width1: 2, height1: 2,
+            center2: Vec2(5, 0), width2: 2, height2: 2))
     }
 
     func testAABBsTouching() {
         XCTAssertTrue(Intersect.aabbAABB(
-            center1: simd_float2(0, 0), width1: 2, height1: 2,
-            center2: simd_float2(2, 0), width2: 2, height2: 2))
+            center1: Vec2(0, 0), width1: 2, height1: 2,
+            center2: Vec2(2, 0), width2: 2, height2: 2))
     }
 }
 
@@ -754,7 +753,7 @@ final class CircleColliderTests: XCTestCase {
         let obj = GameObj()
         let collider = CircleCollider(obj: obj, radius: 1)
 
-        collider.center = simd_float2(7, 8)
+        collider.center = Vec2(7, 8)
         XCTAssertEqual(obj.position.x, 7)
         XCTAssertEqual(obj.position.y, 8)
     }
