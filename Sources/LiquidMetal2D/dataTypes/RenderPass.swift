@@ -9,7 +9,6 @@
 import UIKit
 import Metal
 
-@available(iOS 13.0, *)
 public class RenderPass {
     private let commandBuffer: MTLCommandBuffer
     private let drawable: CAMetalDrawable!

@@ -10,7 +10,6 @@ import UIKit
 import Metal
 import simd
 
-@available(iOS 13.0, *)
 @MainActor
 public class RenderCore {
 

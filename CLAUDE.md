@@ -6,7 +6,7 @@ Swift/Metal 2D game engine library for iOS.
 
 - **Language:** Swift 6
 - **Graphics:** Apple Metal
-- **Platform:** iOS 17+ (also declares macOS 14+ for SPM tooling)
+- **Platform:** iOS 26+ (also declares macOS 26+ for SPM tooling)
 - **Package Manager:** Swift Package Manager
 - **Dependencies:** [MetalMath](https://github.com/mattCasanova/MetalMath) (0.2.0+), SwiftLint (build plugin)
 
