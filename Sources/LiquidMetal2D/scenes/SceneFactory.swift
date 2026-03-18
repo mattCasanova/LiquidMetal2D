@@ -15,6 +15,7 @@
 /// factory.addScene(type: MyScenes.menu, builder: TSceneBuilder<MenuScene>())
 /// factory.addScene(type: MyScenes.gameplay, builder: TSceneBuilder<GameplayScene>())
 /// ```
+@MainActor
 public class SceneFactory {
 
     private var builderMap = [AnyHashable: SceneBuilder]()

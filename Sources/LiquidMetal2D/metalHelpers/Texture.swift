@@ -54,14 +54,14 @@ public class Texture {
             bitsPerComponent: Texture.bitsPerComponent,
             bytesPerRow: rowBytes,
             space: colorSpace,
-            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return }
+            bitmapInfo: CGBitmapInfo.byteOrder32Little.rawValue | CGImageAlphaInfo.premultipliedFirst.rawValue) else { return }
 
         let bounds = CGRect(x: 0, y: 0, width: mWidth, height: mHeight)
         context.clear(bounds)
         context.draw(image, in: bounds)
 
         let textureDescriptor = MTLTextureDescriptor.texture2DDescriptor(
-            pixelFormat: MTLPixelFormat.rgba8Unorm,
+            pixelFormat: MTLPixelFormat.bgra8Unorm,
             width: mWidth,
             height: mHeight,
             mipmapped: isMipmapped)

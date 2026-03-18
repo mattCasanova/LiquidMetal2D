@@ -11,6 +11,7 @@
 /// Completed tasks are removed after the update loop (no mutation during
 /// iteration). Chained tasks (via ``ScheduledTask/then``) are automatically
 /// added when their predecessor completes.
+@MainActor
 public class Scheduler {
 
     private var tasks = [ScheduledTask]()

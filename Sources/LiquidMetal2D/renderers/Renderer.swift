@@ -33,7 +33,7 @@ public protocol Renderer: AnyObject {
     func getWorldBoundsFromCamera(zOrder: Float) -> WorldBounds
     func getWorldBounds(cameraDistance: Float, zOrder: Float) -> WorldBounds
 
-    func beginPass()
+    func beginPass() -> Bool
     func usePerspective()
     func useOrthographic()
     func useTexture(textureId: Int)

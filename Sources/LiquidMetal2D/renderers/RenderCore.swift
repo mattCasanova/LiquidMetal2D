@@ -89,10 +89,19 @@ public class RenderCore {
     private static func createPipelineState(
         device: MTLDevice, layer: CAMetalLayer, vertexName: String, fragmentName: String
     ) -> MTLRenderPipelineState {
-        // swiftlint:disable:next force_try
-        let defaultLibrary = try! device.makeLibrary(source: ShaderSources.alphaBlendShader, options: nil)
-        let fragmentProgram = defaultLibrary.makeFunction(name: fragmentName)
-        let vertexProgram   = defaultLibrary.makeFunction(name: vertexName)
+        let defaultLibrary: MTLLibrary
+        do {
+            defaultLibrary = try device.makeLibrary(source: ShaderSources.alphaBlendShader, options: nil)
+        } catch {
+            fatalError("Failed to compile Metal shader library: \(error)")
+        }
+
+        guard let fragmentProgram = defaultLibrary.makeFunction(name: fragmentName) else {
+            fatalError("Failed to find fragment function '\(fragmentName)'")
+        }
+        guard let vertexProgram = defaultLibrary.makeFunction(name: vertexName) else {
+            fatalError("Failed to find vertex function '\(vertexName)'")
+        }
 
         let pipelineStateDescriptor                             = MTLRenderPipelineDescriptor()
         pipelineStateDescriptor.vertexFunction                  = vertexProgram
@@ -111,8 +120,11 @@ public class RenderCore {
         colorDescriptor?.destinationRGBBlendFactor   = .oneMinusSourceAlpha
         colorDescriptor?.destinationAlphaBlendFactor = .oneMinusSourceAlpha
 
-        // swiftlint:disable:next force_try
-        return try! device.makeRenderPipelineState(descriptor: pipelineStateDescriptor)
+        do {
+            return try device.makeRenderPipelineState(descriptor: pipelineStateDescriptor)
+        } catch {
+            fatalError("Failed to create render pipeline state: \(error)")
+        }
     }
 
     public func loadTexture(name: String, ext: String, isMipmaped: Bool) -> Int {

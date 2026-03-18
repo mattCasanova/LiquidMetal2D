@@ -15,6 +15,7 @@ public class ProjectionUniform: UniformData {
     public init() {}
 
     public func setBuffer(buffer: UnsafeMutableRawPointer, offsetIndex: Int) {
+        assert(offsetIndex >= 0, "ProjectionUniform offsetIndex must be non-negative")
         memcpy(buffer + (offsetIndex * size), &transform, size)
     }
 

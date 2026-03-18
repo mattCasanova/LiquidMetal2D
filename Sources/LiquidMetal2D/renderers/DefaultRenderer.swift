@@ -10,7 +10,7 @@ import UIKit
 import Metal
 
 @MainActor
-public class DefaultRenderer: Renderer, @unchecked Sendable {
+public class DefaultRenderer: Renderer {
 
     private let renderCore: RenderCore
     private var renderPass: RenderPass!
@@ -134,14 +134,17 @@ public class DefaultRenderer: Renderer, @unchecked Sendable {
     public func useOrthographic() {
     }
 
-    public func beginPass() {
+    @discardableResult
+    public func beginPass() -> Bool {
+        guard projectionBufferProvider.wait(),
+              worldBufferProvider.wait() else {
+            return false
+        }
+
         renderPass = RenderPass(
             layer: renderCore.layer,
             commandQueue: renderCore.commandQueue,
             clearColor: renderCore.clearColor)
-
-        projectionBufferProvider.wait()
-        worldBufferProvider.wait()
 
         projectionBuffer = projectionBufferProvider.nextBuffer()
 
@@ -161,9 +164,11 @@ public class DefaultRenderer: Renderer, @unchecked Sendable {
         worldBufferContents = worldBuffer.contents()
         renderPass.encoder.setVertexBuffer(worldBuffer, offset: 0, index: 2)
         drawCount = 0
+        return true
     }
 
     public func draw(uniforms: UniformData) {
+        assert(drawCount < maxObjects, "Draw count \(drawCount) exceeds maxObjects \(maxObjects)")
         guard drawCount < maxObjects else { return }
 
         let offset = uniforms.size * drawCount

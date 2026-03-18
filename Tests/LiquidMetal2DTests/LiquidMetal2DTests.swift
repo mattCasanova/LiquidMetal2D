@@ -1,6 +1,7 @@
 import XCTest
 @testable import LiquidMetal2D
 
+@MainActor
 final class LiquidMetal2DTests: XCTestCase {
 
     func testGameObjDefaults() {

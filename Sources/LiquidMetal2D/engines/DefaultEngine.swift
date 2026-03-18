@@ -21,6 +21,7 @@ import UIKit
 ///     sceneFactory: factory)
 /// gameEngine.run()
 /// ```
+@MainActor
 public class DefaultEngine: GameEngine, InputReader {
     /// Maximum delta time per frame (~15 FPS). Larger deltas are clamped
     /// to this value to prevent physics explosions after backgrounding.

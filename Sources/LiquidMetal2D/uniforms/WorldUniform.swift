@@ -15,6 +15,8 @@ public class WorldUniform: UniformData {
     public init() {}
 
     public func setBuffer(buffer: UnsafeMutableRawPointer, offsetIndex: Int) {
+        assert(offsetIndex >= 0, "WorldUniform offsetIndex must be non-negative")
+
         let mtxSize = MemoryLayout<Mat4>.size
         let texSize = MemoryLayout<Vec4>.size
 

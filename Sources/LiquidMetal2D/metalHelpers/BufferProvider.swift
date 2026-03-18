@@ -8,9 +8,10 @@
 
 import Metal
 
-public class BufferProvider: @unchecked Sendable {
+@MainActor
+public class BufferProvider {
     private let buffersCount: Int
-    private let semaphore: DispatchSemaphore
+    nonisolated(unsafe) private let semaphore: DispatchSemaphore
 
     private var buffers: [MTLBuffer]
     private var availableIndex = 0
@@ -26,11 +27,11 @@ public class BufferProvider: @unchecked Sendable {
         }
     }
 
-    public func wait() {
-        _ = semaphore.wait(timeout: DispatchTime.distantFuture)
+    public func wait() -> Bool {
+        return semaphore.wait(timeout: .now() + .milliseconds(16)) == .success
     }
 
-    public func signal() {
+    nonisolated public func signal() {
         semaphore.signal()
     }
 
