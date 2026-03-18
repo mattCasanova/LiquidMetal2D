@@ -11,7 +11,7 @@ import Metal
 @MainActor
 public class BufferProvider {
     private let buffersCount: Int
-    nonisolated(unsafe) private let semaphore: DispatchSemaphore
+    private let semaphore: DispatchSemaphore
 
     private var buffers: [MTLBuffer]
     private var availableIndex = 0
