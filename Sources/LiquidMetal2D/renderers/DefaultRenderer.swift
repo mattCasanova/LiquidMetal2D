@@ -10,17 +10,17 @@ import UIKit
 import Metal
 
 @MainActor
-public class DefaultRenderer: Renderer {
+open class DefaultRenderer: Renderer {
 
-    private let renderCore: RenderCore
-    private var renderPass: RenderPass!
+    public let renderCore: RenderCore
+    public var renderPass: RenderPass!
 
     public var screenHeight: Float = 0
     public var screenWidth: Float = 0
     public var screenAspect: Float = 0
 
-    private var drawCount: Int = 0
-    private var maxObjects: Int = 0
+    public var drawCount: Int = 0
+    public var maxObjects: Int = 0
 
     private let vertexBuffer: MTLBuffer
 
@@ -123,33 +123,33 @@ public class DefaultRenderer: Renderer {
 
     // MARK: - Batch Tracking
 
-    private struct TextureBatch {
-        let textureId: Int
-        let startIndex: Int
-        var count: Int
+    public struct TextureBatch {
+        public let textureId: Int
+        public let startIndex: Int
+        public var count: Int
     }
 
-    private var currentTextureId: Int = -1
-    private var batches: [TextureBatch] = []
-    private let worldUniforms = WorldUniform()
+    public var currentTextureId: Int = -1
+    public var batches: [TextureBatch] = []
+    public let worldUniforms = WorldUniform()
 
     // MARK: - Draw Methods
 
-    public func usePerspective() {
+    open func usePerspective() {
         let contents = projectionBuffer.contents()
         projectionUniforms.transform = renderCore.perspective.make() * renderCore.camera2D.make()
         projectionUniforms.setBuffer(buffer: contents, offsetIndex: 0)
         renderPass.encoder.setVertexBuffer(projectionBuffer, offset: 0, index: 1)
     }
 
-    public func useOrthographic() {
+    open func useOrthographic() {
         let contents = projectionBuffer.contents()
         projectionUniforms.transform = renderCore.orthographic.make()
         projectionUniforms.setBuffer(buffer: contents, offsetIndex: 0)
         renderPass.encoder.setVertexBuffer(projectionBuffer, offset: 0, index: 1)
     }
 
-    public func submit(objects: [GameObj]) {
+    open func submit(objects: [GameObj]) {
         let sorted = objects.sorted {
             ($0.zOrder, $0.textureID) < ($1.zOrder, $1.textureID)
         }
@@ -177,7 +177,7 @@ public class DefaultRenderer: Renderer {
         currentTextureId = textureId
     }
 
-    public func draw(uniforms: UniformData) {
+    open func draw(uniforms: UniformData) {
         assert(drawCount < maxObjects, "Draw count \(drawCount) exceeds maxObjects \(maxObjects)")
         guard drawCount < maxObjects else { return }
 
@@ -195,7 +195,7 @@ public class DefaultRenderer: Renderer {
     // MARK: - Pass Management
 
     @discardableResult
-    public func beginPass() -> Bool {
+    open func beginPass() -> Bool {
         guard projectionBufferProvider.wait(),
               worldBufferProvider.wait() else {
             return false
@@ -227,7 +227,7 @@ public class DefaultRenderer: Renderer {
         return true
     }
 
-    public func endPass() {
+    open func endPass() {
         for batch in batches {
             if let texture = renderCore.getTexture(id: batch.textureId) {
                 renderPass.encoder.setFragmentTexture(texture.texture, index: 0)
