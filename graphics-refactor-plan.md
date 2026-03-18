@@ -49,8 +49,8 @@ Major overhaul of the LiquidMetal2D rendering pipeline. Fixes correctness bugs, 
 - [x] Step 13: Implement useOrthographic() and setOrthographic() (#24)
 
 ### Phase 5: Tests
-- [ ] Step 14: Add projection/unproject round-trip tests (#41)
-- [ ] Step 15: Add orthographic projection tests
+- [x] Step 14: Add projection/unproject round-trip tests (#41)
+- [x] Step 15: Add orthographic projection tests + Camera2D tests
 
 ---
 
