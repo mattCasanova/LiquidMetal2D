@@ -172,6 +172,12 @@ open class DefaultRenderer: Renderer {
     }
 
     // MARK: - Advanced Draw Methods (manual control)
+    //
+    // Unlike submit(objects:), these methods do NOT sort by zOrder or textureID.
+    // Objects render in the order you call draw(). If you need correct depth
+    // ordering, sort your objects before the draw loop. Consecutive calls with
+    // the same texture will batch into one instanced draw call; interleaved
+    // textures produce more draw calls.
 
     public func useTexture(textureId: Int) {
         currentTextureId = textureId
