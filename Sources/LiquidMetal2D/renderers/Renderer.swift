@@ -19,6 +19,7 @@ public protocol Renderer: AnyObject {
 
     func loadTexture(name: String, ext: String, isMipmaped: Bool) -> Int
     func unloadTexture(textureId: Int)
+    func unloadAllTextures()
 
     func setPerspective(fov: Float, aspect: Float, nearZ: Float, farZ: Float)
     func setOrthographic(left: Float, right: Float, bottom: Float, top: Float, nearZ: Float, farZ: Float)

@@ -88,6 +88,10 @@ open class DefaultRenderer: Renderer {
         renderCore.unloadTexture(textureId: textureId)
     }
 
+    public func unloadAllTextures() {
+        renderCore.unloadAllTextures()
+    }
+
     public func project(world: Vec3) -> Vec3 {
         return renderCore.project(worldPoint: world)
     }

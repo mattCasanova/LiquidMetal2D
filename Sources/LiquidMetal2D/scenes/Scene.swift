@@ -54,6 +54,9 @@ open class DefaultScene: Scene {
     /// The list of game objects to draw each frame.
     public var objects: [GameObj]
 
+    /// Optional scheduler for timed tasks. Automatically cleared on shutdown.
+    public let scheduler = Scheduler()
+
     public init() {
         objects = [GameObj]()
     }
@@ -93,7 +96,12 @@ open class DefaultScene: Scene {
     }
 
     public func update(dt: Float) {}
-    public func shutdown() { objects.removeAll() }
+    /// Clears objects and scheduler. Override to add custom cleanup
+    /// (unload textures, remove UI, etc.) — call super.shutdown().
+    public func shutdown() {
+        objects.removeAll()
+        scheduler.clear()
+    }
     public func resume() {}
     public static func build() -> Scene { return DefaultScene() }
 }

@@ -209,6 +209,13 @@ public class RenderCore {
         }
     }
 
+    /// Removes all loaded textures. Called as a safety fallback during
+    /// renderer shutdown to prevent GPU resource leaks.
+    public func unloadAllTextures() {
+        textures.removeAll()
+        texturesMap.removeAll()
+    }
+
     public func getTexture(id: Int) -> Texture? {
         return texturesMap[id]
     }

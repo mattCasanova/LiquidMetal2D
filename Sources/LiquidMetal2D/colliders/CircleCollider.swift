@@ -6,12 +6,12 @@
 //
 
 public class CircleCollider: Collider, MutableCircle {
-    private unowned let obj: GameObj
+    private weak var obj: GameObj?
     public var radius: Float
 
     public var center: Vec2 {
-        get { obj.position }
-        set { obj.position.set(newValue.x, newValue.y) }
+        get { obj?.position ?? Vec2() }
+        set { obj?.position.set(newValue.x, newValue.y) }
     }
 
     public init(obj: GameObj, radius: Float) {
@@ -32,6 +32,7 @@ public class CircleCollider: Collider, MutableCircle {
     }
 
     public func doesCollideWith(aabbCenter: Vec2, width: Float, height: Float) -> Bool {
+        guard let obj else { return false }
         return Intersect.circleAABB(
             circleCenter: obj.position, radius: radius,
             aabbCenter: aabbCenter, width: width, height: height)
