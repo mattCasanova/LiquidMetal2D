@@ -15,16 +15,16 @@ public class Texture {
     private static let bytesPerPixel = 4
     private static let bitsPerComponent = 8
 
-    private let path: String!
+    private let path: String?
     private let isMipmapped: Bool
     private var mId = 0
     private var mWidth: Int = 0
     private var mHeight: Int = 0
-    private var mTexture: MTLTexture!
+    private var mTexture: MTLTexture?
 
     public let fileName: String
 
-    public var texture: MTLTexture { mTexture }
+    public var texture: MTLTexture? { mTexture }
     public var id: Int { mId }
     public var width: Int { mWidth }
     public var height: Int { mHeight }
@@ -38,7 +38,7 @@ public class Texture {
     }
 
     public func loadTexture(device: MTLDevice, commandQueue: MTLCommandQueue) {
-        guard let image = UIImage(contentsOfFile: path)?.cgImage else { return }
+        guard let path, let image = UIImage(contentsOfFile: path)?.cgImage else { return }
 
         let colorSpace = CGColorSpaceCreateDeviceRGB()
 
@@ -67,16 +67,17 @@ public class Texture {
             height: mHeight,
             mipmapped: isMipmapped)
 
-        mTexture = device.makeTexture(descriptor: textureDescriptor)
+        guard let newTexture = device.makeTexture(descriptor: textureDescriptor) else { return }
+        mTexture = newTexture
 
         guard let pixelData = context.data else { return }
 
         let region = MTLRegionMake2D(0, 0, mWidth, mHeight)
-        mTexture.replace(region: region, mipmapLevel: 0, withBytes: pixelData, bytesPerRow: Int(rowBytes))
+        newTexture.replace(region: region, mipmapLevel: 0, withBytes: pixelData, bytesPerRow: Int(rowBytes))
 
         if isMipmapped {
             generateMipmapLayers(
-                texture: mTexture,
+                texture: newTexture,
                 device: device,
                 commandQueue: commandQueue,
                 onComplete: { _ in })

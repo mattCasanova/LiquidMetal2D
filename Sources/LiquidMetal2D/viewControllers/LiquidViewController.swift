@@ -11,10 +11,12 @@ import UIKit
 open class LiquidViewController: UIViewController {
     public var gameEngine: GameEngine!
 
+    private var rotationObserver: NSObjectProtocol?
+
     open override func viewDidLoad() {
         super.viewDidLoad()
 
-        NotificationCenter.default.addObserver(
+        rotationObserver = NotificationCenter.default.addObserver(
             forName: UIDevice.orientationDidChangeNotification,
             object: nil,
             queue: .main) { [weak self] _ in
@@ -38,7 +40,10 @@ open class LiquidViewController: UIViewController {
 
     open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        NotificationCenter.default.removeObserver(self, name: UIDevice.orientationDidChangeNotification, object: nil)
+        if let observer = rotationObserver {
+            NotificationCenter.default.removeObserver(observer)
+            rotationObserver = nil
+        }
     }
 
     open override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {

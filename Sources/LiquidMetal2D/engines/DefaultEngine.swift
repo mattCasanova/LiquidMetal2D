@@ -51,6 +51,12 @@ public class DefaultEngine: GameEngine, InputReader {
         sceneManager.start(input: self)
     }
 
+    /// Stops the game loop. Call when the engine is no longer needed.
+    public func stop() {
+        timer?.invalidate()
+        timer = nil
+    }
+
     /// Starts the game loop by attaching a CADisplayLink to the main run loop.
     public func run() {
         timer = CADisplayLink(target: self, selector: #selector(gameLoop(displayLink:)))

@@ -207,11 +207,17 @@ open class DefaultRenderer: Renderer {
             return false
         }
 
-        renderPass = RenderPass(
+        guard let pass = RenderPass(
             layer: renderCore.layer,
             commandQueue: renderCore.commandQueue,
             clearColor: renderCore.clearColor)
+        else {
+            projectionBufferProvider.signal()
+            worldBufferProvider.signal()
+            return false
+        }
 
+        renderPass = pass
         projectionBuffer = projectionBufferProvider.nextBuffer()
 
         let projProvider = projectionBufferProvider
@@ -235,9 +241,8 @@ open class DefaultRenderer: Renderer {
 
     open func endPass() {
         for batch in batches {
-            if let texture = renderCore.getTexture(id: batch.textureId) {
-                renderPass.encoder.setFragmentTexture(texture.texture, index: 0)
-            }
+            let mtlTexture = renderCore.getTexture(id: batch.textureId)?.texture ?? renderCore.errorTexture
+            renderPass.encoder.setFragmentTexture(mtlTexture, index: 0)
             let offset = batch.startIndex * WorldUniform.typeSize()
             renderPass.encoder.setVertexBufferOffset(offset, index: 2)
             renderPass.encoder.drawPrimitives(

@@ -11,23 +11,21 @@ import Metal
 
 public class RenderPass {
     private let commandBuffer: MTLCommandBuffer
-    private let drawable: CAMetalDrawable!
-    private let descriptor: MTLRenderPassDescriptor!
-    public let encoder: MTLRenderCommandEncoder!
+    private let drawable: CAMetalDrawable
+    public let encoder: MTLRenderCommandEncoder
 
-    public init(layer: CAMetalLayer, commandQueue: MTLCommandQueue, clearColor: MTLClearColor) {
+    public init?(layer: CAMetalLayer, commandQueue: MTLCommandQueue, clearColor: MTLClearColor) {
 
         guard let safeDrawable = layer.nextDrawable(),
             let safeBuffer = commandQueue.makeCommandBuffer(),
             let safeDescriptor = RenderPass.createDescriptor(drawable: safeDrawable, clearColor: clearColor),
             let safeEncoder = safeBuffer.makeRenderCommandEncoder(descriptor: safeDescriptor)
         else {
-            fatalError("Unable to start render pass")
+            return nil
         }
 
         drawable      = safeDrawable
         commandBuffer = safeBuffer
-        descriptor    = safeDescriptor
         encoder       = safeEncoder
     }
 
