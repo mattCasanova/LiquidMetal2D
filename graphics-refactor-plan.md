@@ -39,14 +39,14 @@ Major overhaul of the LiquidMetal2D rendering pipeline. Fixes correctness bugs, 
 - [x] Step 7: Add shader source documentation comment (#18)
 
 ### Phase 3: Instanced Rendering (the big one)
-- [ ] Step 8: Add submit(objects:) API + instanced rendering (#13, #23)
-- [ ] Step 9: Update demo scenes to use submit(objects:)
-- [ ] Step 10: WorldUniform stored property on DefaultRenderer (#14)
+- [x] Step 8: Add submit(objects:) API + instanced rendering (#13, #23)
+- [x] Step 9: Update demo scenes to use submit(objects:)
+- [x] Step 10: WorldUniform stored property on DefaultRenderer (#14)
 
 ### Phase 4: Orthographic Projection
-- [ ] Step 11: Add makeOrthographic to Mat4 extensions
-- [ ] Step 12: Create OrthographicProjection class
-- [ ] Step 13: Implement useOrthographic() and setOrthographic() (#24)
+- [x] Step 11: Add makeOrthographic to Mat4 extensions
+- [x] Step 12: Create OrthographicProjection class
+- [x] Step 13: Implement useOrthographic() and setOrthographic() (#24)
 
 ### Phase 5: Tests
 - [ ] Step 14: Add projection/unproject round-trip tests (#41)

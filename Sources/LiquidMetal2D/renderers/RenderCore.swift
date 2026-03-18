@@ -25,6 +25,7 @@ public class RenderCore {
     var viewport = MTLViewport(originX: 0, originY: 0, width: 0, height: 0, znear: 0, zfar: 1)
 
     public let perspective = PerspectiveProjection()
+    public let orthographic = OrthographicProjection()
     public let camera2D = Camera2D()
     public var clearColor: MTLClearColor = MTLClearColor()
 

@@ -35,6 +35,22 @@ public extension Mat4 {
         return mtx
     }
 
+    /// Creates an orthographic projection matrix. Metal NDC z range is [0, 1].
+    static func makeOrthographic(
+        left: Float, right: Float, bottom: Float, top: Float,
+        nearZ: Float, farZ: Float
+    ) -> Mat4 {
+        let rl = right - left
+        let tb = top - bottom
+        let fn = farZ - nearZ
+        var mtx = Mat4()
+        mtx[0] = Vec4(2 / rl, 0, 0, 0)
+        mtx[1] = Vec4(0, 2 / tb, 0, 0)
+        mtx[2] = Vec4(0, 0, -1 / fn, 0)
+        mtx[3] = Vec4(-(right + left) / rl, -(top + bottom) / tb, -nearZ / fn, 1)
+        return mtx
+    }
+
     /// Creates a 2D scale matrix from x and y scale factors.
     static func makeScale2D(_ scale: Vec2) -> Mat4 {
         return Mat4(diagonal: Vec4(lowHalf: scale, highHalf: Vec2(1, 1)))

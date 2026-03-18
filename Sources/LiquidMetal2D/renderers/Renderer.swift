@@ -21,6 +21,7 @@ public protocol Renderer: AnyObject {
     func unloadTexture(textureId: Int)
 
     func setPerspective(fov: Float, aspect: Float, nearZ: Float, farZ: Float)
+    func setOrthographic(left: Float, right: Float, bottom: Float, top: Float, nearZ: Float, farZ: Float)
     func setCamera(point: Vec3)
     func setCameraRotation(angle: Float)
     func setClearColor(color: Vec3)

@@ -55,6 +55,10 @@ public class DefaultRenderer: Renderer {
         renderCore.perspective.set(aspect: aspect, fov: fov, nearZ: nearZ, farZ: farZ)
     }
 
+    public func setOrthographic(left: Float, right: Float, bottom: Float, top: Float, nearZ: Float, farZ: Float) {
+        renderCore.orthographic.set(left: left, right: right, bottom: bottom, top: top, nearZ: nearZ, farZ: farZ)
+    }
+
     public func setCamera(point: Vec3) {
         renderCore.camera2D.set(point: point)
     }
@@ -139,6 +143,10 @@ public class DefaultRenderer: Renderer {
     }
 
     public func useOrthographic() {
+        let contents = projectionBuffer.contents()
+        projectionUniforms.transform = renderCore.orthographic.make()
+        projectionUniforms.setBuffer(buffer: contents, offsetIndex: 0)
+        renderPass.encoder.setVertexBuffer(projectionBuffer, offset: 0, index: 1)
     }
 
     public func submit(objects: [GameObj]) {
