@@ -59,6 +59,11 @@ public class DefaultRenderer: Renderer, @unchecked Sendable {
         renderCore.camera2D.set(point: point)
     }
 
+    /// Sets the camera's Z-axis rotation in radians.
+    public func setCameraRotation(angle: Float) {
+        renderCore.camera2D.rotation = angle
+    }
+
     public func setClearColor(color: Vec3) {
         renderCore.setClearColor(color: color)
     }

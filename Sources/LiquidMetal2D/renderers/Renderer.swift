@@ -22,6 +22,7 @@ public protocol Renderer: AnyObject {
 
     func setPerspective(fov: Float, aspect: Float, nearZ: Float, farZ: Float)
     func setCamera(point: Vec3)
+    func setCameraRotation(angle: Float)
     func setClearColor(color: Vec3)
 
     func project(world: Vec3) -> Vec3
