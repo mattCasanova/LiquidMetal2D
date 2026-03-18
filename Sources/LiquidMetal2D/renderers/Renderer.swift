@@ -40,3 +40,31 @@ public protocol Renderer: AnyObject {
     func draw(uniforms: UniformData)
     func endPass()
 }
+
+public extension Renderer {
+    /// Returns the default FOV in radians, adjusted for aspect ratio to keep
+    /// the vertical visible area consistent across orientations.
+    ///
+    /// In portrait, returns the default FOV (90°). In landscape, computes the
+    /// exact FOV that preserves the same vertical extent:
+    /// `2 * atan(tan(portraitFOV/2) / aspectRatio)`
+    func getDefaultFOV() -> Float {
+        let baseFOV = GameMath.degreeToRadian(PerspectiveProjection.defaultFOV)
+        if screenWidth <= screenHeight {
+            return baseFOV
+        }
+        return 2 * atan(tan(baseFOV / 2) / screenAspect)
+    }
+
+    /// Sets the camera to the default position and configures a standard
+    /// perspective projection based on the current screen orientation.
+    /// Call this in `initialize()` and `resize()` for typical 2D scenes.
+    func setDefaultPerspective() {
+        setCamera(point: Vec3(0, 0, Camera2D.defaultDistance))
+        setPerspective(
+            fov: getDefaultFOV(),
+            aspect: screenAspect,
+            nearZ: PerspectiveProjection.defaultNearZ,
+            farZ: PerspectiveProjection.defaultFarZ)
+    }
+}
