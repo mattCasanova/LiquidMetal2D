@@ -1,6 +1,14 @@
 import XCTest
 @testable import LiquidMetal2D
 
+// MARK: - Test Helpers
+
+private struct TestAABB: AABB {
+    var center: Vec2
+    var width: Float
+    var height: Float
+}
+
 // MARK: - Math Utility Tests
 
 final class MathUtilityTests: XCTestCase {
@@ -712,21 +720,21 @@ final class IntersectTests: XCTestCase {
     // MARK: AABB vs AABB
 
     func testAABBsOverlapping() {
-        XCTAssertTrue(Intersect.aabbAABB(
-            center1: Vec2(0, 0), width1: 2, height1: 2,
-            center2: Vec2(1, 0), width2: 2, height2: 2))
+        let a = TestAABB(center: Vec2(0, 0), width: 2, height: 2)
+        let b = TestAABB(center: Vec2(1, 0), width: 2, height: 2)
+        XCTAssertTrue(Intersect.aabbAABB(a, b))
     }
 
     func testAABBsSeparated() {
-        XCTAssertFalse(Intersect.aabbAABB(
-            center1: Vec2(0, 0), width1: 2, height1: 2,
-            center2: Vec2(5, 0), width2: 2, height2: 2))
+        let a = TestAABB(center: Vec2(0, 0), width: 2, height: 2)
+        let b = TestAABB(center: Vec2(5, 0), width: 2, height: 2)
+        XCTAssertFalse(Intersect.aabbAABB(a, b))
     }
 
     func testAABBsTouching() {
-        XCTAssertTrue(Intersect.aabbAABB(
-            center1: Vec2(0, 0), width1: 2, height1: 2,
-            center2: Vec2(2, 0), width2: 2, height2: 2))
+        let a = TestAABB(center: Vec2(0, 0), width: 2, height: 2)
+        let b = TestAABB(center: Vec2(2, 0), width: 2, height: 2)
+        XCTAssertTrue(Intersect.aabbAABB(a, b))
     }
 }
 

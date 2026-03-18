@@ -129,20 +129,10 @@ public enum Intersect {
 
     // MARK: - AABB vs AABB
 
-    /// Returns `true` if two axis-aligned bounding boxes overlap or touch.
-    public static func aabbAABB(
-        center1: Vec2, width1: Float, height1: Float,
-        center2: Vec2, width2: Float, height2: Float
-    ) -> Bool {
-        return pointAABB(
-            point: center1, center: center2,
-            width: width1 + width2, height: height1 + height2)
-    }
-
     /// Returns `true` if two `AABB` instances overlap or touch.
     public static func aabbAABB(_ first: AABB, _ second: AABB) -> Bool {
-        return aabbAABB(
-            center1: first.center, width1: first.width, height1: first.height,
-            center2: second.center, width2: second.width, height2: second.height)
+        return pointAABB(
+            point: first.center, center: second.center,
+            width: first.width + second.width, height: first.height + second.height)
     }
 }
