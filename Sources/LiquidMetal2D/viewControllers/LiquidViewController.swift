@@ -40,8 +40,7 @@ open class LiquidViewController: UIViewController {
 
     open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        gameEngine?.renderer.unloadAllTextures()
-        gameEngine?.stop()
+        gameEngine?.shutdown()
         if let observer = rotationObserver {
             NotificationCenter.default.removeObserver(observer)
             rotationObserver = nil

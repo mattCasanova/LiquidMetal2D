@@ -88,6 +88,10 @@ open class DefaultRenderer: Renderer {
         renderCore.unloadTexture(textureId: textureId)
     }
 
+    public func shutdown() {
+        renderCore.shutdown()
+    }
+
     public func unloadAllTextures() {
         renderCore.unloadAllTextures()
     }

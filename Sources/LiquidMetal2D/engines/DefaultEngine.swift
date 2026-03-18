@@ -51,10 +51,13 @@ public class DefaultEngine: GameEngine, InputReader {
         sceneManager.start(input: self)
     }
 
-    /// Stops the game loop. Call when the engine is no longer needed.
-    public func stop() {
+    /// Shuts down the engine: stops the game loop, shuts down all scenes,
+    /// and releases renderer resources.
+    public func shutdown() {
         timer?.invalidate()
         timer = nil
+        sceneManager.shutdown()
+        renderer.shutdown()
     }
 
     /// Starts the game loop by attaching a CADisplayLink to the main run loop.

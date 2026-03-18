@@ -84,6 +84,17 @@ public class SceneManager {
         AnyHashable(currentSceneType) != AnyHashable(nextSceneType) || isPopping
     }
 
+    /// Shuts down the current scene and all stacked scenes. Called by the
+    /// engine during shutdown to ensure all scenes clean up their resources.
+    func shutdown() {
+        currentScene?.shutdown()
+        for sceneData in sceneStack {
+            sceneData.scene.shutdown()
+        }
+        sceneStack.removeAll()
+        currentScene = nil
+    }
+
     /// Executes the pending scene transition. Handles push, pop, and set.
     func performTransition() {
         if isPushing {

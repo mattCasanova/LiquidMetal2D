@@ -30,8 +30,9 @@ public protocol GameEngine: InputWriter {
     /// Starts the game loop by attaching a CADisplayLink to the main run loop.
     func run()
 
-    /// Stops the game loop by invalidating the display link.
-    func stop()
+    /// Shuts down the engine: stops the game loop, shuts down all scenes,
+    /// and releases renderer resources.
+    func shutdown()
 
     /// Called every frame by the display link. Computes delta time,
     /// checks for scene transitions, then updates and draws the current scene.

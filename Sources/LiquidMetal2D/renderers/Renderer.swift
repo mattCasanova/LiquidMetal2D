@@ -17,6 +17,7 @@ public protocol Renderer: AnyObject {
 
     func resize(scale: CGFloat, layerSize: CGSize)
 
+    func shutdown()
     func loadTexture(name: String, ext: String, isMipmaped: Bool) -> Int
     func unloadTexture(textureId: Int)
     func unloadAllTextures()

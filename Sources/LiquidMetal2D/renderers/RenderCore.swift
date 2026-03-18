@@ -209,8 +209,14 @@ public class RenderCore {
         }
     }
 
-    /// Removes all loaded textures. Called as a safety fallback during
-    /// renderer shutdown to prevent GPU resource leaks.
+    /// Releases all dynamic GPU resources (textures). Called during
+    /// renderer shutdown. Static resources (pipeline state, command queue,
+    /// device) are released automatically when RenderCore is deallocated.
+    public func shutdown() {
+        unloadAllTextures()
+    }
+
+    /// Removes all loaded textures.
     public func unloadAllTextures() {
         textures.removeAll()
         texturesMap.removeAll()
