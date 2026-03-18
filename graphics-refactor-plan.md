@@ -28,15 +28,15 @@ Major overhaul of the LiquidMetal2D rendering pipeline. Fixes correctness bugs, 
 ## Checklist
 
 ### Phase 1: Foundation Fixes (no API changes, each is independent)
-- [ ] Step 1: Replace `try!` in shader/pipeline compilation (#51)
-- [ ] Step 2: Fix texture pixel format to BGRA (#57)
-- [ ] Step 3: Fix @unchecked Sendable on BufferProvider + DefaultRenderer, add @MainActor to main-thread classes (#32, #60)
-- [ ] Step 4: Fix semaphore blocking main thread (#62)
-- [ ] Step 5: Add bounds checking to uniform buffer memcpy (#15)
+- [x] Step 1: Replace `try!` in shader/pipeline compilation (#51)
+- [x] Step 2: Fix texture pixel format to BGRA (#57)
+- [x] Step 3: Fix @unchecked Sendable on BufferProvider + DefaultRenderer, add @MainActor to main-thread classes (#32, #60)
+- [x] Step 4: Fix semaphore blocking main thread (#62)
+- [x] Step 5: Add bounds checking to uniform buffer memcpy (#15)
 
 ### Phase 2: Shader Modernization
-- [ ] Step 6: Replace deprecated packed_float with vertex descriptor (#17)
-- [ ] Step 7: Add shader source documentation comment (#18)
+- [x] Step 6: Replace deprecated packed_float with vertex descriptor (#17)
+- [x] Step 7: Add shader source documentation comment (#18)
 
 ### Phase 3: Instanced Rendering (the big one)
 - [ ] Step 8: Implement instanced rendering — shader + draw batching (#13)

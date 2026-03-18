@@ -51,8 +51,8 @@ public class RenderCore {
         alphaBlendPipelineState = RenderCore.createPipelineState(
             device: device,
             layer: layer,
-            vertexName: "basic_vertex",
-            fragmentName: "basic_fragment")
+            vertexName: "alphaBlend_vertex",
+            fragmentName: "alphaBlend_fragment")
     }
 
     public func resize(scale: CGFloat, layerSize: CGSize) {
@@ -86,15 +86,31 @@ public class RenderCore {
         return device.makeSamplerState(descriptor: sampler)
     }
 
-    private static func createPipelineState(
-        device: MTLDevice, layer: CAMetalLayer, vertexName: String, fragmentName: String
-    ) -> MTLRenderPipelineState {
-        let defaultLibrary: MTLLibrary
+    private static func loadShaderLibrary(device: MTLDevice) -> MTLLibrary {
+        guard let shaderURL = Bundle.module.url(
+            forResource: "AlphaBlendShader", withExtension: "metalSource"
+        ) else {
+            fatalError("Failed to find AlphaBlendShader.metalSource in bundle")
+        }
+
+        let shaderSource: String
         do {
-            defaultLibrary = try device.makeLibrary(source: ShaderSources.alphaBlendShader, options: nil)
+            shaderSource = try String(contentsOf: shaderURL)
+        } catch {
+            fatalError("Failed to read AlphaBlendShader.metalSource: \(error)")
+        }
+
+        do {
+            return try device.makeLibrary(source: shaderSource, options: nil)
         } catch {
             fatalError("Failed to compile Metal shader library: \(error)")
         }
+    }
+
+    private static func createPipelineState(
+        device: MTLDevice, layer: CAMetalLayer, vertexName: String, fragmentName: String
+    ) -> MTLRenderPipelineState {
+        let defaultLibrary = loadShaderLibrary(device: device)
 
         guard let fragmentProgram = defaultLibrary.makeFunction(name: fragmentName) else {
             fatalError("Failed to find fragment function '\(fragmentName)'")
@@ -103,9 +119,21 @@ public class RenderCore {
             fatalError("Failed to find vertex function '\(vertexName)'")
         }
 
+        let vertexDescriptor = MTLVertexDescriptor()
+        vertexDescriptor.attributes[0].format = .float3
+        vertexDescriptor.attributes[0].offset = 0
+        vertexDescriptor.attributes[0].bufferIndex = 0
+        vertexDescriptor.attributes[1].format = .float2
+        vertexDescriptor.attributes[1].offset = MemoryLayout<Float>.size * 3
+        vertexDescriptor.attributes[1].bufferIndex = 0
+        vertexDescriptor.layouts[0].stride = MemoryLayout<Float>.size * 5
+        vertexDescriptor.layouts[0].stepRate = 1
+        vertexDescriptor.layouts[0].stepFunction = .perVertex
+
         let pipelineStateDescriptor                             = MTLRenderPipelineDescriptor()
         pipelineStateDescriptor.vertexFunction                  = vertexProgram
         pipelineStateDescriptor.fragmentFunction                = fragmentProgram
+        pipelineStateDescriptor.vertexDescriptor                = vertexDescriptor
         pipelineStateDescriptor.colorAttachments[0].pixelFormat = layer.pixelFormat
 
         // Alpha Blending
