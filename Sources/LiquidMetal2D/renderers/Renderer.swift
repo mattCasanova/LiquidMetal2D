@@ -36,6 +36,7 @@ public protocol Renderer: AnyObject {
     func beginPass() -> Bool
     func usePerspective()
     func useOrthographic()
+    func submit(objects: [GameObj])
     func useTexture(textureId: Int)
     func draw(uniforms: UniformData)
     func endPass()

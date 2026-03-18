@@ -117,12 +117,19 @@ public class DefaultRenderer: Renderer {
         return WorldBounds(minX: -maxX, maxX: maxX, minY: -maxY, maxY: maxY)
     }
 
-    // MARK: - Draw Methods
+    // MARK: - Batch Tracking
 
-    public func useTexture(textureId: Int) {
-        guard let texture = renderCore.getTexture(id: textureId) else { return }
-        renderPass.encoder.setFragmentTexture(texture.texture, index: 0)
+    private struct TextureBatch {
+        let textureId: Int
+        let startIndex: Int
+        var count: Int
     }
+
+    private var currentTextureId: Int = -1
+    private var batches: [TextureBatch] = []
+    private let worldUniforms = WorldUniform()
+
+    // MARK: - Draw Methods
 
     public func usePerspective() {
         let contents = projectionBuffer.contents()
@@ -133,6 +140,53 @@ public class DefaultRenderer: Renderer {
 
     public func useOrthographic() {
     }
+
+    public func submit(objects: [GameObj]) {
+        let sorted = objects.sorted {
+            ($0.zOrder, $0.textureID) < ($1.zOrder, $1.textureID)
+        }
+
+        for obj in sorted {
+            assert(drawCount < maxObjects, "Draw count \(drawCount) exceeds maxObjects \(maxObjects)")
+            guard drawCount < maxObjects else { break }
+
+            worldUniforms.transform.setToTransform2D(
+                scale: obj.scale, angle: obj.rotation,
+                translate: Vec3(obj.position, obj.zOrder))
+            worldUniforms.setBuffer(buffer: worldBufferContents, offsetIndex: drawCount)
+
+            if let last = batches.last, last.textureId == obj.textureID {
+                batches[batches.count - 1].count += 1
+            } else {
+                batches.append(TextureBatch(
+                    textureId: obj.textureID, startIndex: drawCount, count: 1))
+            }
+            drawCount += 1
+        }
+    }
+
+    // MARK: - Advanced Draw Methods (manual control)
+
+    public func useTexture(textureId: Int) {
+        currentTextureId = textureId
+    }
+
+    public func draw(uniforms: UniformData) {
+        assert(drawCount < maxObjects, "Draw count \(drawCount) exceeds maxObjects \(maxObjects)")
+        guard drawCount < maxObjects else { return }
+
+        uniforms.setBuffer(buffer: worldBufferContents, offsetIndex: drawCount)
+
+        if let last = batches.last, last.textureId == currentTextureId {
+            batches[batches.count - 1].count += 1
+        } else {
+            batches.append(TextureBatch(
+                textureId: currentTextureId, startIndex: drawCount, count: 1))
+        }
+        drawCount += 1
+    }
+
+    // MARK: - Pass Management
 
     @discardableResult
     public func beginPass() -> Bool {
@@ -167,23 +221,22 @@ public class DefaultRenderer: Renderer {
         return true
     }
 
-    public func draw(uniforms: UniformData) {
-        assert(drawCount < maxObjects, "Draw count \(drawCount) exceeds maxObjects \(maxObjects)")
-        guard drawCount < maxObjects else { return }
-
-        let offset = uniforms.size * drawCount
-
-        uniforms.setBuffer(buffer: worldBufferContents, offsetIndex: drawCount)
-        renderPass.encoder.setVertexBufferOffset(offset, index: 2)
-        renderPass.encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4, instanceCount: 1)
-
-        drawCount += 1
-    }
-
     public func endPass() {
+        for batch in batches {
+            if let texture = renderCore.getTexture(id: batch.textureId) {
+                renderPass.encoder.setFragmentTexture(texture.texture, index: 0)
+            }
+            let offset = batch.startIndex * WorldUniform.typeSize()
+            renderPass.encoder.setVertexBufferOffset(offset, index: 2)
+            renderPass.encoder.drawPrimitives(
+                type: .triangleStrip, vertexStart: 0,
+                vertexCount: 4, instanceCount: batch.count)
+        }
         renderPass.end()
         renderPass = nil
         drawCount = 0
+        batches.removeAll(keepingCapacity: true)
+        currentTextureId = -1
     }
 
     private static func createVertBuffer(device: MTLDevice) -> MTLBuffer? {

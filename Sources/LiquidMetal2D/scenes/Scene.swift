@@ -75,27 +75,12 @@ open class DefaultScene: Scene {
         return PerspectiveProjection.defaultFOV / (renderer.screenWidth / renderer.screenHeight)
     }
 
-    /// Draws all objects in the ``objects`` array using their transform and texture.
+    /// Draws all objects in the ``objects`` array. The renderer handles
+    /// transforms, sorting by (zOrder, textureID), and instanced batching.
     public func draw() {
-        let worldUniforms = WorldUniform()
-
         guard renderer.beginPass() else { return }
         renderer.usePerspective()
-
-        for i in 0..<objects.count {
-            let obj = objects[i]
-
-            renderer.useTexture(textureId: obj.textureID)
-
-            worldUniforms.transform.setToTransform2D(
-                scale: obj.scale,
-                angle: obj.rotation,
-                translate: Vec3(obj.position, obj.zOrder)
-            )
-
-            renderer.draw(uniforms: worldUniforms)
-        }
-
+        renderer.submit(objects: objects)
         renderer.endPass()
     }
 

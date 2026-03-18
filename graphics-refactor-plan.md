@@ -39,9 +39,9 @@ Major overhaul of the LiquidMetal2D rendering pipeline. Fixes correctness bugs, 
 - [x] Step 7: Add shader source documentation comment (#18)
 
 ### Phase 3: Instanced Rendering (the big one)
-- [ ] Step 8: Implement instanced rendering — shader + draw batching (#13)
-- [ ] Step 9: Texture batching — consecutive same-texture draws become one batch (#23)
-- [ ] Step 10: Fix WorldUniform allocation pattern (#14)
+- [ ] Step 8: Add submit(objects:) API + instanced rendering (#13, #23)
+- [ ] Step 9: Update demo scenes to use submit(objects:)
+- [ ] Step 10: WorldUniform stored property on DefaultRenderer (#14)
 
 ### Phase 4: Orthographic Projection
 - [ ] Step 11: Add makeOrthographic to Mat4 extensions
@@ -226,23 +226,52 @@ Move the shader source from a Swift string literal to a proper `.metal` file bun
 
 ## Phase 3: Instanced Rendering
 
-### Step 8: Instanced rendering (#13)
+### Step 8: Add `submit(objects:)` API + instanced rendering (#13, #23, #14)
 
-**Files:** `constants/constants.swift`, `renderers/DefaultRenderer.swift`
+The big API change. Instead of scenes manually calling `useTexture()` → `draw(uniforms:)` per object,
+scenes call `submit(objects:)` and the engine handles everything: transforms, sorting, batching, instancing.
 
-**Shader:** Change vertex function to read from WorldUniform array via `instance_id`:
+**New consumer-side draw pattern:**
+```swift
+func draw() {
+    guard renderer.beginPass() else { return }
+    renderer.usePerspective()
+    renderer.submit(objects: gameObjects)
+    // Later (Phase 4): renderer.useOrthographic(); renderer.submit(objects: hudElements)
+    renderer.endPass()
+}
+```
+
+**What the engine does internally on `submit(objects:)`:**
+1. Sorts objects by `(zOrder, textureID)` for optimal batching
+2. For each object: computes WorldUniform transform from `position`, `rotation`, `scale`, `zOrder`
+3. Writes each WorldUniform into the buffer via `memcpy`
+4. Tracks texture batches (consecutive same-texture objects = one batch)
+
+**What `endPass()` does:**
+1. Flushes all batches as instanced draw calls (one `drawPrimitives(instanceCount: N)` per texture group)
+2. Cleans up render pass state
+
+**Files modified:**
+
+- `Resources/AlphaBlendShader.metalSource` — add `instance_id` to vertex function, read from `WorldUniform*` array
+- `renderers/DefaultRenderer.swift` — add `submit(objects:)`, batch tracking, instanced `endPass()`
+- `renderers/Renderer.swift` — add `submit(objects:)` to protocol
+- `scenes/Scene.swift` — simplify `DefaultScene.draw()` to use `submit(objects:)`
+
+**Shader change** — read from WorldUniform array via `instance_id`:
 ```metal
-vertex VertOut basic_vertex(VertIn inVert [[ stage_in ]],
-                            const device ProjectionUniform& proj [[ buffer(1) ]],
-                            const device WorldUniform* worlds [[ buffer(2) ]],
-                            unsigned int vid [[ vertex_id ]],
-                            unsigned int iid [[ instance_id ]]) {
+vertex VertOut alphaBlend_vertex(VertIn inVert [[ stage_in ]],
+                                const device ProjectionUniform& proj [[ buffer(1) ]],
+                                const device WorldUniform* worlds [[ buffer(2) ]],
+                                unsigned int vid [[ vertex_id ]],
+                                unsigned int iid [[ instance_id ]]) {
     WorldUniform world = worlds[iid];
     // rest identical
 }
 ```
 
-**DefaultRenderer — add batch tracking:**
+**DefaultRenderer — batch tracking:**
 ```swift
 private struct TextureBatch {
     let textureId: Int
@@ -250,33 +279,36 @@ private struct TextureBatch {
     var count: Int
 }
 
-private var currentTextureId: Int = -1
 private var batches: [TextureBatch] = []
 ```
 
-**Change `useTexture`** — just record, don't bind:
+**New `submit(objects:)`** — sorts, transforms, accumulates:
 ```swift
-public func useTexture(textureId: Int) {
-    currentTextureId = textureId
-}
-```
+public func submit(objects: [GameObj]) {
+    let sorted = objects.sorted { ($0.zOrder, $0.textureID) < ($1.zOrder, $1.textureID) }
 
-**Change `draw`** — accumulate, don't issue GPU draw:
-```swift
-public func draw(uniforms: UniformData) {
-    guard drawCount < maxObjects else { return }
-    uniforms.setBuffer(buffer: worldBufferContents, offsetIndex: drawCount)
+    let worldUniforms = WorldUniform()
+    for obj in sorted {
+        guard drawCount < maxObjects else { break }
 
-    if let last = batches.last, last.textureId == currentTextureId {
-        batches[batches.count - 1].count += 1
-    } else {
-        batches.append(TextureBatch(textureId: currentTextureId, startIndex: drawCount, count: 1))
+        worldUniforms.transform.setToTransform2D(
+            scale: obj.scale, angle: obj.rotation,
+            translate: Vec3(obj.position, obj.zOrder))
+
+        worldUniforms.setBuffer(buffer: worldBufferContents, offsetIndex: drawCount)
+
+        if let last = batches.last, last.textureId == obj.textureID {
+            batches[batches.count - 1].count += 1
+        } else {
+            batches.append(TextureBatch(
+                textureId: obj.textureID, startIndex: drawCount, count: 1))
+        }
+        drawCount += 1
     }
-    drawCount += 1
 }
 ```
 
-**Change `endPass`** — flush batches with instanced draws:
+**Change `endPass()`** — flush batches with instanced draws:
 ```swift
 public func endPass() {
     for batch in batches {
@@ -293,33 +325,32 @@ public func endPass() {
     renderPass = nil
     drawCount = 0
     batches.removeAll(keepingCapacity: true)
-    currentTextureId = -1
 }
 ```
 
-**API impact:** None. Consumer code (useTexture → draw → endPass) works identically. The change is purely internal.
+**Keep `useTexture()` + `draw(uniforms:)` as advanced API** for consumers who need manual control
+(custom uniforms, non-GameObj rendering, etc.). These still work via the same batch accumulation
+but the consumer is responsible for sort order and transform setup.
 
-### Step 9: Texture batching (#23)
-
-No renderer changes needed beyond Step 8. The batch tracking already groups consecutive same-texture draws.
-
-Consumer-side optimization: scenes should sort objects by textureID for maximum batching. Update `DefaultScene.draw()` to sort by `(zOrder, textureID)`:
+**`DefaultScene.draw()` simplification:**
 ```swift
-objects.sort { ($0.zOrder, $0.textureID) < ($1.zOrder, $1.textureID) }
-```
-
-### Step 10: WorldUniform allocation (#14)
-
-Move `WorldUniform()` from per-frame local variable to stored property on `DefaultScene`:
-```swift
-open class DefaultScene: Scene {
-    private let worldUniforms = WorldUniform()
-    // ...
-    public func draw() {
-        // no longer: let worldUniforms = WorldUniform()
-    }
+public func draw() {
+    guard renderer.beginPass() else { return }
+    renderer.usePerspective()
+    renderer.submit(objects: objects)
+    renderer.endPass()
 }
 ```
+
+### Step 9: Update demo scenes to use `submit(objects:)`
+
+All demo scenes that currently have manual `useTexture()` → `draw(uniforms:)` loops get simplified
+to `submit(objects:)`. This is a **public API change** — demo must be updated.
+
+### Step 10: WorldUniform stored property on DefaultRenderer
+
+Move `WorldUniform()` allocation from per-`submit` call to a stored property on `DefaultRenderer`
+so it's reused across frames instead of allocating each frame.
 
 ---
 
