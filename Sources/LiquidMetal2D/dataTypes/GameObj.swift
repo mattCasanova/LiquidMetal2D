@@ -7,12 +7,21 @@
 //
 
 open class GameObj {
-  public var position = Vec2()
-  public var velocity = Vec2()
-  public var scale = Vec2()
-  public var zOrder: Float = 0.0
-  public var rotation: Float = 0.0
-  public var textureID = 0
-  
-  public init() {  }
+    public var position = Vec2()
+    public var velocity = Vec2()
+    public var scale = Vec2()
+    public var zOrder: Float = 0.0
+    public var rotation: Float = 0.0
+    public var textureID = 0
+
+    public init() {}
+
+    /// Builds the uniform data for this object. Override in subclasses to
+    /// provide custom uniform types (e.g., tinted uniforms).
+    /// Called by ``Renderer/submit(objects:)`` for each object.
+    open func toUniform(_ uniform: WorldUniform) {
+        uniform.transform.setToTransform2D(
+            scale: scale, angle: rotation,
+            translate: Vec3(position, zOrder))
+    }
 }

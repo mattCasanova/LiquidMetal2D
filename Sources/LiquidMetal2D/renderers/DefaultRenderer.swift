@@ -158,9 +158,7 @@ public class DefaultRenderer: Renderer {
             assert(drawCount < maxObjects, "Draw count \(drawCount) exceeds maxObjects \(maxObjects)")
             guard drawCount < maxObjects else { break }
 
-            worldUniforms.transform.setToTransform2D(
-                scale: obj.scale, angle: obj.rotation,
-                translate: Vec3(obj.position, obj.zOrder))
+            obj.toUniform(worldUniforms)
             worldUniforms.setBuffer(buffer: worldBufferContents, offsetIndex: drawCount)
 
             if let last = batches.last, last.textureId == obj.textureID {
