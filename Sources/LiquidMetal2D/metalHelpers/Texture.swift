@@ -11,69 +11,90 @@ import UIKit
 public class Texture {
 
     nonisolated(unsafe) private static var sIdCounter = 0
+    private static let loadQueue = DispatchQueue(label: "com.liquidmetal2d.textureLoad", qos: .userInitiated)
 
     private static let bytesPerPixel = 4
     private static let bitsPerComponent = 8
 
     private let path: String?
     private let isMipmapped: Bool
-    private var mId = 0
     private var mWidth: Int = 0
     private var mHeight: Int = 0
     private var mTexture: MTLTexture?
 
     public let fileName: String
+    public let id: Int
 
     public var texture: MTLTexture? { mTexture }
-    public var id: Int { mId }
     public var width: Int { mWidth }
     public var height: Int { mHeight }
+    public var isLoaded: Bool { mTexture != nil }
 
     public var loadCount = 0
 
     public init(name: String, ext: String, isMipmaped: Bool) {
+        Texture.sIdCounter += 1
+        self.id = Texture.sIdCounter
         self.fileName = "\(name).\(ext)".lowercased()
         self.path = Bundle.main.path(forResource: name, ofType: ext)
         self.isMipmapped = isMipmaped
+        self.loadCount = 1
     }
 
+    /// Loads the texture synchronously on the current thread.
     public func loadTexture(device: MTLDevice, commandQueue: MTLCommandQueue) {
         guard let path, let image = UIImage(contentsOfFile: path)?.cgImage else { return }
+        loadFromImage(image, device: device, commandQueue: commandQueue)
+        DebugPrint("Loaded Texture %@", fileName)
+    }
 
+    /// Loads the texture asynchronously on a background queue.
+    /// Until loading completes, `texture` returns nil and the renderer
+    /// uses the error texture as a fallback.
+    public func loadTextureAsync(device: MTLDevice, commandQueue: MTLCommandQueue) {
+        guard let path else { return }
+
+        Texture.loadQueue.async { [weak self] in
+            guard let self,
+                  let image = UIImage(contentsOfFile: path)?.cgImage else { return }
+
+            self.loadFromImage(image, device: device, commandQueue: commandQueue)
+            DebugPrint("Async loaded Texture %@", self.fileName)
+        }
+    }
+
+    private func loadFromImage(_ image: CGImage, device: MTLDevice, commandQueue: MTLCommandQueue) {
         let colorSpace = CGColorSpaceCreateDeviceRGB()
 
-        mWidth = image.width
-        mHeight = image.height
-
-        let rowBytes = mWidth * Texture.bytesPerPixel
+        let width = image.width
+        let height = image.height
+        let rowBytes = width * Texture.bytesPerPixel
 
         guard let context = CGContext(
             data: nil,
-            width: mWidth,
-            height: mHeight,
+            width: width,
+            height: height,
             bitsPerComponent: Texture.bitsPerComponent,
             bytesPerRow: rowBytes,
             space: colorSpace,
             bitmapInfo: CGBitmapInfo.byteOrder32Little.rawValue |
                 CGImageAlphaInfo.premultipliedFirst.rawValue) else { return }
 
-        let bounds = CGRect(x: 0, y: 0, width: mWidth, height: mHeight)
+        let bounds = CGRect(x: 0, y: 0, width: width, height: height)
         context.clear(bounds)
         context.draw(image, in: bounds)
 
         let textureDescriptor = MTLTextureDescriptor.texture2DDescriptor(
             pixelFormat: MTLPixelFormat.bgra8Unorm,
-            width: mWidth,
-            height: mHeight,
+            width: width,
+            height: height,
             mipmapped: isMipmapped)
 
         guard let newTexture = device.makeTexture(descriptor: textureDescriptor) else { return }
-        mTexture = newTexture
-
         guard let pixelData = context.data else { return }
 
-        let region = MTLRegionMake2D(0, 0, mWidth, mHeight)
-        newTexture.replace(region: region, mipmapLevel: 0, withBytes: pixelData, bytesPerRow: Int(rowBytes))
+        let region = MTLRegionMake2D(0, 0, width, height)
+        newTexture.replace(region: region, mipmapLevel: 0, withBytes: pixelData, bytesPerRow: rowBytes)
 
         if isMipmapped {
             generateMipmapLayers(
@@ -83,11 +104,9 @@ public class Texture {
                 onComplete: { _ in })
         }
 
-        Texture.sIdCounter += 1
-        mId = Texture.sIdCounter
-        loadCount += 1
-
-        DebugPrint("Loaded Texture %@", fileName)
+        mWidth = width
+        mHeight = height
+        mTexture = newTexture
     }
 
     func generateMipmapLayers(

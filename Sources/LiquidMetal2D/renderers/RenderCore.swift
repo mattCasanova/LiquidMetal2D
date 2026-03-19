@@ -179,23 +179,24 @@ public class RenderCore {
     }
 
     public func loadTexture(name: String, ext: String, isMipmaped: Bool) -> Int {
-
         let fileName = "\(name).\(ext)".lowercased()
-        let foundTexture = textures.first(where: { $0.fileName == fileName })
 
-        if let safeTexture = foundTexture {
-            safeTexture.loadCount += 1
-            return safeTexture.id
+        if let existing = textures.first(where: { $0.fileName == fileName }) {
+            existing.loadCount += 1
+            return existing.id
         }
 
         let newTexture = Texture(name: name, ext: ext, isMipmaped: isMipmaped)
-
-        newTexture.loadTexture(device: device, commandQueue: commandQueue)
-
         textures.append(newTexture)
         texturesMap[newTexture.id] = newTexture
 
+        newTexture.loadTextureAsync(device: device, commandQueue: commandQueue)
+
         return newTexture.id
+    }
+
+    public func loadTextures(_ items: [(name: String, ext: String, isMipmaped: Bool)]) -> [Int] {
+        return items.map { loadTexture(name: $0.name, ext: $0.ext, isMipmaped: $0.isMipmaped) }
     }
 
     public func unloadTexture(textureId: Int) {
@@ -222,8 +223,10 @@ public class RenderCore {
         texturesMap.removeAll()
     }
 
-    public func getTexture(id: Int) -> Texture? {
-        return texturesMap[id]
+    /// Returns the Metal texture for the given ID, or the error texture
+    /// if the ID doesn't exist or hasn't finished loading yet.
+    public func getTexture(id: Int) -> MTLTexture {
+        return texturesMap[id]?.texture ?? errorTexture
     }
 
     public func getUnprojectRay(forScreenPoint point: Vec2) -> UnprojectRay {

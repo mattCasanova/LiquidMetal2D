@@ -84,6 +84,10 @@ open class DefaultRenderer: Renderer {
         return renderCore.loadTexture(name: name, ext: ext, isMipmaped: isMipmaped)
     }
 
+    public func loadTextures(_ items: [(name: String, ext: String, isMipmaped: Bool)]) -> [Int] {
+        return renderCore.loadTextures(items)
+    }
+
     public func unloadTexture(textureId: Int) {
         renderCore.unloadTexture(textureId: textureId)
     }
@@ -249,8 +253,7 @@ open class DefaultRenderer: Renderer {
 
     open func endPass() {
         for batch in batches {
-            let mtlTexture = renderCore.getTexture(id: batch.textureId)?.texture ?? renderCore.errorTexture
-            renderPass.encoder.setFragmentTexture(mtlTexture, index: 0)
+            renderPass.encoder.setFragmentTexture(renderCore.getTexture(id: batch.textureId), index: 0)
             let offset = batch.startIndex * WorldUniform.typeSize()
             renderPass.encoder.setVertexBufferOffset(offset, index: 2)
             renderPass.encoder.drawPrimitives(
