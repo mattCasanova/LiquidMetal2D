@@ -104,6 +104,9 @@ public class Texture {
                 onComplete: { _ in })
         }
 
+        // Texture properties are read on the main thread during rendering.
+        // MTLTexture is thread-safe, so assigning from background is safe.
+        // Width/height are only used for informational purposes.
         mWidth = width
         mHeight = height
         mTexture = newTexture
