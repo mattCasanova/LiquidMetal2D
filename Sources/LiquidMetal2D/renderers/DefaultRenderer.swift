@@ -158,9 +158,9 @@ open class DefaultRenderer: Renderer {
     }
 
     open func submit(objects: [GameObj]) {
-        let sorted = objects.sorted {
-            ($0.zOrder, $0.textureID) < ($1.zOrder, $1.textureID)
-        }
+        let sorted = objects.lazy
+            .filter { $0.isActive }
+            .sorted { ($0.zOrder, $0.textureID) < ($1.zOrder, $1.textureID) }
 
         for obj in sorted {
             assert(drawCount < maxObjects, "Draw count \(drawCount) exceeds maxObjects \(maxObjects)")

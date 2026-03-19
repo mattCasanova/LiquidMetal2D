@@ -13,6 +13,8 @@ open class GameObj {
     public var zOrder: Float = 0.0
     public var rotation: Float = 0.0
     public var textureID = 0
+    public var isActive: Bool = true
+    public var tintColor = Vec4(1, 1, 1, 1)
 
     public init() {}
 
@@ -23,5 +25,6 @@ open class GameObj {
         uniform.transform.setToTransform2D(
             scale: scale, angle: rotation,
             translate: Vec3(position, zOrder))
+        uniform.color = tintColor
     }
 }
