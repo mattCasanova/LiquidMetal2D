@@ -80,12 +80,11 @@ open class DefaultRenderer: Renderer {
         screenAspect = screenWidth / screenHeight
     }
 
-    public func loadTexture(name: String, ext: String, isMipmaped: Bool) -> Int {
-        return renderCore.loadTexture(name: name, ext: ext, isMipmaped: isMipmaped)
-    }
-
-    public func loadTextures(_ items: [(name: String, ext: String, isMipmaped: Bool)]) -> [Int] {
-        return renderCore.loadTextures(items)
+    public func loadTextures(
+        _ items: [(name: String, ext: String, isMipmaped: Bool)],
+        completion: (() -> Void)? = nil
+    ) -> [Int] {
+        return renderCore.loadTextures(items, completion: completion)
     }
 
     public func unloadTexture(textureId: Int) {

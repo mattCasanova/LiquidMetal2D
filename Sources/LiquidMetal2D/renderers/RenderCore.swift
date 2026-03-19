@@ -178,11 +178,13 @@ public class RenderCore {
         }
     }
 
-    public func loadTexture(name: String, ext: String, isMipmaped: Bool) -> Int {
+    private func loadTexture(name: String, ext: String, isMipmaped: Bool,
+                             completion: (() -> Void)? = nil) -> Int {
         let fileName = "\(name).\(ext)".lowercased()
 
         if let existing = textures.first(where: { $0.fileName == fileName }) {
             existing.loadCount += 1
+            completion?()
             return existing.id
         }
 
@@ -190,13 +192,36 @@ public class RenderCore {
         textures.append(newTexture)
         texturesMap[newTexture.id] = newTexture
 
-        newTexture.loadTextureAsync(device: device, commandQueue: commandQueue)
+        newTexture.loadTextureAsync(
+            device: device, commandQueue: commandQueue,
+            completion: completion)
 
         return newTexture.id
     }
 
-    public func loadTextures(_ items: [(name: String, ext: String, isMipmaped: Bool)]) -> [Int] {
-        return items.map { loadTexture(name: $0.name, ext: $0.ext, isMipmaped: $0.isMipmaped) }
+    public func loadTextures(
+        _ items: [(name: String, ext: String, isMipmaped: Bool)],
+        completion: (() -> Void)? = nil
+    ) -> [Int] {
+        guard !items.isEmpty else {
+            completion?()
+            return []
+        }
+
+        let total = items.count
+        let loaded = UnsafeMutablePointer<Int>.allocate(capacity: 1)
+        loaded.initialize(to: 0)
+
+        return items.map { item in
+            loadTexture(name: item.name, ext: item.ext, isMipmaped: item.isMipmaped) {
+                let count = loaded.pointee + 1
+                loaded.pointee = count
+                if count == total {
+                    loaded.deallocate()
+                    DispatchQueue.main.async { completion?() }
+                }
+            }
+        }
     }
 
     public func unloadTexture(textureId: Int) {

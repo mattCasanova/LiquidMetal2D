@@ -50,16 +50,27 @@ public class Texture {
 
     /// Loads the texture asynchronously on a background queue.
     /// Until loading completes, `texture` returns nil and the renderer
-    /// uses the error texture as a fallback.
-    public func loadTextureAsync(device: MTLDevice, commandQueue: MTLCommandQueue) {
-        guard let path else { return }
+    /// uses the error texture as a fallback. Optional completion fires
+    /// on the background queue when loading finishes.
+    public func loadTextureAsync(
+        device: MTLDevice, commandQueue: MTLCommandQueue,
+        completion: (() -> Void)? = nil
+    ) {
+        guard let path else {
+            completion?()
+            return
+        }
 
         Texture.loadQueue.async { [weak self] in
             guard let self,
-                  let image = UIImage(contentsOfFile: path)?.cgImage else { return }
+                  let image = UIImage(contentsOfFile: path)?.cgImage else {
+                completion?()
+                return
+            }
 
             self.loadFromImage(image, device: device, commandQueue: commandQueue)
             DebugPrint("Async loaded Texture %@", self.fileName)
+            completion?()
         }
     }
 
