@@ -112,6 +112,11 @@ public class SceneManager {
         } else {
             currentSceneType = nextSceneType
             currentScene.shutdown()
+            // Shut down any stacked scenes that won't be returned to
+            for sceneData in sceneStack {
+                sceneData.scene.shutdown()
+            }
+            sceneStack.removeAll()
             currentScene = sceneFactory.get(currentSceneType).build()
             currentScene.initialize(sceneMgr: self, renderer: renderer, input: input)
         }

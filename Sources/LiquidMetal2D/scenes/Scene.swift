@@ -67,6 +67,7 @@ open class DefaultScene: Scene {
         self.input = input
 
         renderer.setCamera(point: Vec3(0, 0, Camera2D.defaultDistance))
+        renderer.setCameraRotation(angle: 0)
         renderer.setPerspective(fov: GameMath.degreeToRadian(getFOV()),
                                 aspect: renderer.screenAspect,
                                 nearZ: PerspectiveProjection.defaultNearZ,
