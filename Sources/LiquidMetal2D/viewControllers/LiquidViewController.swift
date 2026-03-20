@@ -11,28 +11,8 @@ import UIKit
 open class LiquidViewController: UIViewController {
     public var gameEngine: GameEngine!
 
-    private var rotationObserver: NSObjectProtocol?
-
-    open override func viewDidLoad() {
-        super.viewDidLoad()
-
-        rotationObserver = NotificationCenter.default.addObserver(
-            forName: UIDevice.orientationDidChangeNotification,
-            object: nil,
-            queue: .main) { [weak self] _ in
-                MainActor.assumeIsolated {
-                    self?.handleRotation()
-                }
-            }
-    }
-
     open override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        let scale = view.window?.screen.nativeScale ?? UIScreen.main.nativeScale
-        gameEngine.resize(scale: scale, layerSize: view.bounds.size)
-    }
-
-    private func handleRotation() {
         let scale = view.window?.screen.nativeScale ?? UIScreen.main.nativeScale
         gameEngine.resize(scale: scale, layerSize: view.bounds.size)
     }
@@ -40,10 +20,6 @@ open class LiquidViewController: UIViewController {
     open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         gameEngine?.shutdown()
-        if let observer = rotationObserver {
-            NotificationCenter.default.removeObserver(observer)
-            rotationObserver = nil
-        }
     }
 
     open override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
