@@ -18,6 +18,7 @@ public protocol Renderer: AnyObject {
     func resize(scale: CGFloat, layerSize: CGSize)
 
     func shutdown()
+    func createSolidTexture(r: UInt8, g: UInt8, b: UInt8, a: UInt8) -> Int
     func loadTextures(
         _ items: [(name: String, ext: String, isMipmaped: Bool)],
         completion: (() -> Void)?

@@ -111,6 +111,29 @@ public class RenderCore {
         }
     }
 
+    /// Creates a 1x1 solid color texture and registers it. Returns the texture ID.
+    /// Useful for procedural textures that don't need a file.
+    public func createSolidTexture(r: UInt8, g: UInt8, b: UInt8, a: UInt8 = 255) -> Int {
+        let descriptor = MTLTextureDescriptor.texture2DDescriptor(
+            pixelFormat: .bgra8Unorm, width: 1, height: 1, mipmapped: false)
+
+        guard let mtlTexture = device.makeTexture(descriptor: descriptor) else {
+            return -1
+        }
+
+        var pixel: [UInt8] = [b, g, r, a]
+        mtlTexture.replace(
+            region: MTLRegionMake2D(0, 0, 1, 1),
+            mipmapLevel: 0, withBytes: &pixel,
+            bytesPerRow: 4)
+
+        let texture = Texture(solidColorWithId: Texture.nextId(), mtlTexture: mtlTexture)
+        textures.append(texture)
+        texturesMap[texture.id] = texture
+
+        return texture.id
+    }
+
     /// Creates a 1x1 magenta texture used as a fallback when a texture can't be found.
     private static func createErrorTexture(device: MTLDevice) -> MTLTexture {
         let descriptor = MTLTextureDescriptor.texture2DDescriptor(

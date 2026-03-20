@@ -32,9 +32,25 @@ public class Texture {
 
     public var loadCount = 0
 
+    static func nextId() -> Int {
+        sIdCounter += 1
+        return sIdCounter
+    }
+
+    /// Creates a texture from a pre-built MTLTexture (used for solid colors).
+    public init(solidColorWithId id: Int, mtlTexture: MTLTexture) {
+        self.id = id
+        self.fileName = "__solid_\(id)"
+        self.path = nil
+        self.isMipmapped = false
+        self.mTexture = mtlTexture
+        self.mWidth = mtlTexture.width
+        self.mHeight = mtlTexture.height
+        self.loadCount = 1
+    }
+
     public init(name: String, ext: String, isMipmaped: Bool) {
-        Texture.sIdCounter += 1
-        self.id = Texture.sIdCounter
+        self.id = Texture.nextId()
         self.fileName = "\(name).\(ext)".lowercased()
         self.path = Bundle.main.path(forResource: name, ofType: ext)
         self.isMipmapped = isMipmaped
