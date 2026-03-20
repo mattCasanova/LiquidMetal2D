@@ -28,21 +28,13 @@ open class LiquidViewController: UIViewController {
 
     open override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-
-        guard let window = view.window else { return }
-        gameEngine.resize(scale: window.screen.nativeScale, layerSize: view.bounds.size)
-    }
-
-    open override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-
-        guard let window = view.window else { return }
-        gameEngine.resize(scale: window.screen.nativeScale, layerSize: view.bounds.size)
+        let scale = view.window?.screen.nativeScale ?? UIScreen.main.nativeScale
+        gameEngine.resize(scale: scale, layerSize: view.bounds.size)
     }
 
     private func handleRotation() {
-        guard let window = view.window else { return }
-        gameEngine.resize(scale: window.screen.nativeScale, layerSize: view.bounds.size)
+        let scale = view.window?.screen.nativeScale ?? UIScreen.main.nativeScale
+        gameEngine.resize(scale: scale, layerSize: view.bounds.size)
     }
 
     open override func viewWillDisappear(_ animated: Bool) {
