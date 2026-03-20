@@ -33,6 +33,13 @@ open class LiquidViewController: UIViewController {
         gameEngine.resize(scale: window.screen.nativeScale, layerSize: view.bounds.size)
     }
 
+    open override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        guard let window = view.window else { return }
+        gameEngine.resize(scale: window.screen.nativeScale, layerSize: view.bounds.size)
+    }
+
     private func handleRotation() {
         guard let window = view.window else { return }
         gameEngine.resize(scale: window.screen.nativeScale, layerSize: view.bounds.size)
