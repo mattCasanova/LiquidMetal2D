@@ -143,4 +143,8 @@ public extension Mat4 {
         self[2] = Vec4(0, 0, 1, 0)
         self[3] = Vec4(translate.x, translate.y, translate.z, 1)
     }
+
+    static func multiply(_ matrix: Mat4, _ vector: Vec4) -> Vec4 {
+        simd_mul(matrix, vector)
+    }
 }

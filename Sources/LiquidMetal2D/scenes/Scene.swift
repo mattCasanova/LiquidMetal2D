@@ -66,17 +66,8 @@ open class DefaultScene: Scene {
         self.renderer = renderer
         self.input = input
 
-        renderer.setCamera(point: Vec3(0, 0, Camera2D.defaultDistance))
         renderer.setCameraRotation(angle: 0)
-        renderer.setPerspective(fov: GameMath.degreeToRadian(getFOV()),
-                                aspect: renderer.screenAspect,
-                                nearZ: PerspectiveProjection.defaultNearZ,
-                                farZ: PerspectiveProjection.defaultFarZ)
-    }
-
-    func getFOV() -> Float {
-        if renderer.screenWidth <= renderer.screenHeight { return PerspectiveProjection.defaultFOV }
-        return PerspectiveProjection.defaultFOV / (renderer.screenWidth / renderer.screenHeight)
+        renderer.setDefaultPerspective()
     }
 
     /// Draws all objects in the ``objects`` array. The renderer handles
@@ -90,7 +81,7 @@ open class DefaultScene: Scene {
 
     public func resize() {
         renderer.setPerspective(
-            fov: GameMath.degreeToRadian(getFOV()),
+            fov: renderer.getDefaultFOV(),
             aspect: renderer.screenAspect,
             nearZ: PerspectiveProjection.defaultNearZ,
             farZ: PerspectiveProjection.defaultFarZ)

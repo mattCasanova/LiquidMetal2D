@@ -13,7 +13,7 @@ import Metal
 open class DefaultRenderer: Renderer {
 
     public let renderCore: RenderCore
-    public var renderPass: RenderPass!
+    private var renderPass: AlphaBlendRenderPass!
 
     public var screenHeight: Float = 0
     public var screenWidth: Float = 0
@@ -22,6 +22,7 @@ open class DefaultRenderer: Renderer {
     public var drawCount: Int = 0
     public var maxObjects: Int = 0
 
+    private let pipelineState: MTLRenderPipelineState
     private let vertexBuffer: MTLBuffer
 
     private let projectionUniforms = ProjectionUniform()
@@ -36,16 +37,16 @@ open class DefaultRenderer: Renderer {
     public var view: UIView { renderCore.view }
 
     public init(parentView: UIView, maxObjects: Int, uniformSize: Int) {
-        renderCore = RenderCore.init(parentView: parentView)
+        renderCore = RenderCore(parentView: parentView)
 
-        guard let vertexBuffer = DefaultRenderer.createVertBuffer(device: renderCore.device),
-            let samplerState = renderCore.createDefaultSampler()
-        else {
-            fatalError("Unable to create renderer.")
+        pipelineState = AlphaBlendPipeline.create(renderCore: renderCore)
+        vertexBuffer = renderCore.createQuad()
+
+        guard let samplerState = renderCore.createDefaultSampler() else {
+            fatalError("Unable to create sampler state.")
         }
 
         self.maxObjects          = maxObjects
-        self.vertexBuffer        = vertexBuffer
         self.samplerState        = samplerState
         projectionBufferProvider = BufferProvider(device: renderCore.device, size: projectionUniforms.size)
         worldBufferProvider      = BufferProvider(device: renderCore.device, size: uniformSize * maxObjects)
@@ -80,17 +81,17 @@ open class DefaultRenderer: Renderer {
         screenAspect = screenWidth / screenHeight
     }
 
-    public var defaultTextureId: Int { renderCore.defaultTexture.id }
+    public var defaultTextureId: Int { renderCore.textureManager.defaultTextureId }
 
     public func loadTextures(
         _ items: [(name: String, ext: String, isMipmaped: Bool)],
         completion: (() -> Void)? = nil
     ) -> [Int] {
-        return renderCore.loadTextures(items, completion: completion)
+        return renderCore.textureManager.loadTextures(items, completion: completion)
     }
 
     public func unloadTexture(textureId: Int) {
-        renderCore.unloadTexture(textureId: textureId)
+        renderCore.textureManager.unloadTexture(textureId: textureId)
     }
 
     public func shutdown() {
@@ -98,11 +99,18 @@ open class DefaultRenderer: Renderer {
     }
 
     public func unloadAllTextures() {
-        renderCore.unloadAllTextures()
+        renderCore.textureManager.unloadAllTextures()
     }
 
+    private var projectionMatrix: Mat4 { renderCore.perspective.make() }
+    private var viewMatrix: Mat4 { renderCore.camera2D.make() }
+    private var viewFrame: CGRect { renderCore.view.frame }
+    private var viewBounds: CGRect { renderCore.view.bounds }
+
     public func project(world: Vec3) -> Vec3 {
-        return renderCore.project(worldPoint: world)
+        return Projection.project(
+            worldPoint: world, projection: projectionMatrix,
+            viewMatrix: viewMatrix, viewFrame: viewFrame, viewBounds: viewBounds)
     }
 
     public func unproject(screen: Vec2, forWorldZ worldZ: Float) -> Vec3 {
@@ -110,16 +118,22 @@ open class DefaultRenderer: Renderer {
     }
 
     public func unproject(screenWithWorldZ: Vec3) -> Vec3 {
-        let projected = renderCore.project(worldPoint: Vec3(0, 0, screenWithWorldZ.z))
-        var unprojected = renderCore.unproject(
-            screenPoint: Vec3(screenWithWorldZ.x, screenWithWorldZ.y, projected.z))
+        let projected = Projection.project(
+            worldPoint: Vec3(0, 0, screenWithWorldZ.z), projection: projectionMatrix,
+            viewMatrix: viewMatrix, viewFrame: viewFrame, viewBounds: viewBounds)
+        var unprojected = Projection.unproject(
+            screenPoint: Vec3(screenWithWorldZ.x, screenWithWorldZ.y, projected.z),
+            projection: projectionMatrix, viewMatrix: viewMatrix,
+            viewFrame: viewFrame, viewBounds: viewBounds)
 
         unprojected.z = screenWithWorldZ.z
         return unprojected
     }
 
     public func getUnprojectRay(forScreenPoint point: Vec2) -> UnprojectRay {
-        return renderCore.getUnprojectRay(forScreenPoint: point)
+        return Projection.unprojectRay(
+            screenPoint: point, projection: projectionMatrix,
+            viewMatrix: viewMatrix, viewFrame: viewFrame, viewBounds: viewBounds)
     }
 
     public func getWorldBoundsFromCamera(zOrder: Float) -> WorldBounds {
@@ -152,14 +166,14 @@ open class DefaultRenderer: Renderer {
         let contents = projectionBuffer.contents()
         projectionUniforms.transform = renderCore.perspective.make() * renderCore.camera2D.make()
         projectionUniforms.setBuffer(buffer: contents, offsetIndex: 0)
-        renderPass.encoder.setVertexBuffer(projectionBuffer, offset: 0, index: 1)
+        renderPass.setProjection(buffer: projectionBuffer)
     }
 
     open func useOrthographic() {
         let contents = projectionBuffer.contents()
         projectionUniforms.transform = renderCore.orthographic.make()
         projectionUniforms.setBuffer(buffer: contents, offsetIndex: 0)
-        renderPass.encoder.setVertexBuffer(projectionBuffer, offset: 0, index: 1)
+        renderPass.setProjection(buffer: projectionBuffer)
     }
 
     open func submit(objects: [GameObj]) {
@@ -213,18 +227,13 @@ open class DefaultRenderer: Renderer {
 
     // MARK: - Pass Management
 
-    @discardableResult
     open func beginPass() -> Bool {
         guard projectionBufferProvider.wait(),
               worldBufferProvider.wait() else {
             return false
         }
 
-        guard let pass = RenderPass(
-            layer: renderCore.layer,
-            commandQueue: renderCore.commandQueue,
-            clearColor: renderCore.clearColor)
-        else {
+        guard let pass = AlphaBlendRenderPass(renderCore: renderCore) else {
             projectionBufferProvider.signal()
             worldBufferProvider.signal()
             return false
@@ -240,27 +249,21 @@ open class DefaultRenderer: Renderer {
             worldProvider.signal()
         }
 
-        renderPass.encoder.setViewport(renderCore.viewport)
-        renderPass.encoder.setRenderPipelineState(renderCore.alphaBlendPipelineState)
-        renderPass.encoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
-        renderPass.encoder.setFragmentSamplerState(samplerState, index: 0)
-
         let worldBuffer = worldBufferProvider.nextBuffer()
         worldBufferContents = worldBuffer.contents()
-        renderPass.encoder.setVertexBuffer(worldBuffer, offset: 0, index: 2)
+
+        renderPass.setup(
+            pipelineState: pipelineState,
+            vertexBuffer: vertexBuffer,
+            samplerState: samplerState,
+            worldBuffer: worldBuffer)
+
         drawCount = 0
         return true
     }
 
     open func endPass() {
-        for batch in batches {
-            renderPass.encoder.setFragmentTexture(renderCore.getTexture(id: batch.textureId), index: 0)
-            let offset = batch.startIndex * WorldUniform.typeSize()
-            renderPass.encoder.setVertexBufferOffset(offset, index: 2)
-            renderPass.encoder.drawPrimitives(
-                type: .triangleStrip, vertexStart: 0,
-                vertexCount: 4, instanceCount: batch.count)
-        }
+        renderPass.drawBatches(batches)
         renderPass.end()
         renderPass = nil
         drawCount = 0
@@ -268,15 +271,4 @@ open class DefaultRenderer: Renderer {
         currentTextureId = -1
     }
 
-    private static func createVertBuffer(device: MTLDevice) -> MTLBuffer? {
-        let vertexData: [Float] = [
-            -0.5, -0.5, 0.0, 0.0, 1.0,
-            0.5, -0.5, 0.0, 1.0, 1.0,
-            -0.5, 0.5, 0.0, 0.0, 0.0,
-            0.5, 0.5, 0.0, 1.0, 0.0
-        ]
-
-        let dataSize = vertexData.count * MemoryLayout.size(ofValue: vertexData[0])
-        return device.makeBuffer(bytes: vertexData, length: dataSize, options: [])
-    }
 }

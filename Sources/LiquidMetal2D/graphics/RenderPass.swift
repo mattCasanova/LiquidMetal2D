@@ -9,16 +9,19 @@
 import UIKit
 import Metal
 
-public class RenderPass {
+@MainActor
+open class RenderPass {
     private let commandBuffer: MTLCommandBuffer
     private let drawable: CAMetalDrawable
     public let encoder: MTLRenderCommandEncoder
+    public let renderCore: RenderCore
 
-    public init?(layer: CAMetalLayer, commandQueue: MTLCommandQueue, clearColor: MTLClearColor) {
+    public init?(renderCore: RenderCore) {
+        self.renderCore = renderCore
 
-        guard let safeDrawable = layer.nextDrawable(),
-            let safeBuffer = commandQueue.makeCommandBuffer(),
-            let safeDescriptor = RenderPass.createDescriptor(drawable: safeDrawable, clearColor: clearColor),
+        guard let safeDrawable = renderCore.layer.nextDrawable(),
+            let safeBuffer = renderCore.commandQueue.makeCommandBuffer(),
+            let safeDescriptor = RenderPass.createDescriptor(drawable: safeDrawable, clearColor: renderCore.clearColor),
             let safeEncoder = safeBuffer.makeRenderCommandEncoder(descriptor: safeDescriptor)
         else {
             return nil
@@ -39,7 +42,7 @@ public class RenderPass {
         commandBuffer.addCompletedHandler(block)
     }
 
-    private static func createDescriptor(
+    open class func createDescriptor(
         drawable: CAMetalDrawable, clearColor: MTLClearColor
     ) -> MTLRenderPassDescriptor? {
         let descriptor = MTLRenderPassDescriptor()
