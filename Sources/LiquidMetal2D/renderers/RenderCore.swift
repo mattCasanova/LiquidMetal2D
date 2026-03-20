@@ -22,6 +22,7 @@ public class RenderCore {
 
     public let alphaBlendPipelineState: MTLRenderPipelineState
     public let errorTexture: MTLTexture
+    public let defaultTexture: Texture
 
     var viewport = MTLViewport(originX: 0, originY: 0, width: 0, height: 0, znear: 0, zfar: 1)
 
@@ -57,6 +58,9 @@ public class RenderCore {
             fragmentName: "alphaBlend_fragment")
 
         errorTexture = RenderCore.createErrorTexture(device: device)
+        defaultTexture = RenderCore.createDefaultTexture(device: device)
+        textures.append(defaultTexture)
+        texturesMap[defaultTexture.id] = defaultTexture
     }
 
     public func resize(scale: CGFloat, layerSize: CGSize) {
@@ -111,27 +115,22 @@ public class RenderCore {
         }
     }
 
-    /// Creates a 1x1 solid color texture and registers it. Returns the texture ID.
-    /// Useful for procedural textures that don't need a file.
-    public func createSolidTexture(r: UInt8, g: UInt8, b: UInt8, a: UInt8 = 255) -> Int {
+    /// Creates a 1x1 white texture available for tinting. Always available at init.
+    private static func createDefaultTexture(device: MTLDevice) -> Texture {
         let descriptor = MTLTextureDescriptor.texture2DDescriptor(
             pixelFormat: .bgra8Unorm, width: 1, height: 1, mipmapped: false)
 
         guard let mtlTexture = device.makeTexture(descriptor: descriptor) else {
-            return -1
+            fatalError("Failed to create default texture")
         }
 
-        var pixel: [UInt8] = [b, g, r, a]
+        var pixel: [UInt8] = [255, 255, 255, 255]
         mtlTexture.replace(
             region: MTLRegionMake2D(0, 0, 1, 1),
             mipmapLevel: 0, withBytes: &pixel,
             bytesPerRow: 4)
 
-        let texture = Texture(solidColorWithId: Texture.nextId(), mtlTexture: mtlTexture)
-        textures.append(texture)
-        texturesMap[texture.id] = texture
-
-        return texture.id
+        return Texture(solidColorWithId: Texture.nextId(), mtlTexture: mtlTexture)
     }
 
     /// Creates a 1x1 magenta texture used as a fallback when a texture can't be found.

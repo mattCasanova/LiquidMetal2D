@@ -18,7 +18,9 @@ public protocol Renderer: AnyObject {
     func resize(scale: CGFloat, layerSize: CGSize)
 
     func shutdown()
-    func createSolidTexture(r: UInt8, g: UInt8, b: UInt8, a: UInt8) -> Int
+    /// A 1x1 white texture always available for tinting. Use with
+    /// `GameObj.tintColor` to render solid-colored quads without loading a file.
+    var defaultTextureId: Int { get }
     func loadTextures(
         _ items: [(name: String, ext: String, isMipmaped: Bool)],
         completion: (() -> Void)?

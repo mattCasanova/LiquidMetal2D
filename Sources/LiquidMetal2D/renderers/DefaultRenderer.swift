@@ -80,9 +80,7 @@ open class DefaultRenderer: Renderer {
         screenAspect = screenWidth / screenHeight
     }
 
-    public func createSolidTexture(r: UInt8, g: UInt8, b: UInt8, a: UInt8 = 255) -> Int {
-        return renderCore.createSolidTexture(r: r, g: g, b: b, a: a)
-    }
+    public var defaultTextureId: Int { renderCore.defaultTexture.id }
 
     public func loadTextures(
         _ items: [(name: String, ext: String, isMipmaped: Bool)],
