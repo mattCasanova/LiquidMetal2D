@@ -29,6 +29,7 @@ public protocol Renderer: AnyObject {
     func unloadAllTextures()
 
     func setPerspective(fov: Float, aspect: Float, nearZ: Float, farZ: Float)
+    // swiftlint:disable:next function_parameter_count
     func setOrthographic(left: Float, right: Float, bottom: Float, top: Float, nearZ: Float, farZ: Float)
     func setCamera(point: Vec3)
     func setCameraRotation(angle: Float)
@@ -74,6 +75,17 @@ public extension Renderer {
             aspect: screenAspect,
             nearZ: PerspectiveProjection.defaultNearZ,
             farZ: PerspectiveProjection.defaultFarZ)
+    }
+
+    /// Sets a screen-filling orthographic projection centered at the origin.
+    /// Uses default nearZ/farZ clip planes.
+    func setOrthographic(width: Float, height: Float) {
+        let halfW = width / 2
+        let halfH = height / 2
+        setOrthographic(
+            left: -halfW, right: halfW,
+            bottom: -halfH, top: halfH,
+            nearZ: 0, farZ: 1)
     }
 
     /// Resets the camera to the origin at the default distance.

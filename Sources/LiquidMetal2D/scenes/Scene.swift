@@ -61,7 +61,7 @@ open class DefaultScene: Scene {
         objects = [GameObj]()
     }
 
-    public func initialize(sceneMgr: SceneManager, renderer: Renderer, input: InputReader) {
+    open func initialize(sceneMgr: SceneManager, renderer: Renderer, input: InputReader) {
         self.sceneMgr = sceneMgr
         self.renderer = renderer
         self.input = input
@@ -73,28 +73,27 @@ open class DefaultScene: Scene {
 
     /// Draws all objects in the ``objects`` array. The renderer handles
     /// transforms, sorting by (zOrder, textureID), and instanced batching.
-    public func draw() {
+    open func draw() {
         guard renderer.beginPass() else { return }
         renderer.usePerspective()
         renderer.submit(objects: objects)
         renderer.endPass()
     }
 
-    public func resize() {
-        renderer.setPerspective(
-            fov: renderer.getDefaultFOV(),
-            aspect: renderer.screenAspect,
-            nearZ: PerspectiveProjection.defaultNearZ,
-            farZ: PerspectiveProjection.defaultFarZ)
+    open func resize() {
+        renderer.setDefaultPerspective()
     }
 
-    public func update(dt: Float) {}
+    open func update(dt: Float) {}
+
     /// Clears objects and scheduler. Override to add custom cleanup
     /// (unload textures, remove UI, etc.) — call super.shutdown().
-    public func shutdown() {
+    open func shutdown() {
         objects.removeAll()
         scheduler.clear()
     }
-    public func resume() {}
-    public static func build() -> Scene { return DefaultScene() }
+
+    open func resume() {}
+
+    open class func build() -> Scene { return DefaultScene() }
 }

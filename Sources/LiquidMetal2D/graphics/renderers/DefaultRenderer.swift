@@ -56,6 +56,7 @@ open class DefaultRenderer: Renderer {
         renderCore.perspective.set(aspect: aspect, fov: fov, nearZ: nearZ, farZ: farZ)
     }
 
+    // swiftlint:disable:next function_parameter_count
     public func setOrthographic(left: Float, right: Float, bottom: Float, top: Float, nearZ: Float, farZ: Float) {
         renderCore.orthographic.set(left: left, right: right, bottom: bottom, top: top, nearZ: nearZ, farZ: farZ)
     }

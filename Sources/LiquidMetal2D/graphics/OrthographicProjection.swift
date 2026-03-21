@@ -16,6 +16,7 @@ public class OrthographicProjection {
     public init() {
     }
 
+    // swiftlint:disable:next function_parameter_count
     public func set(left: Float, right: Float, bottom: Float, top: Float, nearZ: Float, farZ: Float) {
         self.left   = left
         self.right  = right

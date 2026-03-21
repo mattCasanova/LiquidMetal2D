@@ -36,7 +36,7 @@ public extension Mat4 {
     }
 
     /// Creates an orthographic projection matrix. Metal NDC z range is [0, 1].
-    static func makeOrthographic(
+    static func makeOrthographic( // swiftlint:disable:this function_parameter_count
         left: Float, right: Float, bottom: Float, top: Float,
         nearZ: Float, farZ: Float
     ) -> Mat4 {
