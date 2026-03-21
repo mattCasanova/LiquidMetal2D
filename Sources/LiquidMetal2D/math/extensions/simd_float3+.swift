@@ -75,6 +75,11 @@ public extension Vec3 {
     func to4D(_ w: Float = 0) -> Vec4 {
         return Vec4(x, y, z, w)
     }
+
+    /// Linearly interpolates between this vector and `to` by factor `t` (0 = self, 1 = to).
+    func lerp(to: Vec3, t: Float) -> Vec3 {
+        simd_mix(self, to, Vec3(repeating: t))
+    }
 }
 
 /// Returns `true` if two Vec3 values are equal within `GameMath.epsilon` tolerance.
