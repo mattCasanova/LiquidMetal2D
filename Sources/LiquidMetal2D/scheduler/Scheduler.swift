@@ -56,7 +56,7 @@ public class Scheduler {
             while task.currentTime >= task.maxTime {
                 // Subtract instead of resetting to 0 to preserve overshoot
                 task.currentTime -= task.maxTime
-                task.action()
+                task.action(dt)
 
                 if task.repeatCount == ScheduledTask.INFINITE {
                     continue
@@ -73,7 +73,7 @@ public class Scheduler {
 
         // Remove completed tasks and start any chained follow-ups
         for task in completed {
-            task.onComplete?()
+            task.onComplete?(dt)
             tasks.removeAll(where: { $0 === task })
 
             if let next = task.nextTask {

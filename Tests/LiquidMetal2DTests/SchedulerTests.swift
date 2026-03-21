@@ -9,7 +9,7 @@ final class SchedulerTests: XCTestCase {
     func testTaskFiresAtInterval() {
         let scheduler = Scheduler()
         var count = 0
-        let task = ScheduledTask(time: 1.0, action: { count += 1 })
+        let task = ScheduledTask(time: 1.0, action: { _ in count += 1 })
         scheduler.add(task: task)
 
         scheduler.update(dt: 0.5)
@@ -22,7 +22,7 @@ final class SchedulerTests: XCTestCase {
     func testTaskFiresMultipleTimesWithLargeDt() {
         let scheduler = Scheduler()
         var count = 0
-        let task = ScheduledTask(time: 0.1, action: { count += 1 })
+        let task = ScheduledTask(time: 0.1, action: { _ in count += 1 })
         scheduler.add(task: task)
 
         scheduler.update(dt: 0.35)
@@ -32,7 +32,7 @@ final class SchedulerTests: XCTestCase {
     func testFiniteRepeatCount() {
         let scheduler = Scheduler()
         var count = 0
-        let task = ScheduledTask(time: 0.5, action: { count += 1 }, count: 3)
+        let task = ScheduledTask(time: 0.5, action: { _ in count += 1 }, count: 3)
         scheduler.add(task: task)
 
         scheduler.update(dt: 0.5)
@@ -48,7 +48,7 @@ final class SchedulerTests: XCTestCase {
     func testInfiniteRepeat() {
         let scheduler = Scheduler()
         var count = 0
-        let task = ScheduledTask(time: 0.1, action: { count += 1 })
+        let task = ScheduledTask(time: 0.1, action: { _ in count += 1 })
         scheduler.add(task: task)
 
         for _ in 0..<100 {
@@ -60,7 +60,7 @@ final class SchedulerTests: XCTestCase {
     func testZeroRepeatCountNotAdded() {
         let scheduler = Scheduler()
         var count = 0
-        let task = ScheduledTask(time: 0.1, action: { count += 1 }, count: 0)
+        let task = ScheduledTask(time: 0.1, action: { _ in count += 1 }, count: 0)
         scheduler.add(task: task)
 
         scheduler.update(dt: 1.0)
@@ -72,7 +72,7 @@ final class SchedulerTests: XCTestCase {
     func testNoDriftOnExactInterval() {
         let scheduler = Scheduler()
         var count = 0
-        let task = ScheduledTask(time: 0.1, action: { count += 1 })
+        let task = ScheduledTask(time: 0.1, action: { _ in count += 1 })
         scheduler.add(task: task)
 
         // 10 frames at exactly 0.1s
@@ -85,7 +85,7 @@ final class SchedulerTests: XCTestCase {
     func testOvershootPreserved() {
         let scheduler = Scheduler()
         var count = 0
-        let task = ScheduledTask(time: 0.3, action: { count += 1 })
+        let task = ScheduledTask(time: 0.3, action: { _ in count += 1 })
         scheduler.add(task: task)
 
         // dt=0.35: fires once at 0.3, overshoot of 0.05 preserved
@@ -103,8 +103,8 @@ final class SchedulerTests: XCTestCase {
         let scheduler = Scheduler()
         var completed = false
         let task = ScheduledTask(
-            time: 0.1, action: {}, count: 1,
-            onComplete: { completed = true })
+            time: 0.1, action: { _ in}, count: 1,
+            onComplete: { _ in completed = true })
         scheduler.add(task: task)
 
         scheduler.update(dt: 0.1)
@@ -115,8 +115,8 @@ final class SchedulerTests: XCTestCase {
         let scheduler = Scheduler()
         var completed = false
         let task = ScheduledTask(
-            time: 0.1, action: {}, count: 3,
-            onComplete: { completed = true })
+            time: 0.1, action: { _ in}, count: 3,
+            onComplete: { _ in completed = true })
         scheduler.add(task: task)
 
         scheduler.update(dt: 0.1)
@@ -132,7 +132,7 @@ final class SchedulerTests: XCTestCase {
     func testPauseTask() {
         let scheduler = Scheduler()
         var count = 0
-        let task = ScheduledTask(time: 0.1, action: { count += 1 })
+        let task = ScheduledTask(time: 0.1, action: { _ in count += 1 })
         scheduler.add(task: task)
 
         scheduler.update(dt: 0.1)
@@ -151,7 +151,7 @@ final class SchedulerTests: XCTestCase {
     func testPausedTaskDoesNotAccumulateTime() {
         let scheduler = Scheduler()
         var count = 0
-        let task = ScheduledTask(time: 1.0, action: { count += 1 })
+        let task = ScheduledTask(time: 1.0, action: { _ in count += 1 })
         scheduler.add(task: task)
 
         scheduler.update(dt: 0.5)
@@ -176,7 +176,7 @@ final class SchedulerTests: XCTestCase {
     func testPauseScheduler() {
         let scheduler = Scheduler()
         var count = 0
-        let task = ScheduledTask(time: 0.1, action: { count += 1 })
+        let task = ScheduledTask(time: 0.1, action: { _ in count += 1 })
         scheduler.add(task: task)
 
         scheduler.update(dt: 0.1)
@@ -200,8 +200,8 @@ final class SchedulerTests: XCTestCase {
         var phase2Count = 0
 
         let task = ScheduledTask(
-            time: 0.1, action: { phase1Count += 1 }, count: 2)
-        task.then(time: 0.1, action: { phase2Count += 1 }, count: 1)
+            time: 0.1, action: { _ in phase1Count += 1 }, count: 2)
+        task.then(time: 0.1, action: { _ in phase2Count += 1 }, count: 1)
         scheduler.add(task: task)
 
         scheduler.update(dt: 0.1)
@@ -221,7 +221,7 @@ final class SchedulerTests: XCTestCase {
     func testRemoveTask() {
         let scheduler = Scheduler()
         var count = 0
-        let task = ScheduledTask(time: 0.1, action: { count += 1 })
+        let task = ScheduledTask(time: 0.1, action: { _ in count += 1 })
         scheduler.add(task: task)
 
         scheduler.update(dt: 0.1)
@@ -236,7 +236,7 @@ final class SchedulerTests: XCTestCase {
         let scheduler = Scheduler()
         var count = 0
         for _ in 0..<5 {
-            scheduler.add(task: ScheduledTask(time: 0.1, action: { count += 1 }))
+            scheduler.add(task: ScheduledTask(time: 0.1, action: { _ in count += 1 }))
         }
 
         scheduler.update(dt: 0.1)
@@ -253,8 +253,8 @@ final class SchedulerTests: XCTestCase {
         let scheduler = Scheduler()
         var count1 = 0
         var count2 = 0
-        let task2 = ScheduledTask(time: 0.1, action: { count2 += 1 })
-        let task1 = ScheduledTask(time: 0.1, action: {
+        let task2 = ScheduledTask(time: 0.1, action: { _ in count2 += 1 })
+        let task1 = ScheduledTask(time: 0.1, action: { _ in
             count1 += 1
             scheduler.remove(toRemove: task2)
         })
@@ -274,9 +274,9 @@ final class SchedulerTests: XCTestCase {
     func testAddDuringIteration() {
         let scheduler = Scheduler()
         var newTaskCount = 0
-        let task = ScheduledTask(time: 0.1, action: {
+        let task = ScheduledTask(time: 0.1, action: { _ in
             scheduler.add(task: ScheduledTask(
-                time: 0.1, action: { newTaskCount += 1 }, count: 1))
+                time: 0.1, action: { _ in newTaskCount += 1 }, count: 1))
         }, count: 1)
         scheduler.add(task: task)
 
@@ -290,7 +290,7 @@ final class SchedulerTests: XCTestCase {
     func testClearDuringIteration() {
         let scheduler = Scheduler()
         var count = 0
-        let task = ScheduledTask(time: 0.1, action: {
+        let task = ScheduledTask(time: 0.1, action: { _ in
             count += 1
             scheduler.clear()
         })
@@ -307,7 +307,7 @@ final class SchedulerTests: XCTestCase {
     func testVerySmallDtAccumulates() {
         let scheduler = Scheduler()
         var count = 0
-        let task = ScheduledTask(time: 1.0, action: { count += 1 })
+        let task = ScheduledTask(time: 1.0, action: { _ in count += 1 })
         scheduler.add(task: task)
 
         for _ in 0..<100 {
@@ -320,8 +320,8 @@ final class SchedulerTests: XCTestCase {
         let scheduler = Scheduler()
         var countA = 0
         var countB = 0
-        scheduler.add(task: ScheduledTask(time: 0.1, action: { countA += 1 }))
-        scheduler.add(task: ScheduledTask(time: 0.3, action: { countB += 1 }))
+        scheduler.add(task: ScheduledTask(time: 0.1, action: { _ in countA += 1 }))
+        scheduler.add(task: ScheduledTask(time: 0.3, action: { _ in countB += 1 }))
 
         scheduler.update(dt: 0.3)
         XCTAssertEqual(countA, 3, "Fast task fires 3 times")
@@ -330,7 +330,7 @@ final class SchedulerTests: XCTestCase {
 
     func testRemoveNonexistentTaskIsNoop() {
         let scheduler = Scheduler()
-        let task = ScheduledTask(time: 0.1, action: {})
+        let task = ScheduledTask(time: 0.1, action: { _ in})
         // Never added — should not crash
         scheduler.remove(toRemove: task)
     }
@@ -347,10 +347,10 @@ final class SchedulerTests: XCTestCase {
         var phase2Count = 0
 
         let task = ScheduledTask(
-            time: 0.1, action: {}, count: 1,
-            onComplete: {
+            time: 0.1, action: { _ in}, count: 1,
+            onComplete: { _ in
                 scheduler.add(task: ScheduledTask(
-                    time: 0.1, action: { phase2Count += 1 }, count: 1))
+                    time: 0.1, action: { _ in phase2Count += 1 }, count: 1))
             })
         scheduler.add(task: task)
 

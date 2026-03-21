@@ -5,7 +5,7 @@
 //  Created by Matt Casanova on 3/17/20.
 //
 
-public typealias TaskMethod = () -> Void
+public typealias TaskMethod = (Float) -> Void
 
 /// A scheduled task that fires an action at a timed interval.
 ///
