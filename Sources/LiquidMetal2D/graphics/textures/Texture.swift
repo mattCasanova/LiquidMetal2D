@@ -49,11 +49,11 @@ public class Texture {
         self.loadCount = 1
     }
 
-    public init(name: String, ext: String, isMipmaped: Bool) {
+    public init(name: String, ext: String, isMipmapped: Bool) {
         self.id = Texture.nextId()
         self.fileName = "\(name).\(ext)".lowercased()
         self.path = Bundle.main.path(forResource: name, ofType: ext)
-        self.isMipmapped = isMipmaped
+        self.isMipmapped = isMipmapped
         self.loadCount = 1
     }
 

@@ -84,7 +84,7 @@ open class DefaultRenderer: Renderer {
     public var defaultTextureId: Int { renderCore.textureManager.defaultTextureId }
 
     public func loadTextures(
-        _ items: [(name: String, ext: String, isMipmaped: Bool)],
+        _ items: [TextureDescriptor],
         completion: (() -> Void)? = nil
     ) -> [Int] {
         return renderCore.textureManager.loadTextures(items, completion: completion)

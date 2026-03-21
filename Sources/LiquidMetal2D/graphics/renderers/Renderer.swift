@@ -22,7 +22,7 @@ public protocol Renderer: AnyObject {
     /// `GameObj.tintColor` to render solid-colored quads without loading a file.
     var defaultTextureId: Int { get }
     func loadTextures(
-        _ items: [(name: String, ext: String, isMipmaped: Bool)],
+        _ items: [TextureDescriptor],
         completion: (() -> Void)?
     ) -> [Int]
     func unloadTexture(textureId: Int)

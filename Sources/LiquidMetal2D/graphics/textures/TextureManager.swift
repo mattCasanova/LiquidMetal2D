@@ -33,7 +33,7 @@ class TextureManager {
     // MARK: - Loading
 
     func loadTextures(
-        _ items: [(name: String, ext: String, isMipmaped: Bool)],
+        _ items: [TextureDescriptor],
         completion: (() -> Void)? = nil
     ) -> [Int] {
         guard !items.isEmpty else {
@@ -46,7 +46,7 @@ class TextureManager {
         loaded.initialize(to: 0)
 
         return items.map { item in
-            loadTexture(name: item.name, ext: item.ext, isMipmaped: item.isMipmaped) {
+            loadTexture(name: item.name, ext: item.ext, isMipmapped: item.isMipmapped) {
                 let count = loaded.pointee + 1
                 loaded.pointee = count
                 if count == total {
@@ -87,7 +87,7 @@ class TextureManager {
 
     // MARK: - Private
 
-    private func loadTexture(name: String, ext: String, isMipmaped: Bool,
+    private func loadTexture(name: String, ext: String, isMipmapped: Bool,
                              completion: (() -> Void)? = nil) -> Int {
         let fileName = "\(name).\(ext)".lowercased()
 
@@ -97,7 +97,7 @@ class TextureManager {
             return existing.id
         }
 
-        let newTexture = Texture(name: name, ext: ext, isMipmaped: isMipmaped)
+        let newTexture = Texture(name: name, ext: ext, isMipmapped: isMipmapped)
         textures.append(newTexture)
         texturesMap[newTexture.id] = newTexture
 
