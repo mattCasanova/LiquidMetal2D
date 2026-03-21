@@ -66,6 +66,7 @@ open class DefaultScene: Scene {
         self.renderer = renderer
         self.input = input
 
+        renderer.setCamera()
         renderer.setCameraRotation(angle: 0)
         renderer.setDefaultPerspective()
     }
