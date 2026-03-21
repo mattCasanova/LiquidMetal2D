@@ -50,7 +50,7 @@ public class SceneManager {
     /// construction, once an `InputReader` is available.
     func start(input: InputReader) {
         self.input = input
-        currentScene = sceneFactory.get(currentSceneType).build()
+        currentScene = sceneFactory.build(currentSceneType)
         currentScene.initialize(sceneMgr: self, renderer: renderer, input: input)
     }
 
@@ -100,7 +100,7 @@ public class SceneManager {
         if isPushing {
             sceneStack.append(SceneData(scene: currentScene, type: currentSceneType))
             currentSceneType = nextSceneType
-            currentScene = sceneFactory.get(currentSceneType).build()
+            currentScene = sceneFactory.build(currentSceneType)
             currentScene.initialize(sceneMgr: self, renderer: renderer, input: input)
         } else if isPopping {
             guard let sceneData = sceneStack.popLast() else { return }
@@ -117,7 +117,7 @@ public class SceneManager {
                 sceneData.scene.shutdown()
             }
             sceneStack.removeAll()
-            currentScene = sceneFactory.get(currentSceneType).build()
+            currentScene = sceneFactory.build(currentSceneType)
             currentScene.initialize(sceneMgr: self, renderer: renderer, input: input)
         }
         isPushing = false

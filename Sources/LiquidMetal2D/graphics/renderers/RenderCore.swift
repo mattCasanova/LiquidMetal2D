@@ -103,8 +103,8 @@ public class RenderCore {
         let vertexData: [Float] = [
             -0.5, -0.5, 0.0, 0.0, 1.0,
              0.5, -0.5, 0.0, 1.0, 1.0,
-            -0.5,  0.5, 0.0, 0.0, 0.0,
-             0.5,  0.5, 0.0, 1.0, 0.0
+             -0.5, 0.5, 0.0, 0.0, 0.0,
+             0.5, 0.5, 0.0, 1.0, 0.0
         ]
 
         let dataSize = vertexData.count * MemoryLayout.size(ofValue: vertexData[0])

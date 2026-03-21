@@ -1,44 +1,46 @@
-//
-//  SceneFactory.swift
-//
-//
-//  Created by Matt Casanova on 3/6/20.
-//
-
-/// Registry that maps scene types to their builders.
+/// Registry that maps scene types to scene classes.
 ///
-/// Register scenes during setup, then ``SceneManager`` uses `get(_:)` to
-/// build scenes on demand during transitions.
+/// Each ``Scene`` declares a static `sceneType` property. Register scenes
+/// by passing the class itself — the factory reads the type automatically.
 ///
 /// ```swift
 /// let factory = SceneFactory()
-/// factory.addScene(type: MyScenes.menu, builder: TSceneBuilder<MenuScene>())
-/// factory.addScene(type: MyScenes.gameplay, builder: TSceneBuilder<GameplayScene>())
+/// factory.addScenes([
+///     MenuScene.self,
+///     GameplayScene.self,
+///     GameOverScene.self,
+/// ])
 /// ```
 @MainActor
 public class SceneFactory {
 
-    private var builderMap = [AnyHashable: SceneBuilder]()
+    private var sceneMap = [AnyHashable: Scene.Type]()
 
-    public init() {
+    public init() {}
+
+    /// Registers a single scene class. The scene's `sceneType` is used as the key.
+    public func addScene(_ sceneClass: Scene.Type) {
+        sceneMap[AnyHashable(sceneClass.sceneType)] = sceneClass
     }
 
-    /// Registers a scene builder for the given type.
-    public func addScene(type: some SceneType, builder: SceneBuilder) {
-        builderMap[AnyHashable(type)] = builder
+    /// Registers multiple scene classes at once.
+    public func addScenes(_ sceneClasses: [Scene.Type]) {
+        for sceneClass in sceneClasses {
+            addScene(sceneClass)
+        }
     }
 
-    /// Removes the builder registered for the given type.
+    /// Removes the scene registered for the given type.
     public func removeScene(_ type: some SceneType) {
-        builderMap.removeValue(forKey: AnyHashable(type))
+        sceneMap.removeValue(forKey: AnyHashable(type))
     }
 
-    /// Returns the builder for the given type.
-    /// Crashes with a descriptive message if the type was never registered.
-    public func get(_ type: any SceneType) -> SceneBuilder {
-        guard let builder = builderMap[AnyHashable(type)] else {
+    /// Builds a new instance of the scene registered for the given type.
+    /// Crashes if the type was never registered.
+    func build(_ type: any SceneType) -> Scene {
+        guard let sceneClass = sceneMap[AnyHashable(type)] else {
             fatalError("No scene registered for type: \(type)")
         }
-        return builder
+        return sceneClass.build()
     }
 }

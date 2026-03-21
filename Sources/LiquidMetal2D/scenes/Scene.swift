@@ -8,11 +8,17 @@
 
 /// A single screen or state in the game (menu, gameplay, pause, etc.).
 ///
-/// Scenes are created by a ``SceneBuilder`` and managed by ``SceneManager``.
-/// The lifecycle is: `build()` → `initialize` → `update`/`draw` loop →
-/// `shutdown`. Pushed scenes may also receive `resume()` after a pop.
+/// Managed by ``SceneManager``. The lifecycle is:
+/// `build()` → `initialize` → `update`/`draw` loop → `shutdown`.
+/// Pushed scenes may also receive `resume()` after a pop.
+///
+/// Each scene declares its ``sceneType`` so the ``SceneFactory`` can
+/// register and look it up automatically.
 @MainActor
 public protocol Scene {
+    /// The scene type identifier used for registration and transitions.
+    static var sceneType: any SceneType { get }
+
     /// Called once after building to inject dependencies.
     func initialize(sceneMgr: SceneManager, renderer: Renderer, input: InputReader)
 
@@ -57,7 +63,12 @@ open class DefaultScene: Scene {
     /// Optional scheduler for timed tasks. Automatically cleared on shutdown.
     public let scheduler = Scheduler()
 
-    public init() {
+    /// Subclasses must override to return their scene type.
+    open class var sceneType: any SceneType {
+        fatalError("Subclasses of DefaultScene must override sceneType")
+    }
+
+    public required init() {
         objects = [GameObj]()
     }
 
@@ -95,5 +106,7 @@ open class DefaultScene: Scene {
 
     open func resume() {}
 
-    open class func build() -> Scene { return DefaultScene() }
+    /// Subclasses inherit this automatically — no need to override.
+    /// Uses `Self()` so it returns the correct subclass type.
+    open class func build() -> Scene { return Self() }
 }
