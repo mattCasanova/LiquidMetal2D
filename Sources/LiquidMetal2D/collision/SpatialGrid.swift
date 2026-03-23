@@ -145,6 +145,44 @@ public class SpatialGrid {
         return result
     }
 
+    /// Calls the closure for each candidate collision pair. Zero allocation.
+    ///
+    /// Same half-neighbor traversal as ``potentialPairs()`` but avoids
+    /// building an array. Use this in hot loops where allocation matters.
+    public func forEachPotentialPair(_ body: (GameObj, GameObj) -> Void) {
+        for row in 0..<rows {
+            for col in 0..<columns {
+                let cell = cells[flatIndex(column: col, row: row)]
+                guard !cell.isEmpty else { continue }
+
+                for i in 0..<cell.count {
+                    for j in (i + 1)..<cell.count {
+                        body(cell[i], cell[j])
+                    }
+                }
+
+                let neighbors = [
+                    (col + 1, row),
+                    (col - 1, row + 1),
+                    (col,     row + 1),
+                    (col + 1, row + 1),
+                ]
+
+                for (nc, nr) in neighbors {
+                    guard nc >= 0, nc < columns, nr >= 0, nr < rows else { continue }
+                    let neighbor = cells[flatIndex(column: nc, row: nr)]
+                    guard !neighbor.isEmpty else { continue }
+
+                    for objA in cell {
+                        for objB in neighbor {
+                            body(objA, objB)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     /// Returns all objects in the same cell as the position, plus all 8
     /// neighboring cells.
     ///
