@@ -137,11 +137,11 @@ open class DefaultRenderer: Renderer {
             viewMatrix: viewMatrix, viewFrame: viewFrame, viewBounds: viewBounds)
     }
 
-    public func getWorldBoundsFromCamera(zOrder: Float) -> WorldBounds {
-        return getWorldBounds(cameraDistance: renderCore.camera2D.distance, zOrder: zOrder)
+    public func getVisibleBounds(zOrder: Float) -> WorldBounds {
+        return getVisibleBounds(cameraDistance: renderCore.camera2D.distance, zOrder: zOrder)
     }
 
-    public func getWorldBounds(cameraDistance: Float, zOrder: Float) -> WorldBounds {
+    public func getVisibleBounds(cameraDistance: Float, zOrder: Float) -> WorldBounds {
         let angle = 0.5 * renderCore.perspective.fov
         let maxY = tan(angle) * (cameraDistance - zOrder)
         let maxX = maxY * screenAspect

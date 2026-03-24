@@ -40,8 +40,8 @@ public protocol Renderer: AnyObject {
     func unproject(screenWithWorldZ: Vec3) -> Vec3
     func getUnprojectRay(forScreenPoint point: Vec2) -> UnprojectRay
 
-    func getWorldBoundsFromCamera(zOrder: Float) -> WorldBounds
-    func getWorldBounds(cameraDistance: Float, zOrder: Float) -> WorldBounds
+    func getVisibleBounds(zOrder: Float) -> WorldBounds
+    func getVisibleBounds(cameraDistance: Float, zOrder: Float) -> WorldBounds
 
     func beginPass() -> Bool
     func usePerspective()

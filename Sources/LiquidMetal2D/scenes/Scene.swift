@@ -93,7 +93,12 @@ open class DefaultScene: Scene {
 
     open func resize() {
         renderer.setDefaultPerspective()
+        layoutUI()
     }
+
+    /// Called by ``resize()`` after the projection is reconfigured.
+    /// Override to reposition UI elements after rotation or layout changes.
+    open func layoutUI() {}
 
     open func update(dt: Float) {}
 
