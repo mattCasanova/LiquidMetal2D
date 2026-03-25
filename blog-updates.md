@@ -99,3 +99,43 @@ Did a full audit of both the library and demo:
 **Why callback over return value?** `forEachPotentialPair()` vs `potentialPairs()` is the classic allocation-free iteration pattern. In a game loop running 60 times per second, even small allocations add up. The callback version does the exact same traversal but never creates an intermediate collection. Both APIs exist — use the callback in hot paths, the array version when you need to store/filter/sort the pairs.
 
 **Why `Self()` in `build()`?** Swift's `Self` refers to the actual runtime type, not the declaring class. So `DefaultScene.build()` returning `Self()` means when called on a `MenuScene` subclass, it returns `MenuScene()`. This eliminates the need for every subclass to override `build()` with its own constructor — a pattern that was pure boilerplate.
+
+---
+
+## Coming Next: Migrating to a Component System
+
+### The Problem with Inheritance
+
+Right now, extending GameObj requires subclassing. Want a collider? Make a `CollisionObj`. Want a behavior? Make a `BehaviorObj`. Want both? Now you need multiple inheritance (which Swift doesn't have) or awkward workarounds like delegation. In the demo code, we're doing `for case let obj as BehaviorObj in objects` — runtime type casting in a hot loop just to access a behavior property.
+
+This is the classic inheritance trap that game developers have been solving since the early 2000s. Scott Bilas presented "A Data-Driven Game Object System" at GDC 2002, describing how Dungeon Siege used components instead of inheritance to manage 7,300+ unique object types. In game dev circles, we called this the **Component Object Model** (not to be confused with Microsoft's unrelated COM API). The pattern was well-established by the mid-2000s — years before Unity popularized the term "Entity Component System." ECS is essentially the same idea rebranded with more formalism around Systems and storage layouts, but the core insight — composition over inheritance for game objects — hasn't changed in 20 years.
+
+### The Plan: Lightweight Component Bag
+
+We're not going full ECS. No archetype storage, no parallel systems, no entity-as-pure-ID. GameObj keeps its built-in properties (position, velocity, scale, rotation, textureID) because this is a 2D engine and everything draws.
+
+What we're adding: a component dictionary on GameObj. Instead of subclassing, you compose:
+
+```swift
+// Before (inheritance):
+class CollisionObj: GameObj {
+    var collider: Collider = NilCollider()
+}
+
+// After (composition):
+let ship = GameObj()
+ship.add(CircleCollider(obj: ship, radius: 1))
+ship.add(FindAndGoBehavior(obj: ship, bounds: bounds))
+
+// Access:
+obj.get(Collider.self)?.doesCollideWith(...)
+obj.get(Behavior.self)?.update(dt: dt)
+```
+
+Components use `unowned let parent: GameObj` — not weak, not optional. If a component outlives its parent, it crashes intentionally. That's better than silent nil behavior where your game appears to work but things stop colliding with no explanation. The ownership model is clear: scene owns objects, objects own components.
+
+### Why This Matters
+
+Once components are in place, every demo scene can use `DefaultScene` without casting. The spatial grid can pull colliders from components directly. New features (health, damage, AI, animation) just become new component types — no subclass explosion. It's the foundation that makes everything else cleaner.
+
+More on this in the next session when we implement it.

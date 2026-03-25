@@ -16,7 +16,24 @@ open class GameObj {
     public var isActive: Bool = true
     public var tintColor = Vec4(1, 1, 1, 1)
 
+    private var components = [ObjectIdentifier: Component]()
+
     public init() {}
+
+    /// Adds a component to this object. One component per type.
+    public func add<T: Component>(_ component: T) {
+        components[ObjectIdentifier(T.self)] = component
+    }
+
+    /// Returns the component of the given type, or nil if not attached.
+    public func get<T: Component>(_ type: T.Type) -> T? {
+        components[ObjectIdentifier(T.self)] as? T
+    }
+
+    /// Removes the component of the given type.
+    public func remove<T: Component>(_ type: T.Type) {
+        components.removeValue(forKey: ObjectIdentifier(T.self))
+    }
 
     /// Builds the uniform data for this object. Override in subclasses to
     /// provide custom uniform types (e.g., tinted uniforms).

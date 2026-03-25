@@ -540,7 +540,7 @@ final class IntersectTests: XCTestCase {
 
     func testPointCircleWithProtocol() {
         let obj = GameObj()
-        let collider = CircleCollider(obj: obj, radius: 2)
+        let collider = CircleCollider(parent: obj, radius: 2)
         XCTAssertTrue(Intersect.pointCircle(point: Vec2(0, 0), circle: collider))
         XCTAssertFalse(Intersect.pointCircle(point: Vec2(5, 5), circle: collider))
     }
@@ -616,8 +616,8 @@ final class IntersectTests: XCTestCase {
         let obj1 = GameObj()
         let obj2 = GameObj()
         obj2.position.set(1, 0)
-        let c1 = CircleCollider(obj: obj1, radius: 1)
-        let c2 = CircleCollider(obj: obj2, radius: 1)
+        let c1 = CircleCollider(parent: obj1, radius: 1)
+        let c2 = CircleCollider(parent: obj2, radius: 1)
         XCTAssertTrue(Intersect.circleCircle(c1, c2))
     }
 
@@ -740,12 +740,13 @@ final class IntersectTests: XCTestCase {
 
 // MARK: - MutableCircle / CircleCollider Tests
 
+@MainActor
 final class CircleColliderTests: XCTestCase {
 
     func testCircleColliderTracksGameObj() {
         let obj = GameObj()
         obj.position.set(5, 10)
-        let collider = CircleCollider(obj: obj, radius: 2)
+        let collider = CircleCollider(parent: obj, radius: 2)
 
         // center should reflect obj position
         XCTAssertEqual(collider.center.x, 5)
@@ -759,7 +760,7 @@ final class CircleColliderTests: XCTestCase {
 
     func testCircleColliderCenterSetUpdatesObj() {
         let obj = GameObj()
-        let collider = CircleCollider(obj: obj, radius: 1)
+        let collider = CircleCollider(parent: obj, radius: 1)
 
         collider.center = Vec2(7, 8)
         XCTAssertEqual(obj.position.x, 7)
@@ -768,7 +769,7 @@ final class CircleColliderTests: XCTestCase {
 
     func testCircleColliderRadius() {
         let obj = GameObj()
-        let collider = CircleCollider(obj: obj, radius: 3)
+        let collider = CircleCollider(parent: obj, radius: 3)
         XCTAssertEqual(collider.radius, 3)
         collider.radius = 5
         XCTAssertEqual(collider.radius, 5)

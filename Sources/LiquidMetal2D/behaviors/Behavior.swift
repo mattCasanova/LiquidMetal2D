@@ -5,9 +5,8 @@
 /// ``setNext(next:)`` from within a state to transition. The behavior's
 /// ``update(dt:)`` forwards to the current state each frame.
 ///
-/// Default implementations are provided via a protocol extension, so
-/// conforming types only need to declare a `current` property.
-public protocol Behavior: AnyObject {
+/// Conforms to ``Component`` — attach to a GameObj via `obj.add(behavior)`.
+public protocol Behavior: Component {
     /// The currently active state.
     var current: State! { get set }
 
