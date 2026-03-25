@@ -289,47 +289,88 @@ final class ComponentTests: XCTestCase {
     func testAddAndGetComponent() {
         let obj = GameObj()
         let collider = CircleCollider(parent: obj, radius: 5)
-        obj.add(collider)
+        obj.add(EngineComponent.collider, collider)
 
-        let retrieved = obj.get(CircleCollider.self)
+        let retrieved = obj.get(EngineComponent.collider, as: CircleCollider.self)
         XCTAssertTrue(retrieved === collider)
     }
 
     func testGetMissingComponentReturnsNil() {
         let obj = GameObj()
-        XCTAssertNil(obj.get(CircleCollider.self))
+        XCTAssertNil(obj.get(EngineComponent.collider))
     }
 
     func testRemoveComponent() {
         let obj = GameObj()
         let collider = CircleCollider(parent: obj, radius: 5)
-        obj.add(collider)
-        obj.remove(CircleCollider.self)
+        obj.add(EngineComponent.collider, collider)
+        obj.remove(EngineComponent.collider)
 
-        XCTAssertNil(obj.get(CircleCollider.self))
+        XCTAssertNil(obj.get(EngineComponent.collider))
     }
 
     func testMultipleComponentTypes() {
         let obj = GameObj()
         let collider = CircleCollider(parent: obj, radius: 5)
         let aabb = AABBCollider(parent: obj, width: 10, height: 10)
-        obj.add(collider)
-        obj.add(aabb)
+        obj.add(EngineComponent.collider, collider)
+        obj.add("customKey", aabb)
 
-        XCTAssertTrue(obj.get(CircleCollider.self) === collider)
-        XCTAssertTrue(obj.get(AABBCollider.self) === aabb)
+        XCTAssertTrue(obj.get(EngineComponent.collider, as: CircleCollider.self) === collider)
+        XCTAssertTrue(obj.get("customKey", as: AABBCollider.self) === aabb)
     }
 
     func testAddReplacesExistingComponent() {
         let obj = GameObj()
         let first = CircleCollider(parent: obj, radius: 5)
         let second = CircleCollider(parent: obj, radius: 10)
-        obj.add(first)
-        obj.add(second)
+        obj.add(EngineComponent.collider, first)
+        obj.add(EngineComponent.collider, second)
 
-        let retrieved = obj.get(CircleCollider.self)
+        let retrieved = obj.get(EngineComponent.collider, as: CircleCollider.self)
         XCTAssertTrue(retrieved === second)
         XCTAssertEqual(retrieved?.radius, 10)
+    }
+
+    func testGetAsBaseProtocol() {
+        let obj = GameObj()
+        let circle = CircleCollider(parent: obj, radius: 5)
+        obj.add(EngineComponent.collider, circle)
+
+        // Fetch as Component (base protocol)
+        let asComponent = obj.get(EngineComponent.collider)
+        XCTAssertTrue(asComponent === circle)
+
+        // Fetch as concrete type
+        let asConcrete = obj.get(EngineComponent.collider, as: CircleCollider.self)
+        XCTAssertTrue(asConcrete === circle)
+    }
+
+    func testDifferentColliderTypesSameKey() {
+        let obj = GameObj()
+        let circle = CircleCollider(parent: obj, radius: 5)
+        obj.add(EngineComponent.collider, circle)
+
+        // Replace with AABB under the same key
+        let aabb = AABBCollider(parent: obj, width: 10, height: 10)
+        obj.add(EngineComponent.collider, aabb)
+
+        // Should get the AABB now
+        let retrieved = obj.get(EngineComponent.collider, as: AABBCollider.self)
+        XCTAssertTrue(retrieved === aabb)
+    }
+
+    func testCustomEnumKey() {
+        enum GameComponent: Hashable {
+            case health
+        }
+
+        let obj = GameObj()
+        let collider = CircleCollider(parent: obj, radius: 3)
+        obj.add(GameComponent.health, collider)
+
+        let retrieved = obj.get(GameComponent.health, as: CircleCollider.self)
+        XCTAssertTrue(retrieved === collider)
     }
 
     func testComponentParentReference() {

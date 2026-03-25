@@ -16,23 +16,28 @@ open class GameObj {
     public var isActive: Bool = true
     public var tintColor = Vec4(1, 1, 1, 1)
 
-    private var components = [ObjectIdentifier: Component]()
+    private var components = [AnyHashable: Component]()
 
     public init() {}
 
-    /// Adds a component to this object. One component per type.
-    public func add<T: Component>(_ component: T) {
-        components[ObjectIdentifier(T.self)] = component
+    /// Adds a component stored under the given key. One component per key.
+    public func add(_ key: some Hashable, _ component: Component) {
+        components[AnyHashable(key)] = component
     }
 
-    /// Returns the component of the given type, or nil if not attached.
-    public func get<T: Component>(_ type: T.Type) -> T? {
-        components[ObjectIdentifier(T.self)] as? T
+    /// Returns the component stored under the given key.
+    public func get(_ key: some Hashable) -> Component? {
+        components[AnyHashable(key)]
     }
 
-    /// Removes the component of the given type.
-    public func remove<T: Component>(_ type: T.Type) {
-        components.removeValue(forKey: ObjectIdentifier(T.self))
+    /// Returns the component stored under the given key, cast to the specified type.
+    public func get<T: Component>(_ key: some Hashable, as type: T.Type) -> T? {
+        components[AnyHashable(key)] as? T
+    }
+
+    /// Removes the component stored under the given key.
+    public func remove(_ key: some Hashable) {
+        components.removeValue(forKey: AnyHashable(key))
     }
 
     /// Builds the uniform data for this object. Override in subclasses to
