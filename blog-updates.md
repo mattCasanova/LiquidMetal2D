@@ -139,3 +139,65 @@ Components use `unowned let parent: GameObj` — not weak, not optional. If a co
 Once components are in place, every demo scene can use `DefaultScene` without casting. The spatial grid can pull colliders from components directly. New features (health, damage, AI, animation) just become new component types — no subclass explosion. It's the foundation that makes everything else cleaner.
 
 More on this in the next session when we implement it.
+
+---
+
+## Session: March 24-26, 2026
+
+### Component System — Implemented
+
+The component system we planned in the previous session is now live (0.7.0–0.7.2). Three iterations to get it right:
+
+**0.7.0 — Initial implementation.** Component protocol with `unowned let parent: GameObj`. GameObj gets `add/get/remove`. Collider and Behavior conform to Component. Deleted NilCollider, NilBehavior, BehaviorObj, CollisionObj. Full demo migration to composition — net result was -96 lines of code.
+
+**0.7.1 — AnyHashable keys (reverted).** Tried switching from `ObjectIdentifier` to `AnyHashable` enum keys so you could add a `CircleCollider` and fetch it as `Collider`. The ergonomics were nice, but it tanked performance from 59fps to 15fps at 4000 objects. `AnyHashable` does type erasure and boxing on every call — in a hot loop with thousands of pairs per frame, that's death.
+
+**0.7.2 — ObjectIdentifier with shared ids.** The fix: each Component type declares a static `id` (an `ObjectIdentifier`). Base protocols like Collider override `id` so all collider subtypes share the same slot. `CircleCollider.id` returns `ObjectIdentifier(Collider.self)`, so adding a `CircleCollider` and fetching by `CircleCollider.self` both hit the same dictionary key. Back to 59fps. Zero overhead vs raw pointer hashing.
+
+### The AnyHashable Performance Trap
+
+This is worth a blog post on its own. The progression:
+
+| Approach | 4000 objects FPS | Why |
+|----------|-----------------|-----|
+| `ObjectIdentifier` key (0.7.0) | 59 fps | Pointer hash — essentially free |
+| `AnyHashable` key (0.7.1) | 15 fps | Type erasure + boxing every lookup |
+| `ObjectIdentifier` with shared ids (0.7.2) | 59 fps | Same as 0.7.0 but solves the base-type fetch problem |
+
+The lesson: `AnyHashable` is fine for cold paths (scene registration, factory lookups). It's catastrophic in hot paths (per-pair collision checks at 60fps). Know the cost of your abstractions.
+
+### Component Design Decisions
+
+**Collider: shared id.** All collider types (Circle, AABB, Point) share `ObjectIdentifier(Collider.self)` as their id. One collider per object. You add a `CircleCollider`, fetch by `CircleCollider.self` — it works because they share the same key. This makes sense because the base `Collider` protocol has a useful interface (`doesCollideWith`).
+
+**Behavior: shared id by default, overridable.** Same pattern as Collider — one behavior per object by default. But if a game needs multiple behaviors (combat AI + movement AI + patrol AI), each one can override `id` to get its own slot. The default covers simple games; the override covers complex ones.
+
+**Custom components: own id automatically.** Game-specific components like `ZombieDemoComponent` get their own `ObjectIdentifier(Self.self)` by default — they don't conflict with engine components.
+
+**unowned vs weak parent:** We went with `unowned` — no optionals, no nil checks, crashes if the contract is violated. The contract: components must not outlive their parent. Scene owns objects, objects own components. If you hold a component reference outside that chain, you deserve the crash. This caught a bug in our own tests where `_` discarded the GameObj, deallocating the parent while the collider was still alive.
+
+### Stress Test Results — Final Numbers
+
+The collision stress test demo with SpatialGrid broadphase on iPhone:
+
+| Objects | Spatial Grid FPS | Brute Force Pairs | Brute Force FPS |
+|---------|-----------------|-------------------|-----------------|
+| 2,000 | 60 fps | 1,999,000 | 14 fps |
+| 3,000 | 60 fps | 4,498,500 | ~2 fps |
+| 4,000 | 59 fps | 7,998,000 | ~2 fps |
+| 5,000 | 30-60 fps | 12,497,500 | ~1 fps |
+| 6,000 | 30 fps | 17,997,000 | unplayable |
+| 7,000 | 30 fps | 24,496,500 | unplayable |
+
+7,000 objects with full collision detection at 30fps on a phone. The full stack: instanced Metal rendering, uniform grid broadphase with half-neighbor traversal, zero-allocation pair iteration via `forEachPotentialPair`, and `ObjectIdentifier`-based component lookups.
+
+### The Named Properties Debate
+
+Filed issue #108 to capture the oldest argument in game engine architecture: should game objects have named nullable properties (`var collider: Collider?`) or a component dictionary? We called this the **Component Object Model** back in 2006 — same debate, same tradeoffs, 20 years later. Good blog material. See the issue for the full discussion.
+
+### Demo Improvements
+
+- **CollisionStressDemo** — new scene with 4000 objects, toggle between spatial grid and brute force, live FPS/pair stats
+- **CollisionDemo** — migrated from `CollisionObj` subclass to pure composition with `ZombieDemoComponent`
+- **MassRenderDemo & SpawnDemo** — migrated from `BehaviorObj` to `GameObj` + component
+- Deleted `BehaviorObj.swift` and `CollisionObj.swift` — no more GameObj subclasses in the demo
