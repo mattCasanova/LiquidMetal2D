@@ -22,6 +22,8 @@ public protocol Behavior: Component {
 }
 
 public extension Behavior {
+    static var id: ObjectIdentifier { ObjectIdentifier(Behavior.self) }
+
     func setStartState(startState: State = NilState()) {
         current = startState
         current.enter()
