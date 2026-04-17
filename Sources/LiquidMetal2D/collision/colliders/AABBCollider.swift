@@ -28,6 +28,10 @@ public class AABBCollider: Collider, MutableAABB {
             aabbCenter: parent.position, width: width, height: height)
     }
 
+    /// AABB-vs-AABB using the Minkowski sum trick: inflate the other AABB by
+    /// this collider's dimensions, then test whether this center point lies
+    /// inside the inflated rect. Mathematically equivalent to a full
+    /// AABB-AABB overlap test.
     public func doesCollideWith(aabbCenter: Vec2, width: Float, height: Float) -> Bool {
         return Intersect.pointAABB(
             point: parent.position, center: aabbCenter,
