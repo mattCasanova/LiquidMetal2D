@@ -159,7 +159,6 @@ open class DefaultRenderer: Renderer {
 
     public var currentTextureId: Int = -1
     public var batches: [TextureBatch] = []
-    public let worldUniforms = WorldUniform()
 
     // MARK: - Draw Methods
 
@@ -186,8 +185,8 @@ open class DefaultRenderer: Renderer {
             assert(drawCount < maxObjects, "Draw count \(drawCount) exceeds maxObjects \(maxObjects)")
             guard drawCount < maxObjects else { break }
 
-            obj.toUniform(worldUniforms)
-            worldUniforms.setBuffer(buffer: worldBufferContents, offsetIndex: drawCount)
+            let uniform = obj.toUniform()
+            uniform.setBuffer(buffer: worldBufferContents, offsetIndex: drawCount)
 
             if let last = batches.last, last.textureId == obj.textureID {
                 batches[batches.count - 1].count += 1

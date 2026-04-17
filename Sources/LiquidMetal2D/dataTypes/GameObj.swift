@@ -46,12 +46,14 @@ open class GameObj {
     }
 
     /// Builds the uniform data for this object. Override in subclasses to
-    /// provide custom uniform types (e.g., tinted uniforms).
+    /// provide custom uniform types for different shaders.
     /// Called by ``Renderer/submit(objects:)`` for each object.
-    open func toUniform(_ uniform: WorldUniform) {
+    open func toUniform() -> UniformData {
+        let uniform = WorldUniform()
         uniform.transform.setToTransform2D(
             scale: scale, angle: rotation,
             translate: Vec3(position, zOrder))
         uniform.color = tintColor
+        return uniform
     }
 }
