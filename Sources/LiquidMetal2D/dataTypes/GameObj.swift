@@ -49,7 +49,7 @@ open class GameObj {
     /// provide custom uniform types for different shaders.
     /// Called by ``Renderer/submit(objects:)`` for each object.
     open func toUniform() -> UniformData {
-        let uniform = WorldUniform()
+        let uniform = AlphaBlendUniform()
         uniform.transform.setToTransform2D(
             scale: scale, angle: rotation,
             translate: Vec3(position, zOrder))

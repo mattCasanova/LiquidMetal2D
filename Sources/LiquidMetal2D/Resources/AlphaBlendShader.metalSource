@@ -16,7 +16,7 @@ struct ProjectionUniform {
     float4x4 m;
 };
 
-struct WorldUniform {
+struct AlphaBlendUniform {
     float4x4 m;
     float4 texTrans;
     float4 color;
@@ -24,11 +24,11 @@ struct WorldUniform {
 
 vertex VertOut alphaBlend_vertex(VertIn inVert [[ stage_in ]],
                                 const device ProjectionUniform& proj [[ buffer(1) ]],
-                                const device WorldUniform* worlds [[ buffer(2) ]],
+                                const device AlphaBlendUniform* worlds [[ buffer(2) ]],
                                 unsigned int vid [[ vertex_id ]],
                                 unsigned int iid [[ instance_id ]]) {
 
-    WorldUniform world = worlds[iid];
+    AlphaBlendUniform world = worlds[iid];
 
     // Get Texture Coords
     float3x3 texMtx = float3x3(

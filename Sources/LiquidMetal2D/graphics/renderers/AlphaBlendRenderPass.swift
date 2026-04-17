@@ -32,7 +32,7 @@ class AlphaBlendRenderPass: RenderPass {
             encoder.setFragmentTexture(
                 renderCore.textureManager.getTexture(id: batch.textureId),
                 index: AlphaBlendPipeline.textureIndex)
-            let offset = batch.startIndex * WorldUniform.typeSize()
+            let offset = batch.startIndex * AlphaBlendUniform.typeSize()
             encoder.setVertexBufferOffset(offset, index: AlphaBlendPipeline.worldBufferIndex)
             encoder.drawPrimitives(
                 type: .triangleStrip, vertexStart: 0,
