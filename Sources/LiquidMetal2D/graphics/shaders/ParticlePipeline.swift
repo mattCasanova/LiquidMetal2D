@@ -16,7 +16,10 @@ enum ParticlePipeline {
     static let textureIndex = 0
     static let samplerIndex = 0
 
-    static func create(renderCore: RenderCore) -> MTLRenderPipelineState {
+    static func create(
+        renderCore: RenderCore,
+        blendMode: ParticleShader.BlendMode
+    ) -> MTLRenderPipelineState {
         let library = renderCore.loadShaderLibrary(
             resource: "ParticleShader", withExtension: "metalSource")
 
@@ -44,17 +47,27 @@ enum ParticlePipeline {
         descriptor.vertexDescriptor                = vertexDescriptor
         descriptor.colorAttachments[0].pixelFormat = renderCore.layer.pixelFormat
 
-        // Additive blending: output is added to the framebuffer, weighted by
-        // source alpha. Order-independent — no z-sort needed. Overlapping
-        // particles brighten into hotspots.
-        let colorDescriptor                          = descriptor.colorAttachments[0]
-        colorDescriptor?.isBlendingEnabled           = true
-        colorDescriptor?.rgbBlendOperation           = .add
-        colorDescriptor?.alphaBlendOperation         = .add
-        colorDescriptor?.sourceRGBBlendFactor        = .sourceAlpha
-        colorDescriptor?.sourceAlphaBlendFactor      = .sourceAlpha
-        colorDescriptor?.destinationRGBBlendFactor   = .one
-        colorDescriptor?.destinationAlphaBlendFactor = .one
+        let colorDescriptor                  = descriptor.colorAttachments[0]
+        colorDescriptor?.isBlendingEnabled   = true
+        colorDescriptor?.rgbBlendOperation   = .add
+        colorDescriptor?.alphaBlendOperation = .add
+
+        switch blendMode {
+        case .additive:
+            // Output added to framebuffer, weighted by source alpha.
+            // Order-independent — overlap brightens into hotspots.
+            colorDescriptor?.sourceRGBBlendFactor        = .sourceAlpha
+            colorDescriptor?.sourceAlphaBlendFactor      = .sourceAlpha
+            colorDescriptor?.destinationRGBBlendFactor   = .one
+            colorDescriptor?.destinationAlphaBlendFactor = .one
+        case .alpha:
+            // Classic "over" compositing. Order-dependent — caller must
+            // sort back-to-front before drawing.
+            colorDescriptor?.sourceRGBBlendFactor        = .sourceAlpha
+            colorDescriptor?.sourceAlphaBlendFactor      = .sourceAlpha
+            colorDescriptor?.destinationRGBBlendFactor   = .oneMinusSourceAlpha
+            colorDescriptor?.destinationAlphaBlendFactor = .oneMinusSourceAlpha
+        }
 
         do {
             return try renderCore.device.makeRenderPipelineState(descriptor: descriptor)

@@ -38,8 +38,14 @@ public final class ParticleEmitterComponent: Component {
     public var speedRange: ClosedRange<Float>
     /// Random spawn angle range (radians), added to `parent.rotation`.
     public var angleRange: ClosedRange<Float>
-    /// Random initial uniform scale range.
+    /// Random start-scale range (scale at age = 0). Each particle picks a
+    /// random uniform value from this range at spawn.
     public var scaleRange: ClosedRange<Float>
+    /// Optional random end-scale range (scale at age = lifetime). When nil
+    /// the particle keeps its start scale for its whole life (today's
+    /// behavior). When set, each particle also picks a random value from
+    /// this range at spawn and the shader lerps start→end per frame.
+    public var endScaleRange: ClosedRange<Float>?
     /// Random angular velocity range (radians/sec).
     public var angularVelocityRange: ClosedRange<Float>
     /// Color at spawn (age = 0).
@@ -68,6 +74,7 @@ public final class ParticleEmitterComponent: Component {
         speedRange: ClosedRange<Float> = 2...5,
         angleRange: ClosedRange<Float> = -0.3...0.3,
         scaleRange: ClosedRange<Float> = 0.5...1.0,
+        endScaleRange: ClosedRange<Float>? = nil,
         angularVelocityRange: ClosedRange<Float> = 0...0,
         startColor: Vec4 = Vec4(1, 1, 1, 1),
         endColor: Vec4 = Vec4(1, 1, 1, 0),
@@ -82,6 +89,7 @@ public final class ParticleEmitterComponent: Component {
         self.speedRange = speedRange
         self.angleRange = angleRange
         self.scaleRange = scaleRange
+        self.endScaleRange = endScaleRange
         self.angularVelocityRange = angularVelocityRange
         self.startColor = startColor
         self.endColor = endColor
@@ -124,7 +132,8 @@ public final class ParticleEmitterComponent: Component {
         let worldPos = parent.position + rotate(localOffset, angle: parent.rotation)
         let angle = Float.random(in: angleRange) + parent.rotation
         let speed = Float.random(in: speedRange)
-        let uniformScale = Float.random(in: scaleRange)
+        let startUniform = Float.random(in: scaleRange)
+        let endUniform = endScaleRange.map { Float.random(in: $0) } ?? startUniform
 
         var velocity = Vec2()
         velocity.set(angle: angle)
@@ -135,7 +144,8 @@ public final class ParticleEmitterComponent: Component {
             velocity: velocity,
             rotation: angle,
             angularVelocity: Float.random(in: angularVelocityRange),
-            scale: Vec2(uniformScale, uniformScale),
+            startScale: Vec2(startUniform, startUniform),
+            endScale: Vec2(endUniform, endUniform),
             startColor: startColor,
             endColor: endColor,
             age: 0,

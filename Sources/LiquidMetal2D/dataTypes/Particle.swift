@@ -13,7 +13,10 @@ public struct Particle: Sendable {
     public var velocity: Vec2
     public var rotation: Float
     public var angularVelocity: Float
-    public var scale: Vec2
+    /// Scale at age = 0. Lerped toward ``endScale`` each frame by the shader.
+    public var startScale: Vec2
+    /// Scale at age = lifetime. Set equal to ``startScale`` for no growth.
+    public var endScale: Vec2
     public var startColor: Vec4
     public var endColor: Vec4
     public var age: Float
@@ -30,7 +33,8 @@ public struct Particle: Sendable {
         velocity: Vec2(),
         rotation: 0,
         angularVelocity: 0,
-        scale: Vec2(1, 1),
+        startScale: Vec2(1, 1),
+        endScale: Vec2(1, 1),
         startColor: Vec4(1, 1, 1, 1),
         endColor: Vec4(1, 1, 1, 0),
         age: 1,
@@ -41,7 +45,8 @@ public struct Particle: Sendable {
         velocity: Vec2 = Vec2(),
         rotation: Float = 0,
         angularVelocity: Float = 0,
-        scale: Vec2 = Vec2(1, 1),
+        startScale: Vec2 = Vec2(1, 1),
+        endScale: Vec2 = Vec2(1, 1),
         startColor: Vec4 = Vec4(1, 1, 1, 1),
         endColor: Vec4 = Vec4(1, 1, 1, 0),
         age: Float = 0,
@@ -51,7 +56,8 @@ public struct Particle: Sendable {
         self.velocity = velocity
         self.rotation = rotation
         self.angularVelocity = angularVelocity
-        self.scale = scale
+        self.startScale = startScale
+        self.endScale = endScale
         self.startColor = startColor
         self.endColor = endColor
         self.age = age
