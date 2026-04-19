@@ -49,9 +49,10 @@ fragment half4 wireframe_fragment(VertOut interp [[ stage_in ]]) {
     float thickness = interp.params.y;
 
     if (interp.params.x < 0.5) {
-        // Circle ring: keep pixels where |dist - 0.5| < thickness.
-        float dist = length(uv);
-        if (abs(dist - 0.5) > thickness) {
+        // Circle outline (inward band only, matches AABB's thickness metric).
+        // Keep pixels in [0.5 - thickness, 0.5] radial distance.
+        float ring = 0.5 - length(uv);
+        if (ring < 0.0 || ring > thickness) {
             discard_fragment();
         }
     } else {
