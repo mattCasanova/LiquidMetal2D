@@ -82,8 +82,9 @@ open class DefaultScene: Scene {
         renderer.setDefaultPerspective()
     }
 
-    /// Draws all objects in the ``objects`` array. The renderer handles
-    /// transforms, sorting by (zOrder, textureID), and instanced batching.
+    /// Draws all objects in the ``objects`` array. The active shader filters
+    /// by its render component, builds uniforms, and batches for instanced
+    /// drawing.
     open func draw() {
         guard renderer.beginPass() else { return }
         renderer.usePerspective()

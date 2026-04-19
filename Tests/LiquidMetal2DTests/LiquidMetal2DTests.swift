@@ -10,7 +10,8 @@ final class LiquidMetal2DTests: XCTestCase {
         XCTAssertEqual(obj.position.y, 0)
         XCTAssertEqual(obj.rotation, 0)
         XCTAssertEqual(obj.zOrder, 0)
-        XCTAssertEqual(obj.textureID, 0)
+        XCTAssertTrue(obj.isActive)
+        XCTAssertNil(obj.get(AlphaBlendComponent.self))
     }
 
     func testCamera2DDefaults() {

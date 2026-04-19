@@ -19,7 +19,8 @@ public protocol Renderer: AnyObject {
 
     func shutdown()
     /// A 1x1 white texture always available for tinting. Use with
-    /// `GameObj.tintColor` to render solid-colored quads without loading a file.
+    /// ``AlphaBlendComponent/tintColor`` to render solid-colored quads
+    /// without loading a file.
     var defaultTextureId: Int { get }
     func loadTextures(
         _ items: [TextureDescriptor],
@@ -46,9 +47,18 @@ public protocol Renderer: AnyObject {
     func beginPass() -> Bool
     func usePerspective()
     func useOrthographic()
+
+    /// Makes `shader` the active shader. Flushes the previous active shader's
+    /// pending draws first, then binds the new pipeline + resources onto the
+    /// current pass.
+    func useShader(_ shader: Shader)
+
+    /// Submits objects to the active shader. If no shader is active, binds
+    /// the default alpha-blend shader first. Each shader filters the list
+    /// by its own render component, so objects without a matching component
+    /// are silently skipped.
     func submit(objects: [GameObj])
-    func useTexture(textureId: Int)
-    func draw(uniforms: UniformData)
+
     func endPass()
 }
 

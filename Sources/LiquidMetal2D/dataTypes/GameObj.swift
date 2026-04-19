@@ -6,15 +6,21 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-open class GameObj {
+/// A renderable scene object. Holds transform + lifecycle state plus a
+/// ``Component`` bag for everything else (render state, colliders, behaviors,
+/// game-specific data).
+///
+/// **`final` by design:** don't subclass. Attach components instead —
+/// ``AlphaBlendComponent`` for alpha-blend rendering, ``Collider`` conformers
+/// for collision, ``Behavior`` conformers for state machines, and any
+/// game-specific components you define.
+public final class GameObj {
     public var position = Vec2()
     public var velocity = Vec2()
     public var scale = Vec2()
     public var zOrder: Float = 0.0
     public var rotation: Float = 0.0
-    public var textureID = 0
     public var isActive: Bool = true
-    public var tintColor = Vec4(1, 1, 1, 1)
 
     private var components = [ObjectIdentifier: Component]()
 
@@ -43,17 +49,5 @@ open class GameObj {
     /// Removes the component stored under the given id.
     public func remove(id: ObjectIdentifier) {
         components.removeValue(forKey: id)
-    }
-
-    /// Builds the uniform data for this object. Override in subclasses to
-    /// provide custom uniform types for different shaders.
-    /// Called by ``Renderer/submit(objects:)`` for each object.
-    open func toUniform() -> UniformData {
-        let uniform = AlphaBlendUniform()
-        uniform.transform.setToTransform2D(
-            scale: scale, angle: rotation,
-            translate: Vec3(position, zOrder))
-        uniform.color = tintColor
-        return uniform
     }
 }

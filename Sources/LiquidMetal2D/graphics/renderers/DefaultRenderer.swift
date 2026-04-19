@@ -13,44 +13,33 @@ import Metal
 open class DefaultRenderer: Renderer {
 
     public let renderCore: RenderCore
-    private var renderPass: AlphaBlendRenderPass!
+
+    /// Built-in alpha-blend shader. Exposed so scenes can call
+    /// ``AlphaBlendShader/draw(transform:texTrans:color:textureId:)`` for
+    /// advanced manual rendering.
+    public let alphaBlend: AlphaBlendShader
 
     public var screenHeight: Float = 0
     public var screenWidth: Float = 0
     public var screenAspect: Float = 0
 
-    public var drawCount: Int = 0
-    public var maxObjects: Int = 0
-
-    private let pipelineState: MTLRenderPipelineState
-    private let vertexBuffer: MTLBuffer
-
     private let projectionUniforms = ProjectionUniform()
-    private var projectionBuffer: MTLBuffer!
     private let projectionBufferProvider: BufferProvider
+    private var projectionBuffer: MTLBuffer!
 
-    private let worldBufferProvider: BufferProvider
-    private var worldBufferContents: UnsafeMutableRawPointer!
-
-    private var samplerState: MTLSamplerState
+    private var currentPass: RenderPass?
+    private var currentShader: Shader?
 
     public var view: UIView { renderCore.view }
 
-    public init(parentView: UIView, maxObjects: Int, uniformSize: Int) {
+    public init(parentView: UIView, maxObjects: Int) {
         renderCore = RenderCore(parentView: parentView)
-
-        pipelineState = AlphaBlendPipeline.create(renderCore: renderCore)
-        vertexBuffer = renderCore.createQuad()
-
-        guard let samplerState = renderCore.createDefaultSampler() else {
-            fatalError("Unable to create sampler state.")
-        }
-
-        self.maxObjects          = maxObjects
-        self.samplerState        = samplerState
-        projectionBufferProvider = BufferProvider(device: renderCore.device, size: projectionUniforms.size)
-        worldBufferProvider      = BufferProvider(device: renderCore.device, size: uniformSize * maxObjects)
+        projectionBufferProvider = BufferProvider(
+            device: renderCore.device, size: projectionUniforms.size)
+        alphaBlend = AlphaBlendShader(renderCore: renderCore, maxObjects: maxObjects)
     }
+
+    // MARK: - Projection / camera
 
     public func setPerspective(fov: Float, aspect: Float, nearZ: Float, farZ: Float) {
         renderCore.perspective.set(aspect: aspect, fov: fov, nearZ: nearZ, farZ: farZ)
@@ -65,7 +54,6 @@ open class DefaultRenderer: Renderer {
         renderCore.camera2D.set(point: point)
     }
 
-    /// Sets the camera's Z-axis rotation in radians.
     public func setCameraRotation(angle: Float) {
         renderCore.camera2D.rotation = angle
     }
@@ -82,6 +70,8 @@ open class DefaultRenderer: Renderer {
         screenAspect = screenWidth / screenHeight
     }
 
+    // MARK: - Textures
+
     public var defaultTextureId: Int { renderCore.textureManager.defaultTextureId }
 
     public func loadTextures(
@@ -95,13 +85,15 @@ open class DefaultRenderer: Renderer {
         renderCore.textureManager.unloadTexture(textureId: textureId)
     }
 
+    public func unloadAllTextures() {
+        renderCore.textureManager.unloadAllTextures()
+    }
+
     public func shutdown() {
         renderCore.shutdown()
     }
 
-    public func unloadAllTextures() {
-        renderCore.textureManager.unloadAllTextures()
-    }
+    // MARK: - Projection helpers
 
     private var projectionMatrix: Mat4 { renderCore.perspective.make() }
     private var viewMatrix: Mat4 { renderCore.camera2D.make() }
@@ -149,126 +141,61 @@ open class DefaultRenderer: Renderer {
         return WorldBounds(minX: -maxX, maxX: maxX, minY: -maxY, maxY: maxY)
     }
 
-    // MARK: - Batch Tracking
-
-    public struct TextureBatch {
-        public let textureId: Int
-        public let startIndex: Int
-        public var count: Int
-    }
-
-    public var currentTextureId: Int = -1
-    public var batches: [TextureBatch] = []
-
-    // MARK: - Draw Methods
-
-    open func usePerspective() {
-        let contents = projectionBuffer.contents()
-        projectionUniforms.transform = renderCore.perspective.make() * renderCore.camera2D.make()
-        projectionUniforms.setBuffer(buffer: contents, offsetIndex: 0)
-        renderPass.setProjection(buffer: projectionBuffer)
-    }
-
-    open func useOrthographic() {
-        let contents = projectionBuffer.contents()
-        projectionUniforms.transform = renderCore.orthographic.make()
-        projectionUniforms.setBuffer(buffer: contents, offsetIndex: 0)
-        renderPass.setProjection(buffer: projectionBuffer)
-    }
-
-    open func submit(objects: [GameObj]) {
-        let sorted = objects.lazy
-            .filter { $0.isActive }
-            .sorted { ($0.zOrder, $0.textureID) < ($1.zOrder, $1.textureID) }
-
-        for obj in sorted {
-            assert(drawCount < maxObjects, "Draw count \(drawCount) exceeds maxObjects \(maxObjects)")
-            guard drawCount < maxObjects else { break }
-
-            let uniform = obj.toUniform()
-            uniform.setBuffer(buffer: worldBufferContents, offsetIndex: drawCount)
-
-            if let last = batches.last, last.textureId == obj.textureID {
-                batches[batches.count - 1].count += 1
-            } else {
-                batches.append(TextureBatch(
-                    textureId: obj.textureID, startIndex: drawCount, count: 1))
-            }
-            drawCount += 1
-        }
-    }
-
-    // MARK: - Advanced Draw Methods (manual control)
-    //
-    // Unlike submit(objects:), these methods do NOT sort by zOrder or textureID.
-    // Objects render in the order you call draw(). If you need correct depth
-    // ordering, sort your objects before the draw loop. Consecutive calls with
-    // the same texture will batch into one instanced draw call; interleaved
-    // textures produce more draw calls.
-
-    public func useTexture(textureId: Int) {
-        currentTextureId = textureId
-    }
-
-    open func draw(uniforms: UniformData) {
-        assert(drawCount < maxObjects, "Draw count \(drawCount) exceeds maxObjects \(maxObjects)")
-        guard drawCount < maxObjects else { return }
-
-        uniforms.setBuffer(buffer: worldBufferContents, offsetIndex: drawCount)
-
-        if let last = batches.last, last.textureId == currentTextureId {
-            batches[batches.count - 1].count += 1
-        } else {
-            batches.append(TextureBatch(
-                textureId: currentTextureId, startIndex: drawCount, count: 1))
-        }
-        drawCount += 1
-    }
-
-    // MARK: - Pass Management
+    // MARK: - Pass lifecycle
 
     open func beginPass() -> Bool {
-        guard projectionBufferProvider.wait(),
-              worldBufferProvider.wait() else {
-            return false
-        }
-
-        guard let pass = AlphaBlendRenderPass(renderCore: renderCore) else {
+        guard projectionBufferProvider.wait() else { return false }
+        guard alphaBlend.beginFrame() else {
             projectionBufferProvider.signal()
-            worldBufferProvider.signal()
             return false
         }
 
-        renderPass = pass
-        projectionBuffer = projectionBufferProvider.nextBuffer()
+        guard let pass = RenderPass(renderCore: renderCore) else {
+            projectionBufferProvider.signal()
+            alphaBlend.signalFrameComplete()
+            return false
+        }
 
         let projProvider = projectionBufferProvider
-        let worldProvider = worldBufferProvider
-        renderPass.addCompletedHandler { (_) in
+        let alphaShader = alphaBlend
+        pass.addCompletedHandler { _ in
             projProvider.signal()
-            worldProvider.signal()
+            alphaShader.signalFrameComplete()
         }
 
-        let worldBuffer = worldBufferProvider.nextBuffer()
-        worldBufferContents = worldBuffer.contents()
-
-        renderPass.setup(
-            pipelineState: pipelineState,
-            vertexBuffer: vertexBuffer,
-            samplerState: samplerState,
-            worldBuffer: worldBuffer)
-
-        drawCount = 0
+        projectionBuffer = projectionBufferProvider.nextBuffer()
+        currentPass = pass
+        currentShader = nil
         return true
     }
 
-    open func endPass() {
-        renderPass.drawBatches(batches)
-        renderPass.end()
-        renderPass = nil
-        drawCount = 0
-        batches.removeAll(keepingCapacity: true)
-        currentTextureId = -1
+    open func usePerspective() {
+        projectionUniforms.transform = renderCore.perspective.make() * renderCore.camera2D.make()
+        projectionUniforms.setBuffer(buffer: projectionBuffer.contents(), offsetIndex: 0)
     }
 
+    open func useOrthographic() {
+        projectionUniforms.transform = renderCore.orthographic.make()
+        projectionUniforms.setBuffer(buffer: projectionBuffer.contents(), offsetIndex: 0)
+    }
+
+    open func useShader(_ shader: Shader) {
+        guard let pass = currentPass else { return }
+        currentShader?.flush(pass: pass)
+        shader.bind(pass: pass, projectionBuffer: projectionBuffer)
+        currentShader = shader
+    }
+
+    open func submit(objects: [GameObj]) {
+        if currentShader == nil { useShader(alphaBlend) }
+        currentShader?.submit(objects: objects)
+    }
+
+    open func endPass() {
+        guard let pass = currentPass else { return }
+        currentShader?.flush(pass: pass)
+        pass.end()
+        currentPass = nil
+        currentShader = nil
+    }
 }
