@@ -18,16 +18,21 @@ class TextureManager {
 
     let errorTexture: MTLTexture
     let defaultTexture: Texture
+    let defaultParticleTexture: Texture
 
     var defaultTextureId: Int { defaultTexture.id }
+    var defaultParticleTextureId: Int { defaultParticleTexture.id }
 
     init(device: MTLDevice, commandQueue: MTLCommandQueue) {
         self.device = device
         self.commandQueue = commandQueue
         errorTexture = TextureManager.createErrorTexture(device: device)
         defaultTexture = TextureManager.createDefaultTexture(device: device)
+        defaultParticleTexture = TextureManager.createDefaultParticleTexture(device: device)
         textures.append(defaultTexture)
+        textures.append(defaultParticleTexture)
         texturesMap[defaultTexture.id] = defaultTexture
+        texturesMap[defaultParticleTexture.id] = defaultParticleTexture
     }
 
     // MARK: - Loading
@@ -121,6 +126,50 @@ class TextureManager {
             region: MTLRegionMake2D(0, 0, 1, 1),
             mipmapLevel: 0, withBytes: &pixel,
             bytesPerRow: 4)
+
+        return Texture(solidColorWithId: Texture.nextId(), mtlTexture: mtlTexture)
+    }
+
+    /// Procedural 64×64 soft-circle texture for additive particles: RGB is
+    /// pure white, alpha falls off quadratically from opaque center to
+    /// transparent corner. Tint with ``ParticleEmitterComponent/startColor``
+    /// / ``endColor`` to color the resulting glow.
+    private static func createDefaultParticleTexture(device: MTLDevice) -> Texture {
+        let size = 64
+        let descriptor = MTLTextureDescriptor.texture2DDescriptor(
+            pixelFormat: .bgra8Unorm, width: size, height: size, mipmapped: false)
+
+        guard let mtlTexture = device.makeTexture(descriptor: descriptor) else {
+            fatalError("Failed to create default particle texture")
+        }
+
+        let center = Float(size - 1) / 2
+        let maxRadius = Float(size) / 2
+        var pixels = [UInt8](repeating: 0, count: size * size * 4)
+
+        for y in 0..<size {
+            for x in 0..<size {
+                let dx = Float(x) - center
+                let dy = Float(y) - center
+                let dist = sqrt(dx * dx + dy * dy) / maxRadius
+                let t = max(0, 1 - dist)
+                let alpha = UInt8(min(255, Int(t * t * 255)))
+                let pixelIndex = (y * size + x) * 4
+                // BGRA order
+                pixels[pixelIndex]     = 255    // B
+                pixels[pixelIndex + 1] = 255    // G
+                pixels[pixelIndex + 2] = 255    // R
+                pixels[pixelIndex + 3] = alpha  // A
+            }
+        }
+
+        pixels.withUnsafeBytes { rawBuffer in
+            mtlTexture.replace(
+                region: MTLRegionMake2D(0, 0, size, size),
+                mipmapLevel: 0,
+                withBytes: rawBuffer.baseAddress!,
+                bytesPerRow: size * 4)
+        }
 
         return Texture(solidColorWithId: Texture.nextId(), mtlTexture: mtlTexture)
     }

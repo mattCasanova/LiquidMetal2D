@@ -1,0 +1,157 @@
+//
+//  ParticleEmitterComponent.swift
+//  LiquidMetal2D
+//
+//  Created by Matt Casanova on 4/19/26.
+//
+
+import Foundation
+
+/// A CPU-driven particle emitter. Owns a pre-allocated pool of ``Particle``
+/// values; ``ParticleShader`` walks emitters each frame and renders each
+/// emitter's live particles.
+///
+/// Scene-driven update: call ``update(dt:)`` from your scene's `update(dt:)`
+/// loop, the same way behaviors are dispatched.
+///
+/// Emit point is `parent.position + rotate(localOffset, parent.rotation)` —
+/// attach the component to a moving GameObj (ship, character, weapon) and
+/// the emitter follows automatically.
+public final class ParticleEmitterComponent: Component {
+    public unowned var parent: GameObj
+
+    // MARK: - Config
+
+    /// Pool size. Pre-allocated at init; hard cap on simultaneously-alive particles.
+    public let maxParticles: Int
+    /// Texture sampled by each particle — pass `renderer.defaultParticleTextureId`
+    /// for the built-in soft-circle, or supply your own.
+    public var textureID: Int
+    /// Particles per second. Set `isEmitting = false` to pause.
+    public var emissionRate: Float
+    /// Position of the emit point relative to `parent.position`. Rotated by
+    /// `parent.rotation` at spawn time.
+    public var localOffset: Vec2
+    /// Random particle lifetime range (seconds).
+    public var lifetimeRange: ClosedRange<Float>
+    /// Random initial speed range.
+    public var speedRange: ClosedRange<Float>
+    /// Random spawn angle range (radians), added to `parent.rotation`.
+    public var angleRange: ClosedRange<Float>
+    /// Random initial uniform scale range.
+    public var scaleRange: ClosedRange<Float>
+    /// Random angular velocity range (radians/sec).
+    public var angularVelocityRange: ClosedRange<Float>
+    /// Color at spawn (age = 0).
+    public var startColor: Vec4
+    /// Color at death (age = lifetime). Alpha typically fades to 0 for smooth pop-out.
+    public var endColor: Vec4
+    /// Acceleration applied to every live particle each frame.
+    public var gravity: Vec2
+    /// Whether new particles are being spawned. Existing particles keep
+    /// updating regardless.
+    public var isEmitting: Bool = true
+
+    // MARK: - State
+
+    /// Particle pool. Public read-only so ``ParticleShader`` can iterate.
+    public private(set) var particles: [Particle]
+    private var timeToNextSpawn: Float = 0
+
+    public init(
+        parent: GameObj,
+        maxParticles: Int,
+        textureID: Int,
+        emissionRate: Float = 60,
+        localOffset: Vec2 = Vec2(),
+        lifetimeRange: ClosedRange<Float> = 0.5...1.5,
+        speedRange: ClosedRange<Float> = 2...5,
+        angleRange: ClosedRange<Float> = -0.3...0.3,
+        scaleRange: ClosedRange<Float> = 0.5...1.0,
+        angularVelocityRange: ClosedRange<Float> = 0...0,
+        startColor: Vec4 = Vec4(1, 1, 1, 1),
+        endColor: Vec4 = Vec4(1, 1, 1, 0),
+        gravity: Vec2 = Vec2()
+    ) {
+        self.parent = parent
+        self.maxParticles = maxParticles
+        self.textureID = textureID
+        self.emissionRate = emissionRate
+        self.localOffset = localOffset
+        self.lifetimeRange = lifetimeRange
+        self.speedRange = speedRange
+        self.angleRange = angleRange
+        self.scaleRange = scaleRange
+        self.angularVelocityRange = angularVelocityRange
+        self.startColor = startColor
+        self.endColor = endColor
+        self.gravity = gravity
+        self.particles = Array(repeating: Particle.dead, count: maxParticles)
+    }
+
+    // MARK: - Update
+
+    /// Advance every live particle by `dt` and spawn new particles to meet
+    /// the emission rate. Scene should call this once per frame from its
+    /// `update(dt:)` method.
+    public func update(dt: Float) {
+        for index in 0..<particles.count where particles[index].isAlive {
+            particles[index].age += dt
+            particles[index].velocity += gravity * dt
+            particles[index].position += particles[index].velocity * dt
+            particles[index].rotation += particles[index].angularVelocity * dt
+        }
+
+        guard isEmitting, emissionRate > 0 else { return }
+        let spawnInterval = 1 / emissionRate
+        timeToNextSpawn -= dt
+        while timeToNextSpawn <= 0 {
+            spawnOne()
+            timeToNextSpawn += spawnInterval
+        }
+    }
+
+    /// Burst: spawn `count` particles immediately, regardless of emission rate.
+    public func spawn(count: Int) {
+        for _ in 0..<count { spawnOne() }
+    }
+
+    // MARK: - Private
+
+    private func spawnOne() {
+        guard let index = firstDeadIndex() else { return }
+
+        let worldPos = parent.position + rotate(localOffset, angle: parent.rotation)
+        let angle = Float.random(in: angleRange) + parent.rotation
+        let speed = Float.random(in: speedRange)
+        let uniformScale = Float.random(in: scaleRange)
+
+        var velocity = Vec2()
+        velocity.set(angle: angle)
+        velocity *= speed
+
+        particles[index] = Particle(
+            position: worldPos,
+            velocity: velocity,
+            rotation: angle,
+            angularVelocity: Float.random(in: angularVelocityRange),
+            scale: Vec2(uniformScale, uniformScale),
+            startColor: startColor,
+            endColor: endColor,
+            age: 0,
+            lifetime: Float.random(in: lifetimeRange))
+    }
+
+    private func firstDeadIndex() -> Int? {
+        for index in 0..<particles.count where !particles[index].isAlive {
+            return index
+        }
+        return nil
+    }
+
+    private func rotate(_ v: Vec2, angle: Float) -> Vec2 {
+        let c = cos(angle)
+        let s = sin(angle)
+        return Vec2(v.x * c - v.y * s, v.x * s + v.y * c)
+    }
+}

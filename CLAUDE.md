@@ -13,15 +13,17 @@ Swift/Metal 2D game engine library for iOS.
 ## Architecture
 
 - **Graphics** (`graphics/`) — Metal rendering pipeline
-  - `renderers/` — `Renderer` protocol, `DefaultRenderer` (open for subclassing), `RenderCore` (Metal device/layer/queue), `Shader` protocol, `AlphaBlendShader`, `AlphaBlendPipeline` (pipeline-state factory)
-  - `textures/` — `TextureManager` (async loading, ref counting, error/default textures), `TextureDescriptor`, `Texture`
-  - `uniforms/` — `ProjectionUniform`, `AlphaBlendUniform`, `UniformData` protocol
+  - `renderers/` — orchestration: `Renderer` protocol, `DefaultRenderer` (open for subclassing), `RenderCore` (Metal device/layer/queue)
+  - `shaders/` — `Shader` protocol + built-in shaders (`AlphaBlendShader`, `WireframeShader`, `RippleShader`, `ParticleShader`) and their matching `*Pipeline` factories
+  - `textures/` — `TextureManager` (async loading, ref counting, error/default textures, 64×64 procedural soft-circle particle texture), `TextureDescriptor`, `Texture`
+  - `uniforms/` — `ProjectionUniform`, `AlphaBlendUniform`, `WireframeUniform`, `RippleUniform`, `ParticleUniform`, `UniformData` protocol
   - `metalHelpers/` — `BufferProvider` (triple-buffered semaphore)
   - `Camera2D`, `PerspectiveProjection`, `OrthographicProjection`, `RenderPass` (generic — owns encoder/drawable/command buffer)
+- **Components** (`components/`) — `Component` protocol + render-state components: `AlphaBlendComponent`, `WireframeComponent`, `RippleComponent`, `ParticleEmitterComponent` (owns particle pool)
 - **Scene Management** (`scenes/`) — Stack-based transitions (push/pop/set) via `SceneManager`. `SceneType` is a `Hashable` protocol (use an enum). `SceneFactory` maps types to `SceneBuilder`s. `DefaultScene` base class with built-in scheduler and object list
 - **Game Engine** (`engine/`) — `GameEngine` protocol + `DefaultEngine`. Main loop via CADisplayLink with dt clamping. Full shutdown chain (engine → scenes → renderer)
 - **Input** (`input/`) — `InputReader`/`InputWriter` protocols. Touch with screen-to-world unprojection
-- **Game Objects** (`dataTypes/`) — `GameObj` (`final`: position, velocity, scale, rotation, zOrder, isActive, components) — **no subclassing, compose via components**. `Component` protocol, `AlphaBlendComponent` (textureID, tintColor, texTrans for alpha-blend rendering), `WorldBounds`, `UnprojectRay`
+- **Game Objects** (`dataTypes/`) — `GameObj` (`final`: position, velocity, scale, rotation, zOrder, isActive, components) — **no subclassing, compose via components**. Plain value types: `Particle` (particle pool data), `WorldBounds`, `UnprojectRay`. The `Component` protocol + render components live in `components/`.
 - **Colliders** (`colliders/`) — `Collider` protocol with double-dispatch. `CircleCollider`, `PointCollider`, `AABBCollider`, `NilCollider`
 - **Math** (`math/`) — Merged from MetalMath, no external dependency
   - `GameMath` enum — clamp, wrap, lerp, inverseLerp, remap, smoothstep, bezier curves, angle conversion, float comparison
@@ -35,7 +37,7 @@ Swift/Metal 2D game engine library for iOS.
 - **Scheduling** (`scheduler/`) — `Scheduler` with pause/resume, `ScheduledTask` with repeat count, chaining (`.then`), completion callbacks. Action receives `dt`
 - **View Controllers** (`viewControllers/`) — `LiquidViewController` (touch forwarding, resize on layout, shutdown on disappear), `SlidePanel` (animated UIView sliding in from screen edges), `SlideDirection`
 - **Utilities** (`util/`) — `Debug` helpers
-- **Resources** — `AlphaBlendShader.metalSource` (bundled, loaded at runtime)
+- **Resources** — `AlphaBlendShader.metalSource`, `WireframeShader.metalSource`, `RippleShader.metalSource`, `ParticleShader.metalSource` (bundled, loaded at runtime)
 
 ## Rendering Pipeline
 
@@ -48,7 +50,8 @@ Swift/Metal 2D game engine library for iOS.
 - Multi-shader per object: attach multiple render components (e.g., `AlphaBlendComponent` + a future `WireframeComponent`) to one GameObj and each shader picks up its matching component. No duplicate objects
 - Advanced manual path: `renderer.alphaBlend.draw(transform:texTrans:color:textureId:)` — per-call, no sort, batches consecutive same-texture calls
 - `submit(objects:)` sorts by `(zOrder, textureID)` from the component and batches by texture for instanced drawing
-- Textures load asynchronously; missing textures show magenta error texture. Built-in 1×1 white `defaultTexture` for solid-color tinting via `AlphaBlendComponent.tintColor`
+- Textures load asynchronously; missing textures show magenta error texture. Built-in 1×1 white `defaultTexture` (for solid-color tinting via `AlphaBlendComponent.tintColor`) and 64×64 soft-circle `defaultParticleTexture` (for additive `ParticleShader` glow) are procedurally generated — no asset files
+- `ParticleShader` uses **additive blending** (order-independent — no z-sort). `ParticleEmitterComponent` owns a pre-allocated `[Particle]` pool; scenes call `emitter.update(dt:)` each frame. Shader walks emitters and writes one uniform per live particle. CPU interpolates `startColor`→`endColor` by `age/lifetime`
 
 ## Build & Test
 

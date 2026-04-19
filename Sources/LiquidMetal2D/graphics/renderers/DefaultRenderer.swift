@@ -96,6 +96,7 @@ open class DefaultRenderer: Renderer {
     // MARK: - Textures
 
     public var defaultTextureId: Int { renderCore.textureManager.defaultTextureId }
+    public var defaultParticleTextureId: Int { renderCore.textureManager.defaultParticleTextureId }
 
     public func loadTextures(
         _ items: [TextureDescriptor],

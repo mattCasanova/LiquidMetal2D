@@ -22,6 +22,11 @@ public protocol Renderer: AnyObject {
     /// ``AlphaBlendComponent/tintColor`` to render solid-colored quads
     /// without loading a file.
     var defaultTextureId: Int { get }
+
+    /// A 64x64 procedural soft-circle texture (white RGB, radial alpha
+    /// falloff) for additive ``ParticleShader`` emitters. Tint via
+    /// ``ParticleEmitterComponent/startColor``/`endColor` to color the glow.
+    var defaultParticleTextureId: Int { get }
     func loadTextures(
         _ items: [TextureDescriptor],
         completion: (() -> Void)?

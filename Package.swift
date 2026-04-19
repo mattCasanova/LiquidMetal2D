@@ -23,6 +23,7 @@ let package = Package(
                 .copy("Resources/AlphaBlendShader.metalSource"),
                 .copy("Resources/WireframeShader.metalSource"),
                 .copy("Resources/RippleShader.metalSource"),
+                .copy("Resources/ParticleShader.metalSource"),
             ],
             plugins: [
                 .plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLint"),
