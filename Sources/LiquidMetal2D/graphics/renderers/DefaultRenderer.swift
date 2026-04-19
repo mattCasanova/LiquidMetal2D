@@ -9,6 +9,14 @@
 import UIKit
 import Metal
 
+/// Wraps a value so it can cross actor isolation in a completion handler
+/// without the compiler requiring `Sendable` conformance. Safe only when
+/// the closure treats the captured value as read-only.
+private struct UncheckedSendable<T>: @unchecked Sendable {
+    let value: T
+    init(_ value: T) { self.value = value }
+}
+
 @MainActor
 open class DefaultRenderer: Renderer {
 
@@ -30,6 +38,11 @@ open class DefaultRenderer: Renderer {
     private var currentPass: RenderPass?
     private var currentShader: Shader?
 
+    /// All shaders whose per-frame lifecycle runs inside `beginPass`. The
+    /// built-in alpha-blend shader is the first entry; custom shaders are
+    /// appended via `register(shader:)`.
+    private var shaders: [Shader]
+
     public var view: UIView { renderCore.view }
 
     public init(parentView: UIView, maxObjects: Int) {
@@ -37,6 +50,16 @@ open class DefaultRenderer: Renderer {
         projectionBufferProvider = BufferProvider(
             device: renderCore.device, size: projectionUniforms.size)
         alphaBlend = AlphaBlendShader(renderCore: renderCore, maxObjects: maxObjects)
+        shaders = [alphaBlend]
+    }
+
+    public func register(shader: Shader) {
+        guard !shaders.contains(where: { $0 === shader }) else { return }
+        shaders.append(shader)
+    }
+
+    public func unregister(shader: Shader) {
+        shaders.removeAll(where: { $0 === shader })
     }
 
     // MARK: - Projection / camera
@@ -145,22 +168,36 @@ open class DefaultRenderer: Renderer {
 
     open func beginPass() -> Bool {
         guard projectionBufferProvider.wait() else { return false }
-        guard alphaBlend.beginFrame() else {
-            projectionBufferProvider.signal()
-            return false
+
+        // Acquire a frame buffer on each registered shader. If any shader
+        // times out, signal back everything acquired so far and bail.
+        var acquired = 0
+        for shader in shaders {
+            if shader.beginFrame() {
+                acquired += 1
+            } else {
+                projectionBufferProvider.signal()
+                for i in 0..<acquired { shaders[i].signalFrameComplete() }
+                return false
+            }
         }
 
         guard let pass = RenderPass(renderCore: renderCore) else {
             projectionBufferProvider.signal()
-            alphaBlend.signalFrameComplete()
+            for shader in shaders { shader.signalFrameComplete() }
             return false
         }
 
         let projProvider = projectionBufferProvider
-        let alphaShader = alphaBlend
+        // Shader is @MainActor-isolated, so Array<Shader> isn't Sendable. The
+        // only methods we call on each captured reference are nonisolated
+        // (`signalFrameComplete` -> BufferProvider.signal()), which is safe.
+        let capturedShaders = UncheckedSendable(shaders)
         pass.addCompletedHandler { _ in
             projProvider.signal()
-            alphaShader.signalFrameComplete()
+            for shader in capturedShaders.value {
+                shader.signalFrameComplete()
+            }
         }
 
         projectionBuffer = projectionBufferProvider.nextBuffer()

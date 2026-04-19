@@ -53,6 +53,17 @@ public protocol Renderer: AnyObject {
     /// current pass.
     func useShader(_ shader: Shader)
 
+    /// Registers an auxiliary shader so its per-frame buffer lifecycle
+    /// (`beginFrame` + completion-signal) runs automatically inside
+    /// `beginPass`. The built-in alpha-blend shader is registered implicitly.
+    /// Register your custom shaders during scene setup; `unregister` on
+    /// scene shutdown.
+    func register(shader: Shader)
+
+    /// Removes a previously-registered shader. Call from scene shutdown so
+    /// its reference does not outlive the scene.
+    func unregister(shader: Shader)
+
     /// Submits objects to the active shader. If no shader is active, binds
     /// the default alpha-blend shader first. Each shader filters the list
     /// by its own render component, so objects without a matching component
