@@ -1,0 +1,67 @@
+#include <metal_stdlib>
+using namespace metal;
+
+struct VertIn {
+    float3 position [[attribute(0)]];
+    float2 texCoord [[attribute(1)]];
+};
+
+struct VertOut {
+    float4 position [[ position ]];
+    float2 uv;
+    float4 color;
+    float2 params;
+};
+
+struct ProjectionUniform {
+    float4x4 m;
+};
+
+struct WireframeUniform {
+    float4x4 m;
+    float4 color;
+    float4 params;
+};
+
+vertex VertOut wireframe_vertex(VertIn inVert [[ stage_in ]],
+                                const device ProjectionUniform& proj [[ buffer(1) ]],
+                                const device WireframeUniform* worlds [[ buffer(2) ]],
+                                unsigned int iid [[ instance_id ]]) {
+    WireframeUniform world = worlds[iid];
+
+    float4 position = proj.m * world.m * float4(inVert.position, 1.0);
+
+    VertOut out;
+    out.position = position;
+    out.uv = inVert.texCoord;
+    out.color = world.color;
+    out.params = world.params.xy;
+    return out;
+}
+
+// Draws an outline where the interior is transparent (discarded). Shape is
+// selected by params.x: 0 = circle, 1 = AABB. Thickness in params.y is in
+// UV space (the quad is scaled to the shape's world size, so a thickness
+// of 0.05 is 5% of the shape's size).
+fragment half4 wireframe_fragment(VertOut interp [[ stage_in ]]) {
+    // Center UV at origin so math matches shape centering.
+    float2 uv = interp.uv - 0.5;
+    float thickness = interp.params.y;
+
+    if (interp.params.x < 0.5) {
+        // Circle ring: keep pixels where |dist - 0.5| < thickness.
+        float dist = length(uv);
+        if (abs(dist - 0.5) > thickness) {
+            discard_fragment();
+        }
+    } else {
+        // AABB outline: keep pixels within `thickness` of any edge from inside.
+        float2 edge = 0.5 - abs(uv);
+        float edgeDist = min(edge.x, edge.y);
+        if (edgeDist > thickness || edgeDist < 0.0) {
+            discard_fragment();
+        }
+    }
+
+    return half4(interp.color);
+}

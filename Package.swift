@@ -19,7 +19,10 @@ let package = Package(
     targets: [
         .target(
             name: "LiquidMetal2D",
-            resources: [.copy("Resources/AlphaBlendShader.metalSource")],
+            resources: [
+                .copy("Resources/AlphaBlendShader.metalSource"),
+                .copy("Resources/WireframeShader.metalSource"),
+            ],
             plugins: [
                 .plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLint"),
             ]),
