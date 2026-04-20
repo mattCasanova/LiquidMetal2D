@@ -219,6 +219,7 @@ open class DefaultRenderer: Renderer {
 
     open func useShader(_ shader: Shader) {
         guard let pass = currentPass else { return }
+        guard shader !== currentShader else { return }
         currentShader?.flush(pass: pass)
         shader.bind(pass: pass, projectionBuffer: projectionBuffer)
         currentShader = shader
