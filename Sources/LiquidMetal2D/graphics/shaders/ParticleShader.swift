@@ -141,15 +141,23 @@ public final class ParticleShader: Shader {
 
     // MARK: - Submit implementations
 
-    /// Additive path: write uniforms + accumulate batches directly as we
-    /// iterate. No sort needed — addition is commutative.
+    /// Additive path: sort emitters by `textureID` so particles sharing a
+    /// texture form one contiguous batch even when emitters are interleaved
+    /// in the object list. Addition is commutative, so reordering emitters
+    /// has no visual effect — the sort is a pure batching win.
     private func submitAdditive(
         objects: [GameObj],
         contents: UnsafeMutableRawPointer
     ) {
-        for obj in objects where obj.isActive {
-            guard let emitter = obj.get(ParticleEmitterComponent.self) else { continue }
+        let pairs: [(GameObj, ParticleEmitterComponent)] = objects.compactMap { obj in
+            guard obj.isActive,
+                  let emitter = obj.get(ParticleEmitterComponent.self) else {
+                return nil
+            }
+            return (obj, emitter)
+        }.sorted { $0.1.textureID < $1.1.textureID }
 
+        for (obj, emitter) in pairs {
             for particle in emitter.particles where particle.isAlive {
                 assert(drawCount < maxObjects,
                        "ParticleShader draw count \(drawCount) exceeds maxObjects \(maxObjects)")
