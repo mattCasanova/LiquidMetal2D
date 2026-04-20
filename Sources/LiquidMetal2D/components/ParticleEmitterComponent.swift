@@ -50,8 +50,18 @@ public final class ParticleEmitterComponent: Component {
     public var angularVelocityRange: ClosedRange<Float>
     /// Color at spawn (age = 0).
     public var startColor: Vec4
+    /// Optional second endpoint for random start-color variation. When nil,
+    /// every particle starts at `startColor` (today's behavior). When set,
+    /// each particle picks a random `t` at spawn and lerps between
+    /// `startColor` and this value. Same `t` is reused for `endColor` so
+    /// a particle's whole life stays on a consistent gradient lane.
+    public var startColorVariation: Vec4?
     /// Color at death (age = lifetime). Alpha typically fades to 0 for smooth pop-out.
     public var endColor: Vec4
+    /// Optional second endpoint for random end-color variation (see
+    /// ``startColorVariation``). The same random `t` picked for the start
+    /// color is applied here.
+    public var endColorVariation: Vec4?
     /// Acceleration applied to every live particle each frame.
     public var gravity: Vec2
     /// Whether new particles are being spawned. Existing particles keep
@@ -77,7 +87,9 @@ public final class ParticleEmitterComponent: Component {
         endScaleRange: ClosedRange<Float>? = nil,
         angularVelocityRange: ClosedRange<Float> = 0...0,
         startColor: Vec4 = Vec4(1, 1, 1, 1),
+        startColorVariation: Vec4? = nil,
         endColor: Vec4 = Vec4(1, 1, 1, 0),
+        endColorVariation: Vec4? = nil,
         gravity: Vec2 = Vec2()
     ) {
         self.parent = parent
@@ -92,7 +104,9 @@ public final class ParticleEmitterComponent: Component {
         self.endScaleRange = endScaleRange
         self.angularVelocityRange = angularVelocityRange
         self.startColor = startColor
+        self.startColorVariation = startColorVariation
         self.endColor = endColor
+        self.endColorVariation = endColorVariation
         self.gravity = gravity
         self.particles = Array(repeating: Particle.dead, count: maxParticles)
     }
@@ -135,6 +149,14 @@ public final class ParticleEmitterComponent: Component {
         let startUniform = Float.random(in: scaleRange)
         let endUniform = endScaleRange.map { Float.random(in: $0) } ?? startUniform
 
+        // One random color-lerp factor used for BOTH start and end color
+        // endpoints — keeps each particle on a consistent gradient lane so
+        // it doesn't e.g. start yellow and end red while its neighbor does
+        // the opposite.
+        let colorT = Float.random(in: 0...1)
+        let sColor = startColorVariation.map { lerp(startColor, $0, t: colorT) } ?? startColor
+        let eColor = endColorVariation.map   { lerp(endColor,   $0, t: colorT) } ?? endColor
+
         var velocity = Vec2()
         velocity.set(angle: angle)
         velocity *= speed
@@ -146,10 +168,14 @@ public final class ParticleEmitterComponent: Component {
             angularVelocity: Float.random(in: angularVelocityRange),
             startScale: Vec2(startUniform, startUniform),
             endScale: Vec2(endUniform, endUniform),
-            startColor: startColor,
-            endColor: endColor,
+            startColor: sColor,
+            endColor: eColor,
             age: 0,
             lifetime: Float.random(in: lifetimeRange))
+    }
+
+    private func lerp(_ a: Vec4, _ b: Vec4, t: Float) -> Vec4 {
+        return a + (b - a) * t
     }
 
     private func firstDeadIndex() -> Int? {
