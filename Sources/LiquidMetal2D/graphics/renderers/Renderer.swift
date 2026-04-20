@@ -73,6 +73,12 @@ public protocol Renderer: AnyObject {
     /// the default alpha-blend shader first. Each shader filters the list
     /// by its own render component, so objects without a matching component
     /// are silently skipped.
+    ///
+    /// Multiple `submit` calls with the same bound shader *append* to that
+    /// shader's buffer — useful for combining separate object lists in one
+    /// pass. Call `useShader` in between to switch shaders (same-shader
+    /// calls are a no-op). There is no cross-shader sort; ordering is
+    /// whatever your draw code produces.
     func submit(objects: [GameObj])
 
     func endPass()
