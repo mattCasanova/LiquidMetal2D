@@ -59,9 +59,16 @@ public final class ParticleEmitterComponent: Component {
     /// Color at death (age = lifetime). Alpha typically fades to 0 for smooth pop-out.
     public var endColor: Vec4
     /// Optional second endpoint for random end-color variation (see
-    /// ``startColorVariation``). The same random `t` picked for the start
-    /// color is applied here.
+    /// ``startColorVariation``). By default the same random `t` picked for
+    /// the start color is applied here — flip ``correlatedColorVariation``
+    /// to `false` to make start/end rolls independent.
     public var endColorVariation: Vec4?
+    /// When `true` (default), a single random `t` is used for both the
+    /// start- and end-color variation lerps, so each particle stays on a
+    /// consistent gradient lane through its life. Set `false` to roll
+    /// two independent `t`s — particles get scrambled start/end pairings,
+    /// which is often desirable for chaotic magic / spark effects.
+    public var correlatedColorVariation: Bool = true
     /// Acceleration applied to every live particle each frame.
     public var gravity: Vec2
     /// Whether new particles are being spawned. Existing particles keep
@@ -90,6 +97,7 @@ public final class ParticleEmitterComponent: Component {
         startColorVariation: Vec4? = nil,
         endColor: Vec4 = Vec4(1, 1, 1, 0),
         endColorVariation: Vec4? = nil,
+        correlatedColorVariation: Bool = true,
         gravity: Vec2 = Vec2()
     ) {
         self.parent = parent
@@ -107,6 +115,7 @@ public final class ParticleEmitterComponent: Component {
         self.startColorVariation = startColorVariation
         self.endColor = endColor
         self.endColorVariation = endColorVariation
+        self.correlatedColorVariation = correlatedColorVariation
         self.gravity = gravity
         self.particles = Array(repeating: Particle.dead, count: maxParticles)
     }
@@ -149,13 +158,15 @@ public final class ParticleEmitterComponent: Component {
         let startUniform = Float.random(in: scaleRange)
         let endUniform = endScaleRange.map { Float.random(in: $0) } ?? startUniform
 
-        // One random color-lerp factor used for BOTH start and end color
-        // endpoints — keeps each particle on a consistent gradient lane so
-        // it doesn't e.g. start yellow and end red while its neighbor does
-        // the opposite.
-        let colorT = Float.random(in: 0...1)
-        let sColor = startColorVariation.map { lerp(startColor, $0, t: colorT) } ?? startColor
-        let eColor = endColorVariation.map   { lerp(endColor,   $0, t: colorT) } ?? endColor
+        // Correlated mode (default): one random t used for both start and
+        // end color lerps, so each particle stays on a consistent gradient
+        // lane. Independent mode (correlatedColorVariation = false): two
+        // independent rolls, producing scrambled start/end pairings for a
+        // more chaotic look.
+        let startT = Float.random(in: 0...1)
+        let endT = correlatedColorVariation ? startT : Float.random(in: 0...1)
+        let sColor = startColorVariation.map { lerp(startColor, $0, t: startT) } ?? startColor
+        let eColor = endColorVariation.map   { lerp(endColor,   $0, t: endT)   } ?? endColor
 
         var velocity = Vec2()
         velocity.set(angle: angle)
