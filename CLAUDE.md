@@ -35,6 +35,9 @@ Swift/Metal 2D game engine library for iOS.
   - `TypeAliases` — `Vec2`, `Vec3`, `Vec4`, `Mat4` (aliases for simd types, `@_exported import simd`)
 - **Behaviors** (`behaviors/`) — `Behavior`/`State` protocols for game logic state machines
 - **Scheduling** (`scheduler/`) — `Scheduler` with pause/resume, `ScheduledTask` with repeat count, chaining (`.then`), completion callbacks. Action receives `dt`
+- **Persistence** (`persistence/`) — Two-tier split by who owns the file:
+  - **App-owned** — `BlobStore` protocol (key-value `Data` CRUD, throws) with `FileBlobStore` (writes to `Documents/<subdirectory>/<key>`) and `InMemoryBlobStore` (dict-backed, for tests; throws `KeyNotFoundError`). `CodableBlobStore<T>` wraps any `BlobStore` and handles JSON encode/decode for any `Codable` type. Callers construct the underlying `BlobStore` themselves so tests can substitute `InMemoryBlobStore` without a code-path change.
+  - **User-owned** — `DocumentIO` (`final class`) wraps `UIDocumentPickerViewController` in async/await. Created once at app startup with the presenting view controller (stored weakly); scenes call `save(data:suggestedFilename:)` / `load(contentTypes:)` without seeing UIKit. `DocumentIO.Error.userCancelled` surfaces picker dismissal; I/O errors propagate as their underlying Cocoa type. Picker delegate lifetime uses a self-retaining coordinator (`selfRef = self`, cleared in callback).
 - **View Controllers** (`viewControllers/`) — `LiquidViewController` (touch forwarding, resize on layout, shutdown on disappear), `SlidePanel` (animated UIView sliding in from screen edges), `SlideDirection`
 - **Utilities** (`util/`) — `Debug` helpers
 - **Resources** — `AlphaBlendShader.metalSource`, `WireframeShader.metalSource`, `RippleShader.metalSource`, `ParticleShader.metalSource` (bundled, loaded at runtime)
