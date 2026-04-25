@@ -121,12 +121,13 @@ public class SpatialGrid {
                     }
                 }
 
-                // Pair with 4 forward neighbors to avoid double-counting
+                // Pair with 4 forward neighbors to avoid double-counting:
+                // right, below-left, below, below-right.
                 let neighbors = [
-                    (col + 1, row),       // right
-                    (col - 1, row + 1),   // below-left
-                    (col,     row + 1),   // below
-                    (col + 1, row + 1),   // below-right
+                    (col + 1, row),
+                    (col - 1, row + 1),
+                    (col, row + 1),
+                    (col + 1, row + 1)
                 ]
 
                 for (nc, nr) in neighbors {
@@ -164,8 +165,8 @@ public class SpatialGrid {
                 let neighbors = [
                     (col + 1, row),
                     (col - 1, row + 1),
-                    (col,     row + 1),
-                    (col + 1, row + 1),
+                    (col, row + 1),
+                    (col + 1, row + 1)
                 ]
 
                 for (nc, nr) in neighbors {

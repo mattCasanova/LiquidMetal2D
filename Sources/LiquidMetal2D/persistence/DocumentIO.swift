@@ -72,8 +72,7 @@ public final class DocumentIO {
             let picker = UIDocumentPickerViewController(
                 forExporting: [tempURL], asCopy: false)
 
-            try await withCheckedThrowingContinuation {
-                (continuation: CheckedContinuation<Void, Swift.Error>) in
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Swift.Error>) in
                 let coordinator = SaveCoordinator(
                     continuation: continuation, tempDir: tempDir)
                 picker.delegate = coordinator
@@ -104,8 +103,7 @@ public final class DocumentIO {
             forOpeningContentTypes: contentTypes)
         picker.allowsMultipleSelection = false
 
-        return try await withCheckedThrowingContinuation {
-            (continuation: CheckedContinuation<Data, Swift.Error>) in
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Data, Swift.Error>) in
             let coordinator = LoadCoordinator(continuation: continuation)
             picker.delegate = coordinator
             vc.present(picker, animated: true)

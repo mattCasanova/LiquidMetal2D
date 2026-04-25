@@ -166,7 +166,7 @@ public final class ParticleEmitterComponent: Component {
         let startT = Float.random(in: 0...1)
         let endT = correlatedColorVariation ? startT : Float.random(in: 0...1)
         let sColor = startColorVariation.map { lerp(startColor, $0, t: startT) } ?? startColor
-        let eColor = endColorVariation.map   { lerp(endColor,   $0, t: endT)   } ?? endColor
+        let eColor = endColorVariation.map { lerp(endColor, $0, t: endT) } ?? endColor
 
         var velocity = Vec2()
         velocity.set(angle: angle)
