@@ -18,8 +18,7 @@
 @MainActor
 public class SceneManager {
     private let sceneFactory: SceneFactory
-    private let renderer: Renderer
-    private var input: InputReader!
+    private var services: SceneServices!
 
     /// The type identifier of the currently active scene.
     public private(set) var currentSceneType: any SceneType
@@ -32,26 +31,24 @@ public class SceneManager {
     private var isPopping = false
     private var sceneStack = [SceneData]()
 
-    /// Creates the scene manager. Call ``start(input:)`` after construction
+    /// Creates the scene manager. Call ``start(services:)`` after construction
     /// to build and initialize the first scene.
     ///
     /// - Parameters:
     ///   - initialSceneType: The first scene to display.
     ///   - sceneFactory: Registry mapping scene types to builders.
-    ///   - renderer: The renderer passed to scenes during initialization.
-    public init(initialSceneType: some SceneType, sceneFactory: SceneFactory, renderer: Renderer) {
+    public init(initialSceneType: some SceneType, sceneFactory: SceneFactory) {
         self.sceneFactory = sceneFactory
-        self.renderer = renderer
         currentSceneType = initialSceneType
         nextSceneType = initialSceneType
     }
 
     /// Builds and initializes the first scene. Called by the engine after
-    /// construction, once an `InputReader` is available.
-    func start(input: InputReader) {
-        self.input = input
+    /// construction, once the services bag is assembled.
+    func start(services: SceneServices) {
+        self.services = services
         currentScene = sceneFactory.build(currentSceneType)
-        currentScene.initialize(sceneMgr: self, renderer: renderer, input: input)
+        currentScene.initialize(services: services)
     }
 
     // MARK: - Scene Transition API
@@ -101,7 +98,7 @@ public class SceneManager {
             sceneStack.append(SceneData(scene: currentScene, type: currentSceneType))
             currentSceneType = nextSceneType
             currentScene = sceneFactory.build(currentSceneType)
-            currentScene.initialize(sceneMgr: self, renderer: renderer, input: input)
+            currentScene.initialize(services: services)
         } else if isPopping {
             guard let sceneData = sceneStack.popLast() else { return }
             currentScene.shutdown()
@@ -118,7 +115,7 @@ public class SceneManager {
             }
             sceneStack.removeAll()
             currentScene = sceneFactory.build(currentSceneType)
-            currentScene.initialize(sceneMgr: self, renderer: renderer, input: input)
+            currentScene.initialize(services: services)
         }
         isPushing = false
         isPopping = false

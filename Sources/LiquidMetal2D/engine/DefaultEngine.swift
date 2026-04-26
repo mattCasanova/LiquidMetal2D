@@ -39,16 +39,34 @@ public class DefaultEngine: GameEngine, InputReader {
     ///
     /// - Parameters:
     ///   - renderer: The renderer to use for all drawing.
+    ///   - documents: User-facing file picker, built by the caller from its
+    ///     presenting view controller.
     ///   - initialSceneType: The first scene to display.
     ///   - sceneFactory: Registry mapping scene types to builders.
-    public init(renderer: Renderer, initialSceneType: some SceneType, sceneFactory: SceneFactory) {
+    ///   - buildServices: Optional closure that wraps the engine-built
+    ///     primitives in a custom ``SceneServices`` (typically an app-defined
+    ///     `GameServices` carrying typed stores). Defaults to
+    ///     ``DefaultSceneServices``.
+    public init(
+        renderer: Renderer,
+        documents: DocumentIO,
+        initialSceneType: some SceneType,
+        sceneFactory: SceneFactory,
+        buildServices: ((Renderer, InputReader, SceneManager, DocumentIO) -> SceneServices)? = nil
+    ) {
         self.renderer = renderer
         self.sceneManager = SceneManager(
             initialSceneType: initialSceneType,
-            sceneFactory: sceneFactory,
-            renderer: renderer)
+            sceneFactory: sceneFactory)
 
-        sceneManager.start(input: self)
+        let services = buildServices?(renderer, self, sceneManager, documents)
+            ?? DefaultSceneServices(
+                renderer: renderer,
+                input: self,
+                sceneMgr: sceneManager,
+                documents: documents)
+
+        sceneManager.start(services: services)
     }
 
     /// Shuts down the engine: stops the game loop, shuts down all scenes,

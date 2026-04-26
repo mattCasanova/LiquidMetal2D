@@ -19,8 +19,8 @@ public protocol Scene {
     /// The scene type identifier used for registration and transitions.
     static var sceneType: any SceneType { get }
 
-    /// Called once after building to inject dependencies.
-    func initialize(sceneMgr: SceneManager, renderer: Renderer, input: InputReader)
+    /// Called once after building to inject engine + app services.
+    func initialize(services: SceneServices)
 
     /// Called when this scene is restored from the stack after a pop.
     func resume()
@@ -48,6 +48,10 @@ public protocol Scene {
 /// and render a list of ``GameObj`` instances. Override `update(dt:)` for
 /// game logic and optionally `draw()` for custom rendering.
 open class DefaultScene: Scene {
+    /// The full services bag. Cast to an app-specific protocol to reach
+    /// app-level services beyond what the engine ships.
+    public var services: SceneServices!
+
     /// The scene manager for triggering transitions.
     public var sceneMgr: SceneManager!
 
@@ -56,6 +60,9 @@ open class DefaultScene: Scene {
 
     /// The input reader for touch input.
     public var input: InputReader!
+
+    /// User-facing file picker for save/load dialogs.
+    public var documents: DocumentIO!
 
     /// The list of game objects to draw each frame.
     public var objects: [GameObj]
@@ -72,10 +79,12 @@ open class DefaultScene: Scene {
         objects = [GameObj]()
     }
 
-    open func initialize(sceneMgr: SceneManager, renderer: Renderer, input: InputReader) {
-        self.sceneMgr = sceneMgr
-        self.renderer = renderer
-        self.input = input
+    open func initialize(services: SceneServices) {
+        self.services = services
+        self.sceneMgr = services.sceneMgr
+        self.renderer = services.renderer
+        self.input = services.input
+        self.documents = services.documents
 
         renderer.setCamera()
         renderer.setCameraRotation(angle: 0)
