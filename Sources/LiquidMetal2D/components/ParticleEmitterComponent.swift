@@ -7,6 +7,24 @@
 
 import Foundation
 
+/// Region from which new particles spawn, expressed relative to the
+/// emitter's ``ParticleEmitterComponent/localOffset``. The sampled offset
+/// is added to `localOffset` and the result is rotated by `parent.rotation`,
+/// so the shape rotates with its parent like the rest of the emit transform.
+public enum EmitterShape: Sendable {
+    /// All particles spawn at `localOffset` (the historical default).
+    case point
+    /// Uniform sample on the segment from `from` to `to`, with both
+    /// endpoints expressed as deltas from `localOffset`.
+    case line(from: Vec2, to: Vec2)
+    /// Uniform sample inside an axis-aligned rectangle of the given
+    /// half-extents, centered on `localOffset`.
+    case box(halfExtents: Vec2)
+    /// Uniform sample inside a disc of the given radius, centered on
+    /// `localOffset`.
+    case circle(radius: Float)
+}
+
 /// A CPU-driven particle emitter. Owns a pre-allocated pool of ``Particle``
 /// values; ``ParticleShader`` walks emitters each frame and renders each
 /// emitter's live particles.
@@ -14,9 +32,10 @@ import Foundation
 /// Scene-driven update: call ``update(dt:)`` from your scene's `update(dt:)`
 /// loop, the same way behaviors are dispatched.
 ///
-/// Emit point is `parent.position + rotate(localOffset, parent.rotation)` —
+/// Emit point is `parent.position + rotate(localOffset + shapeSample, parent.rotation)` —
 /// attach the component to a moving GameObj (ship, character, weapon) and
-/// the emitter follows automatically.
+/// the emitter follows automatically. Use ``shape`` to spread spawns across
+/// a line, box, or disc instead of a single point.
 public final class ParticleEmitterComponent: Component {
     public unowned var parent: GameObj
 
@@ -30,8 +49,12 @@ public final class ParticleEmitterComponent: Component {
     /// Particles per second. Set `isEmitting = false` to pause.
     public var emissionRate: Float
     /// Position of the emit point relative to `parent.position`. Rotated by
-    /// `parent.rotation` at spawn time.
+    /// `parent.rotation` at spawn time. The ``shape`` sample is added to
+    /// this before rotation.
     public var localOffset: Vec2
+    /// Region from which particles spawn. Defaults to ``EmitterShape/point``,
+    /// matching the historical single-point behavior.
+    public var shape: EmitterShape
     /// Random particle lifetime range (seconds).
     public var lifetimeRange: ClosedRange<Float>
     /// Random initial speed range.
@@ -87,6 +110,7 @@ public final class ParticleEmitterComponent: Component {
         textureID: Int,
         emissionRate: Float = 60,
         localOffset: Vec2 = Vec2(),
+        shape: EmitterShape = .point,
         lifetimeRange: ClosedRange<Float> = 0.5...1.5,
         speedRange: ClosedRange<Float> = 2...5,
         angleRange: ClosedRange<Float> = -0.3...0.3,
@@ -105,6 +129,7 @@ public final class ParticleEmitterComponent: Component {
         self.textureID = textureID
         self.emissionRate = emissionRate
         self.localOffset = localOffset
+        self.shape = shape
         self.lifetimeRange = lifetimeRange
         self.speedRange = speedRange
         self.angleRange = angleRange
@@ -152,7 +177,7 @@ public final class ParticleEmitterComponent: Component {
     private func spawnOne() {
         guard let index = firstDeadIndex() else { return }
 
-        let worldPos = parent.position + rotate(localOffset, angle: parent.rotation)
+        let worldPos = parent.position + rotate(localOffset + sampleShape(), angle: parent.rotation)
         let angle = Float.random(in: angleRange) + parent.rotation
         let speed = Float.random(in: speedRange)
         let startUniform = Float.random(in: scaleRange)
@@ -200,5 +225,24 @@ public final class ParticleEmitterComponent: Component {
         let c = cos(angle)
         let s = sin(angle)
         return Vec2(v.x * c - v.y * s, v.x * s + v.y * c)
+    }
+
+    private func sampleShape() -> Vec2 {
+        switch shape {
+        case .point:
+            return Vec2()
+        case .line(let from, let to):
+            let t = Float.random(in: 0...1)
+            return from + (to - from) * t
+        case .box(let halfExtents):
+            return Vec2(
+                Float.random(in: -halfExtents.x...halfExtents.x),
+                Float.random(in: -halfExtents.y...halfExtents.y))
+        case .circle(let radius):
+            // Uniform disc: sqrt(random) gives uniform area distribution.
+            let r = radius * sqrt(Float.random(in: 0...1))
+            let theta = Float.random(in: 0...(2 * .pi))
+            return Vec2(r * cos(theta), r * sin(theta))
+        }
     }
 }
