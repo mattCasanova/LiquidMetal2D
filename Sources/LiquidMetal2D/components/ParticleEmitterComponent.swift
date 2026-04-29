@@ -11,7 +11,7 @@ import Foundation
 /// emitter's ``ParticleEmitterComponent/localOffset``. The sampled offset
 /// is added to `localOffset` and the result is rotated by `parent.rotation`,
 /// so the shape rotates with its parent like the rest of the emit transform.
-public enum EmitterShape: Sendable {
+public enum EmitterShape: Sendable, Codable {
     /// All particles spawn at `localOffset` (the historical default).
     case point
     /// Uniform sample on the segment from `from` to `to`, with both

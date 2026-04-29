@@ -130,3 +130,47 @@ final class EmitterShapeTests: XCTestCase {
         }
     }
 }
+
+// MARK: - Codable round-trip
+
+final class EmitterShapeCodableTests: XCTestCase {
+
+    private func roundTrip(_ shape: EmitterShape) throws -> EmitterShape {
+        let data = try JSONEncoder().encode(shape)
+        return try JSONDecoder().decode(EmitterShape.self, from: data)
+    }
+
+    func testPointRoundTrips() throws {
+        let result = try roundTrip(.point)
+        guard case .point = result else {
+            return XCTFail("expected .point, got \(result)")
+        }
+    }
+
+    func testLineRoundTrips() throws {
+        let original = EmitterShape.line(from: Vec2(-3, 1), to: Vec2(3, 1))
+        let result = try roundTrip(original)
+        guard case let .line(from, to) = result else {
+            return XCTFail("expected .line, got \(result)")
+        }
+        XCTAssertEqual(from.x, -3); XCTAssertEqual(from.y, 1)
+        XCTAssertEqual(to.x, 3); XCTAssertEqual(to.y, 1)
+    }
+
+    func testBoxRoundTrips() throws {
+        let result = try roundTrip(.box(halfExtents: Vec2(2, 1.5)))
+        guard case let .box(halfExtents) = result else {
+            return XCTFail("expected .box, got \(result)")
+        }
+        XCTAssertEqual(halfExtents.x, 2)
+        XCTAssertEqual(halfExtents.y, 1.5)
+    }
+
+    func testCircleRoundTrips() throws {
+        let result = try roundTrip(.circle(radius: 4.25))
+        guard case let .circle(radius) = result else {
+            return XCTFail("expected .circle, got \(result)")
+        }
+        XCTAssertEqual(radius, 4.25)
+    }
+}
