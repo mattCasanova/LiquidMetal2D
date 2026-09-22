@@ -102,6 +102,9 @@ public final class ParticleEmitterComponent: Component {
 
     /// Particle pool. Public read-only so ``ParticleShader`` can iterate.
     public private(set) var particles: [Particle]
+    /// Indices of dead slots, used as a stack. Spawning pops, dying pushes,
+    /// so finding a free slot is O(1) instead of a scan of the pool.
+    private var freeIndices: [Int]
     private var timeToNextSpawn: Float = 0
 
     public init(
@@ -143,6 +146,8 @@ public final class ParticleEmitterComponent: Component {
         self.correlatedColorVariation = correlatedColorVariation
         self.gravity = gravity
         self.particles = Array(repeating: Particle.dead, count: maxParticles)
+        // Reversed so the first pop hands out index 0: slots fill from the front.
+        self.freeIndices = Array((0..<maxParticles).reversed())
     }
 
     // MARK: - Update
@@ -156,26 +161,38 @@ public final class ParticleEmitterComponent: Component {
             particles[index].velocity += gravity * dt
             particles[index].position += particles[index].velocity * dt
             particles[index].rotation += particles[index].angularVelocity * dt
+            if !particles[index].isAlive {
+                freeIndices.append(index)
+            }
         }
 
         guard isEmitting, emissionRate > 0 else { return }
         let spawnInterval = 1 / emissionRate
         timeToNextSpawn -= dt
         while timeToNextSpawn <= 0 {
-            spawnOne()
+            guard spawnOne() else {
+                // Pool full: drop the backlog rather than burst when slots free up.
+                timeToNextSpawn = 0
+                break
+            }
             timeToNextSpawn += spawnInterval
         }
     }
 
-    /// Burst: spawn `count` particles immediately, regardless of emission rate.
+    /// Burst: spawn `count` particles immediately, regardless of emission
+    /// rate. Stops early when the pool is full.
     public func spawn(count: Int) {
-        for _ in 0..<count { spawnOne() }
+        for _ in 0..<count {
+            guard spawnOne() else { break }
+        }
     }
 
     // MARK: - Private
 
-    private func spawnOne() {
-        guard let index = firstDeadIndex() else { return }
+    /// Spawns into a free slot. Returns `false` when the pool is full.
+    @discardableResult
+    private func spawnOne() -> Bool {
+        guard let index = freeIndices.popLast() else { return false }
 
         let worldPos = parent.position + rotate(localOffset + sampleShape(), angle: parent.rotation)
         let angle = Float.random(in: angleRange) + parent.rotation
@@ -208,17 +225,17 @@ public final class ParticleEmitterComponent: Component {
             endColor: eColor,
             age: 0,
             lifetime: Float.random(in: lifetimeRange))
+
+        // A zero lifetime is dead on arrival; hand the slot straight back so
+        // the update loop (which only visits live particles) can't leak it.
+        if !particles[index].isAlive {
+            freeIndices.append(index)
+        }
+        return true
     }
 
     private func lerp(_ a: Vec4, _ b: Vec4, t: Float) -> Vec4 {
         return a + (b - a) * t
-    }
-
-    private func firstDeadIndex() -> Int? {
-        for index in 0..<particles.count where !particles[index].isAlive {
-            return index
-        }
-        return nil
     }
 
     private func rotate(_ v: Vec2, angle: Float) -> Vec2 {
