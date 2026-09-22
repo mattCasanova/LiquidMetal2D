@@ -76,6 +76,8 @@ public enum SkeletonError: Error, Equatable {
     case duplicateBoneName(String)
     case unknownBone(String)
     case attachmentBoneOutOfRange(attachment: String)
+    case keysNotSorted(bone: String)
+    case invalidDuration(clip: String)
 }
 
 /// A rig: bones stored parents-before-children, plus the quads drawn on them.
