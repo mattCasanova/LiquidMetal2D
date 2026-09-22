@@ -8,10 +8,12 @@
 
 /// 2D camera with position, distance (zoom), and rotation.
 ///
-/// The camera produces a view matrix via ``make()``. Rotation is applied
-/// around the Z axis before translation, so the world appears to spin
-/// around the camera's position. Useful for screen shake, tilt effects,
-/// or smooth rotation transitions.
+/// The camera produces a view matrix via ``make()``. The view matrix undoes
+/// the camera's placement: it first moves the world by `-eye` (and back by
+/// `distance`), then rotates it by `-rotation` around the Z axis. Because the
+/// move comes first, the world spins around the camera's position, not the
+/// world origin. Useful for screen shake, tilt effects, or smooth rotation
+/// transitions.
 public class Camera2D {
 
     public static let defaultDistance: Float = 50
@@ -40,7 +42,9 @@ public class Camera2D {
         self.distance = distance
     }
 
-    /// Builds the view matrix: Z rotation then translation.
+    /// Builds the view matrix: move the world by `-eye`, then rotate it around
+    /// the camera. Written `rotate * translate` because matrices apply right to
+    /// left. Swapping the order would spin the world around (0, 0) instead.
     public func make() -> Mat4 {
         if GameMath.isFloatEqual(rotation, 0) {
             return Mat4.makeLookAt2D(Vec3(eye, distance))

@@ -12,11 +12,9 @@ public extension Mat4 {
 
     /// Creates a 2D look-at (view) matrix that translates the world opposite to the eye position.
     static func makeLookAt2D(_ eye: Vec3) -> Mat4 {
-        // Since this is a 2D only game, I can make some assumptions
+        // A 2D camera always looks straight down -z, so the view is a pure translation
         var mtx = Mat4(1)
         mtx[3] = Vec4(-eye, 1)
-        mtx[3][0] = 0
-        mtx[3][1] = 0
         return mtx
     }
 

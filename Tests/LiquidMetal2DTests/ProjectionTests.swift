@@ -261,9 +261,9 @@ final class Camera2DTests: XCTestCase {
         cam.set(point: Vec3(5, 10, 50))
         let mtx = cam.make()
 
-        // makeLookAt2D zeroes x/y translation (2D camera only translates z)
-        XCTAssertEqual(mtx[3][0], 0, accuracy: epsilon)
-        XCTAssertEqual(mtx[3][1], 0, accuracy: epsilon)
+        // The view matrix moves the world by -eye, so the camera pans in x/y as well as z
+        XCTAssertEqual(mtx[3][0], -5, accuracy: epsilon)
+        XCTAssertEqual(mtx[3][1], -10, accuracy: epsilon)
         XCTAssertEqual(mtx[3][2], -50, accuracy: epsilon)
     }
 
@@ -306,5 +306,183 @@ final class Camera2DTests: XCTestCase {
         XCTAssertEqual(mtx[0][1], 0, accuracy: epsilon)
         XCTAssertEqual(mtx[1][0], 0, accuracy: epsilon)
         XCTAssertEqual(mtx[1][1], 1, accuracy: epsilon)
+    }
+
+    func testRotationPivotsOnTheEye() {
+        let cam = Camera2D()
+        cam.set(x: 10, y: 5, distance: 50, rotation: 0.7)
+        let viewSpaceEye = cam.make() * Vec4(10, 5, 0, 1)
+
+        // The eye must land on the view axis whatever the rotation. If the matrix
+        // order were swapped, the world would spin around (0, 0) and this would fail.
+        XCTAssertEqual(viewSpaceEye.x, 0, accuracy: epsilon)
+        XCTAssertEqual(viewSpaceEye.y, 0, accuracy: epsilon)
+        XCTAssertEqual(viewSpaceEye.z, -50, accuracy: epsilon)
+    }
+}
+
+// MARK: - Screen <-> World Tests
+
+/// Exercises the real `Projection.project` / `Projection.unproject` with a
+/// top-left-origin screen, the convention touches arrive in.
+final class ScreenWorldProjectionTests: XCTestCase {
+
+    private let epsilon: Float = 0.001
+    private let frame = CGRect(x: 0, y: 0, width: 800, height: 600)
+    private let proj = Mat4.makePerspective(fovRadian: GameMath.piOverTwo, aspect: 800.0 / 600.0, n: 1, f: 100)
+
+    private func makeView(x: Float = 0, y: Float = 0, rotation: Float = 0) -> Mat4 {
+        let cam = Camera2D()
+        cam.set(x: x, y: y, distance: 50, rotation: rotation)
+        return cam.make()
+    }
+
+    private func project(_ world: Vec3, view: Mat4) -> Vec3 {
+        Projection.project(
+            worldPoint: world, projection: proj, viewMatrix: view, viewFrame: frame, viewBounds: frame)
+    }
+
+    /// Unprojects a screen point onto the world plane z = 0.
+    private func unproject(screenX: Float, screenY: Float, view: Mat4) -> Vec3 {
+        let depth = project(Vec3(0, 0, 0), view: view).z
+        return Projection.unproject(
+            screenPoint: Vec3(screenX, screenY, depth), projection: proj, viewMatrix: view,
+            viewFrame: frame, viewBounds: frame)
+    }
+
+    func testScreenCentreUnprojectsToCameraAtOrigin() {
+        let world = unproject(screenX: 400, screenY: 300, view: makeView())
+
+        XCTAssertEqual(world.x, 0, accuracy: epsilon)
+        XCTAssertEqual(world.y, 0, accuracy: epsilon)
+    }
+
+    func testScreenCentreUnprojectsToPannedCamera() {
+        let world = unproject(screenX: 400, screenY: 300, view: makeView(x: 10, y: 5))
+
+        XCTAssertEqual(world.x, 10, accuracy: epsilon)
+        XCTAssertEqual(world.y, 5, accuracy: epsilon)
+    }
+
+    func testScreenCentreUnprojectsToPannedAndRotatedCamera() {
+        let world = unproject(screenX: 400, screenY: 300, view: makeView(x: -4, y: 12, rotation: 0.7))
+
+        XCTAssertEqual(world.x, -4, accuracy: epsilon)
+        XCTAssertEqual(world.y, 12, accuracy: epsilon)
+    }
+
+    func testProjectPutsPannedAndRotatedCameraAtScreenCentre() {
+        let screen = project(Vec3(-4, 12, 0), view: makeView(x: -4, y: 12, rotation: 0.7))
+
+        XCTAssertEqual(screen.x, 400, accuracy: epsilon)
+        XCTAssertEqual(screen.y, 300, accuracy: epsilon)
+    }
+
+    func testRotatedCameraTurnsTheWorldAroundTheEye() {
+        // Camera turned 90° counter-clockwise, so the world appears turned 90° clockwise:
+        // a point 5 units to the right of the eye shows up straight below screen centre.
+        let screen = project(Vec3(15, 5, 0), view: makeView(x: 10, y: 5, rotation: GameMath.piOverTwo))
+
+        XCTAssertEqual(screen.x, 400, accuracy: epsilon)
+        XCTAssertGreaterThan(screen.y, 300 + 1)
+    }
+
+    func testHigherOnScreenIsLargerWorldY() {
+        let view = makeView(x: 10, y: 5)
+        let centre = unproject(screenX: 400, screenY: 300, view: view)
+        let above = unproject(screenX: 400, screenY: 150, view: view)
+
+        XCTAssertGreaterThan(above.y, centre.y)
+    }
+
+    func testRightOnScreenIsLargerWorldX() {
+        let view = makeView(x: 10, y: 5)
+        let centre = unproject(screenX: 400, screenY: 300, view: view)
+        let right = unproject(screenX: 600, screenY: 300, view: view)
+
+        XCTAssertGreaterThan(right.x, centre.x)
+    }
+
+    func testProjectPutsCameraPositionAtScreenCentre() {
+        let screen = project(Vec3(10, 5, 0), view: makeView(x: 10, y: 5))
+
+        XCTAssertEqual(screen.x, 400, accuracy: epsilon)
+        XCTAssertEqual(screen.y, 300, accuracy: epsilon)
+    }
+
+    func testProjectPutsHigherWorldYNearerScreenTop() {
+        let view = makeView()
+        let low = project(Vec3(0, 0, 0), view: view)
+        let high = project(Vec3(0, 7, 0), view: view)
+
+        XCTAssertLessThan(high.y, low.y)
+    }
+
+    func testRoundTripCameraAtOrigin() {
+        assertRoundTrip(view: makeView())
+    }
+
+    func testRoundTripPannedCamera() {
+        assertRoundTrip(view: makeView(x: 10, y: 5))
+    }
+
+    func testRoundTripPannedAndRotatedCamera() {
+        assertRoundTrip(view: makeView(x: -4, y: 12, rotation: 0.7))
+    }
+
+    private func assertRoundTrip(view: Mat4, file: StaticString = #filePath, line: UInt = #line) {
+        for point in [Vec3(3, 7, 0), Vec3(-8, 2, 0), Vec3(0, -11, 0), Vec3(6, -3, 4)] {
+            let screen = project(point, view: view)
+            let world = Projection.unproject(
+                screenPoint: screen, projection: proj, viewMatrix: view, viewFrame: frame, viewBounds: frame)
+
+            XCTAssertEqual(world.x, point.x, accuracy: epsilon, "x of \(point)", file: file, line: line)
+            XCTAssertEqual(world.y, point.y, accuracy: epsilon, "y of \(point)", file: file, line: line)
+            XCTAssertEqual(world.z, point.z, accuracy: epsilon, "z of \(point)", file: file, line: line)
+        }
+    }
+
+    func testUnprojectRayHitsCameraPositionAtScreenCentre() {
+        let ray = Projection.unprojectRay(
+            screenPoint: Vec2(400, 300), projection: proj, viewMatrix: makeView(x: 10, y: 5),
+            viewFrame: frame, viewBounds: frame)
+
+        XCTAssertEqual(ray.origin.x, 10, accuracy: epsilon)
+        XCTAssertEqual(ray.origin.y, 5, accuracy: epsilon)
+    }
+
+    // MARK: - Visible bounds
+
+    func testVisibleBoundsCentredOnOriginCamera() {
+        let bounds = Projection.visibleBounds(
+            eye: Vec2(0, 0), cameraDistance: 50, fov: GameMath.piOverTwo, aspect: 2, zOrder: 0)
+
+        XCTAssertEqual(bounds.center.x, 0, accuracy: epsilon)
+        XCTAssertEqual(bounds.center.y, 0, accuracy: epsilon)
+        XCTAssertEqual(bounds.height, 100, accuracy: epsilon)
+        XCTAssertEqual(bounds.width, 200, accuracy: epsilon)
+    }
+
+    func testVisibleBoundsFollowPannedCamera() {
+        let bounds = Projection.visibleBounds(
+            eye: Vec2(10, 5), cameraDistance: 50, fov: GameMath.piOverTwo, aspect: 2, zOrder: 0)
+
+        XCTAssertEqual(bounds.center.x, 10, accuracy: epsilon)
+        XCTAssertEqual(bounds.center.y, 5, accuracy: epsilon)
+        XCTAssertEqual(bounds.height, 100, accuracy: epsilon)
+        XCTAssertEqual(bounds.width, 200, accuracy: epsilon)
+    }
+
+    func testVisibleBoundsMatchUnprojectedScreenCorners() {
+        let view = makeView(x: 10, y: 5)
+        let bounds = Projection.visibleBounds(
+            eye: Vec2(10, 5), cameraDistance: 50, fov: GameMath.piOverTwo, aspect: 800.0 / 600.0, zOrder: 0)
+        let topLeft = unproject(screenX: 0, screenY: 0, view: view)
+        let bottomRight = unproject(screenX: 800, screenY: 600, view: view)
+
+        XCTAssertEqual(topLeft.x, bounds.minX, accuracy: epsilon)
+        XCTAssertEqual(topLeft.y, bounds.maxY, accuracy: epsilon)
+        XCTAssertEqual(bottomRight.x, bounds.maxX, accuracy: epsilon)
+        XCTAssertEqual(bottomRight.y, bounds.minY, accuracy: epsilon)
     }
 }

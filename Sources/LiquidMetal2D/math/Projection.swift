@@ -7,6 +7,11 @@
 
 import CoreGraphics
 
+/// Conversions between world space and screen space.
+///
+/// Screen space has its origin at the top-left with y pointing down, the
+/// convention touches and mouse events arrive in. World and clip space have
+/// y pointing up, so y is flipped once, at the clip-space boundary.
 public enum Projection {
 
     public static func project(
@@ -28,7 +33,7 @@ public enum Projection {
 
         return Vec3(
             (clipPoint.x * 0.5 + 0.5) * width + viewX,
-            (clipPoint.y * 0.5 + 0.5) * height + viewY,
+            (1 - (clipPoint.y * 0.5 + 0.5)) * height + viewY,
             (1.0 + clipPoint.z) * 0.5
         )
     }
@@ -44,7 +49,7 @@ public enum Projection {
 
         let clipPoint = Vec4(
             2 * (screenPoint.x - viewX) / width - 1,
-            2 * (screenPoint.y - viewY) / height - 1,
+            1 - 2 * (screenPoint.y - viewY) / height,
             2 * screenPoint.z - 1,
             1
         )
@@ -55,7 +60,7 @@ public enum Projection {
 
         return Vec3(
             worldPoint.x * worldPoint.w,
-            worldPoint.y * worldPoint.w * -1,
+            worldPoint.y * worldPoint.w,
             worldPoint.z * worldPoint.w
         )
     }
@@ -79,5 +84,17 @@ public enum Projection {
         let vector = (near - far) / zMag
 
         return UnprojectRay(origin: origin, vector: vector)
+    }
+
+    /// The world-space rectangle a perspective camera at `eye` can see on the plane at `zOrder`.
+    ///
+    /// Ignores camera rotation: for a rotated camera this is the unrotated box around the eye.
+    public static func visibleBounds(
+        eye: Vec2, cameraDistance: Float, fov: Float, aspect: Float, zOrder: Float
+    ) -> WorldBounds {
+        let maxY = tan(0.5 * fov) * (cameraDistance - zOrder)
+        let maxX = maxY * aspect
+
+        return WorldBounds(minX: eye.x - maxX, maxX: eye.x + maxX, minY: eye.y - maxY, maxY: eye.y + maxY)
     }
 }

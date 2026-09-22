@@ -158,11 +158,9 @@ open class DefaultRenderer: Renderer {
     }
 
     public func getVisibleBounds(cameraDistance: Float, zOrder: Float) -> WorldBounds {
-        let angle = 0.5 * renderCore.perspective.fov
-        let maxY = tan(angle) * (cameraDistance - zOrder)
-        let maxX = maxY * screenAspect
-
-        return WorldBounds(minX: -maxX, maxX: maxX, minY: -maxY, maxY: maxY)
+        return Projection.visibleBounds(
+            eye: renderCore.camera2D.eye, cameraDistance: cameraDistance,
+            fov: renderCore.perspective.fov, aspect: screenAspect, zOrder: zOrder)
     }
 
     // MARK: - Pass lifecycle
