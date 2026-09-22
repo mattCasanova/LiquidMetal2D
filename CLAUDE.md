@@ -39,7 +39,7 @@ Swift/Metal 2D game engine library for iOS.
   - **App-owned** — `BlobStore` protocol (key-value `Data` CRUD, throws) with `FileBlobStore` (writes to `Documents/<subdirectory>/<key>`) and `InMemoryBlobStore` (dict-backed, for tests; throws `KeyNotFoundError`). `CodableBlobStore<T>` wraps any `BlobStore` and handles JSON encode/decode for any `Codable` type. Callers construct the underlying `BlobStore` themselves so tests can substitute `InMemoryBlobStore` without a code-path change.
   - **User-owned** — `DocumentIO` (`final class`) wraps `UIDocumentPickerViewController` in async/await. Created once at app startup with the presenting view controller (stored weakly); scenes call `save(data:suggestedFilename:)` / `load(contentTypes:)` without seeing UIKit. `DocumentIO.Error.userCancelled` surfaces picker dismissal; I/O errors propagate as their underlying Cocoa type. Picker delegate lifetime uses a self-retaining coordinator (`selfRef = self`, cleared in callback).
 - **View Controllers** (`viewControllers/`) — `LiquidViewController` (touch forwarding, resize on layout, shutdown on disappear), `SlidePanel` (animated UIView sliding in from screen edges), `SlideDirection`
-- **Utilities** (`util/`) — `Debug` helpers
+- **Utilities** (`util/`) — `Debug` helpers, `SeededRandom` (SplitMix64 `RandomNumberGenerator`; pass it to `ParticleEmitterComponent(random:)` for a repeatable effect or exact tests)
 - **Resources** — `AlphaBlendShader.metalSource`, `WireframeShader.metalSource`, `RippleShader.metalSource`, `ParticleShader.metalSource` (bundled, loaded at runtime)
 
 ## Rendering Pipeline

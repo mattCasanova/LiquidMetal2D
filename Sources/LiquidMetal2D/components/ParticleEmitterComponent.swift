@@ -97,6 +97,13 @@ public final class ParticleEmitterComponent: Component {
     /// Whether new particles are being spawned. Existing particles keep
     /// updating regardless.
     public var isEmitting: Bool = true
+    /// Source of every random roll at spawn. Pass a ``SeededRandom`` for a
+    /// repeatable effect or an exact test; the default is the system generator.
+    public var random: any RandomNumberGenerator {
+        get { generator.base }
+        set { generator.base = newValue }
+    }
+    private var generator: AnyRandomNumberGenerator
 
     // MARK: - State
 
@@ -125,7 +132,8 @@ public final class ParticleEmitterComponent: Component {
         endColor: Vec4 = Vec4(1, 1, 1, 0),
         endColorVariation: Vec4? = nil,
         correlatedColorVariation: Bool = true,
-        gravity: Vec2 = Vec2()
+        gravity: Vec2 = Vec2(),
+        random: any RandomNumberGenerator = SystemRandomNumberGenerator()
     ) {
         self.parent = parent
         self.maxParticles = maxParticles
@@ -145,6 +153,7 @@ public final class ParticleEmitterComponent: Component {
         self.endColorVariation = endColorVariation
         self.correlatedColorVariation = correlatedColorVariation
         self.gravity = gravity
+        self.generator = AnyRandomNumberGenerator(base: random)
         self.particles = Array(repeating: Particle.dead, count: maxParticles)
         // Reversed so the first pop hands out index 0: slots fill from the front.
         self.freeIndices = Array((0..<maxParticles).reversed())
@@ -156,13 +165,17 @@ public final class ParticleEmitterComponent: Component {
     /// the emission rate. Scene should call this once per frame from its
     /// `update(dt:)` method.
     public func update(dt: Float) {
-        for index in 0..<particles.count where particles[index].isAlive {
-            particles[index].age += dt
-            particles[index].velocity += gravity * dt
-            particles[index].position += particles[index].velocity * dt
-            particles[index].rotation += particles[index].angularVelocity * dt
-            if !particles[index].isAlive {
-                freeIndices.append(index)
+        // One exclusive access to the pool for the whole loop, instead of a
+        // uniqueness check on every subscript write.
+        particles.withUnsafeMutableBufferPointer { pool in
+            for index in pool.indices where pool[index].isAlive {
+                pool[index].age += dt
+                pool[index].velocity += gravity * dt
+                pool[index].position += pool[index].velocity * dt
+                pool[index].rotation += pool[index].angularVelocity * dt
+                if !pool[index].isAlive {
+                    freeIndices.append(index)
+                }
             }
         }
 
@@ -195,18 +208,18 @@ public final class ParticleEmitterComponent: Component {
         guard let index = freeIndices.popLast() else { return false }
 
         let worldPos = parent.position + rotate(localOffset + sampleShape(), angle: parent.rotation)
-        let angle = Float.random(in: angleRange) + parent.rotation
-        let speed = Float.random(in: speedRange)
-        let startUniform = Float.random(in: scaleRange)
-        let endUniform = endScaleRange.map { Float.random(in: $0) } ?? startUniform
+        let angle = roll(angleRange) + parent.rotation
+        let speed = roll(speedRange)
+        let startUniform = roll(scaleRange)
+        let endUniform = endScaleRange.map { roll($0) } ?? startUniform
 
         // Correlated mode (default): one random t used for both start and
         // end color lerps, so each particle stays on a consistent gradient
         // lane. Independent mode (correlatedColorVariation = false): two
         // independent rolls, producing scrambled start/end pairings for a
         // more chaotic look.
-        let startT = Float.random(in: 0...1)
-        let endT = correlatedColorVariation ? startT : Float.random(in: 0...1)
+        let startT = roll(0...1)
+        let endT = correlatedColorVariation ? startT : roll(0...1)
         let sColor = startColorVariation.map { lerp(startColor, $0, t: startT) } ?? startColor
         let eColor = endColorVariation.map { lerp(endColor, $0, t: endT) } ?? endColor
 
@@ -218,13 +231,13 @@ public final class ParticleEmitterComponent: Component {
             position: worldPos,
             velocity: velocity,
             rotation: angle,
-            angularVelocity: Float.random(in: angularVelocityRange),
+            angularVelocity: roll(angularVelocityRange),
             startScale: Vec2(startUniform, startUniform),
             endScale: Vec2(endUniform, endUniform),
             startColor: sColor,
             endColor: eColor,
             age: 0,
-            lifetime: Float.random(in: lifetimeRange))
+            lifetime: roll(lifetimeRange))
 
         // A zero lifetime is dead on arrival; hand the slot straight back so
         // the update loop (which only visits live particles) can't leak it.
@@ -238,6 +251,10 @@ public final class ParticleEmitterComponent: Component {
         return a + (b - a) * t
     }
 
+    private func roll(_ range: ClosedRange<Float>) -> Float {
+        return Float.random(in: range, using: &generator)
+    }
+
     private func rotate(_ v: Vec2, angle: Float) -> Vec2 {
         let c = cos(angle)
         let s = sin(angle)
@@ -249,16 +266,16 @@ public final class ParticleEmitterComponent: Component {
         case .point:
             return Vec2()
         case .line(let from, let to):
-            let t = Float.random(in: 0...1)
+            let t = roll(0...1)
             return from + (to - from) * t
         case .box(let halfExtents):
             return Vec2(
-                Float.random(in: -halfExtents.x...halfExtents.x),
-                Float.random(in: -halfExtents.y...halfExtents.y))
+                roll(-halfExtents.x...halfExtents.x),
+                roll(-halfExtents.y...halfExtents.y))
         case .circle(let radius):
             // Uniform disc: sqrt(random) gives uniform area distribution.
-            let r = radius * sqrt(Float.random(in: 0...1))
-            let theta = Float.random(in: 0...(2 * .pi))
+            let r = radius * sqrt(roll(0...1))
+            let theta = roll(0...(2 * .pi))
             return Vec2(r * cos(theta), r * sin(theta))
         }
     }

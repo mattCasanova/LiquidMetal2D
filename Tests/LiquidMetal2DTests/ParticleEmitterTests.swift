@@ -133,6 +133,50 @@ final class ParticleEmitterTests: XCTestCase {
         XCTAssertEqual(emitter.aliveCount, 3)
     }
 
+    // MARK: - Seeded randomness
+
+    private func makeRandomizedEmitter(seed: UInt64) -> ParticleEmitterComponent {
+        let parent = GameObj()
+        parents.append(parent)
+        return ParticleEmitterComponent(
+            parent: parent,
+            maxParticles: 10,
+            textureID: 0,
+            shape: .circle(radius: 3),
+            lifetimeRange: 0.5...2,
+            speedRange: 1...5,
+            angleRange: -1...1,
+            scaleRange: 0.5...1.5,
+            angularVelocityRange: -1...1,
+            startColorVariation: Vec4(1, 0, 0, 1),
+            random: SeededRandom(seed: seed))
+    }
+
+    func testSameSeedSpawnsIdenticalParticles() {
+        let a = makeRandomizedEmitter(seed: 99)
+        let b = makeRandomizedEmitter(seed: 99)
+
+        a.spawn(count: 10)
+        b.spawn(count: 10)
+
+        for index in 0..<10 {
+            XCTAssertEqual(a.particles[index].position, b.particles[index].position)
+            XCTAssertEqual(a.particles[index].velocity, b.particles[index].velocity)
+            XCTAssertEqual(a.particles[index].lifetime, b.particles[index].lifetime)
+            XCTAssertEqual(a.particles[index].startColor, b.particles[index].startColor)
+        }
+    }
+
+    func testDifferentSeedsSpawnDifferentParticles() {
+        let a = makeRandomizedEmitter(seed: 1)
+        let b = makeRandomizedEmitter(seed: 2)
+
+        a.spawn(count: 1)
+        b.spawn(count: 1)
+
+        XCTAssertNotEqual(a.particles[0].velocity, b.particles[0].velocity)
+    }
+
     // MARK: - Update
 
     func testParticleDiesAtLifetime() {

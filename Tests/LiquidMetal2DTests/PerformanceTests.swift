@@ -6,7 +6,7 @@ import XCTest
 /// pass/fail gates. Numbers are recorded in
 /// `~/workspace/LM2D/math-and-hot-path-audit.md`.
 ///
-/// Inputs come from a fixed-seed LCG so every run measures the same work.
+/// Inputs come from a fixed-seed `SeededRandom` so every run measures the same work.
 @MainActor
 final class PerformanceTests: XCTestCase {
 
@@ -44,7 +44,7 @@ final class PerformanceTests: XCTestCase {
         var rng = SeededRandom(seed: 1)
         let objects: [GameObj] = (0..<5000).map { _ in
             let obj = GameObj()
-            obj.position = Vec2(rng.nextFloat(in: -100...100), rng.nextFloat(in: -100...100))
+            obj.position = Vec2(Float.random(in: -100...100, using: &rng), Float.random(in: -100...100, using: &rng))
             return obj
         }
 
@@ -62,10 +62,10 @@ final class PerformanceTests: XCTestCase {
     func testIntersectCircleLine1M() {
         var rng = SeededRandom(seed: 2)
         let inputs: [(Vec2, Float, Vec2, Vec2)] = (0..<1000).map { _ in
-            (Vec2(rng.nextFloat(in: -20...20), rng.nextFloat(in: -20...20)),
-             rng.nextFloat(in: 0.1...5),
-             Vec2(rng.nextFloat(in: -20...20), rng.nextFloat(in: -20...20)),
-             Vec2(rng.nextFloat(in: -20...20), rng.nextFloat(in: -20...20)))
+            (Vec2(Float.random(in: -20...20, using: &rng), Float.random(in: -20...20, using: &rng)),
+             Float.random(in: 0.1...5, using: &rng),
+             Vec2(Float.random(in: -20...20, using: &rng), Float.random(in: -20...20, using: &rng)),
+             Vec2(Float.random(in: -20...20, using: &rng), Float.random(in: -20...20, using: &rng)))
         }
 
         var hits = 0
@@ -88,8 +88,8 @@ final class PerformanceTests: XCTestCase {
         var rng = SeededRandom(seed: 3)
         let objects: [GameObj] = (0..<5000).map { _ in
             let obj = GameObj()
-            obj.zOrder = Float(rng.nextInt(in: 0...4))
-            obj.add(AlphaBlendComponent(parent: obj, textureID: rng.nextInt(in: 0...7)))
+            obj.zOrder = Float(Int.random(in: 0...4, using: &rng))
+            obj.add(AlphaBlendComponent(parent: obj, textureID: Int.random(in: 0...7, using: &rng)))
             return obj
         }
 
@@ -124,27 +124,3 @@ final class PerformanceTests: XCTestCase {
     }
 }
 
-/// Small linear congruential generator. Same seed, same sequence, so the
-/// performance tests measure identical work on every run.
-private struct SeededRandom {
-    private var state: UInt64
-
-    init(seed: UInt64) {
-        state = seed
-    }
-
-    private mutating func next() -> UInt64 {
-        state = state &* 6_364_136_223_846_793_005 &+ 1_442_695_040_888_963_407
-        return state
-    }
-
-    mutating func nextFloat(in range: ClosedRange<Float>) -> Float {
-        let unit = Float(next() >> 40) / Float(1 << 24)
-        return range.lowerBound + (range.upperBound - range.lowerBound) * unit
-    }
-
-    mutating func nextInt(in range: ClosedRange<Int>) -> Int {
-        let span = UInt64(range.upperBound - range.lowerBound + 1)
-        return range.lowerBound + Int(next() % span)
-    }
-}
