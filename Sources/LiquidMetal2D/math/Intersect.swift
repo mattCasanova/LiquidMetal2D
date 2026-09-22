@@ -13,7 +13,7 @@ public enum Intersect {
 
     /// Returns `true` if a point lies inside or on a circle.
     public static func pointCircle(point: Vec2, circle: Vec2, radius: Float) -> Bool {
-        return simd_length_squared(point - circle) - (radius * radius) < GameMath.epsilon
+        return simd_length_squared(point - circle) <= radius * radius
     }
 
     /// Returns `true` if a point lies inside or on a `Circle`.
@@ -40,20 +40,28 @@ public enum Intersect {
 
     // MARK: - Point vs Line Segment
 
-    /// Returns `true` if a point lies on a line segment (within epsilon tolerance).
+    /// Returns `true` if a point lies within `GameMath.epsilon` of a line segment.
+    ///
+    /// The tolerance is a distance, so it means the same thing on a 1-unit
+    /// segment and a 1000-unit one. No square roots: the perpendicular
+    /// distance test is `cross² <= epsilon² * length²`, and the "between the
+    /// endpoints" test compares the dot product against `length²`.
     public static func pointLineSegment(point: Vec2, start: Vec2, end: Vec2) -> Bool {
-        let lineVector = end - start
-        let pointLineVector = point - start
+        let line = end - start
+        let lengthSquared = simd_length_squared(line)
+        guard lengthSquared > 0 else {
+            // Degenerate segment: it is a point.
+            return simd_epsilon_equal(lhs: point, rhs: start)
+        }
 
-        if abs(lineVector.cross(pointLineVector)) > GameMath.epsilon {
+        let toPoint = point - start
+        let cross = line.cross(toPoint)
+        guard cross * cross <= GameMath.epsilon * GameMath.epsilon * lengthSquared else {
             return false
         }
 
-        let projectedLength = simd_dot(pointLineVector, simd_normalize(lineVector))
-        return GameMath.isInRange(
-            value: projectedLength * projectedLength,
-            low: 0,
-            high: simd_length_squared(lineVector))
+        let along = simd_dot(toPoint, line)
+        return along >= 0 && along <= lengthSquared
     }
 
     // MARK: - Circle vs Circle
@@ -63,7 +71,7 @@ public enum Intersect {
         center1: Vec2, center2: Vec2, radius1: Float, radius2: Float
     ) -> Bool {
         let radius = radius1 + radius2
-        return simd_length_squared(center1 - center2) - (radius * radius) < GameMath.epsilon
+        return simd_length_squared(center1 - center2) <= radius * radius
     }
 
     /// Returns `true` if two `Circle` instances overlap or touch.
@@ -106,25 +114,23 @@ public enum Intersect {
     // MARK: - Circle vs Line Segment
 
     /// Returns `true` if a circle and a line segment overlap or touch.
+    ///
+    /// Finds the closest point on the segment to the circle's center and
+    /// compares the squared distance to `radius²`. No square roots, and the
+    /// segment's end caps are round, as they must be.
     public static func circleLineSegment(
         center: Vec2, radius: Float, start: Vec2, end: Vec2
     ) -> Bool {
-        let lineVector = end - start
-        let pointLineVector = center - start
-
-        let projectedLength = simd_dot(pointLineVector, simd_normalize(lineVector))
-
-        let adjustedStartLength = projectedLength + radius
-        let adjustedEndLength = projectedLength - radius
-
-        if adjustedStartLength < 0 ||
-            (adjustedEndLength * adjustedEndLength) > simd_length_squared(lineVector) {
-            return false
+        let line = end - start
+        let lengthSquared = simd_length_squared(line)
+        guard lengthSquared > 0 else {
+            // Degenerate segment: it is a point.
+            return pointCircle(point: start, circle: center, radius: radius)
         }
 
-        let pointLineLengthSquared = simd_length_squared(pointLineVector)
-
-        return (pointLineLengthSquared - (projectedLength * projectedLength)) < (radius * radius)
+        let t = GameMath.clamp(value: simd_dot(center - start, line) / lengthSquared, low: 0, high: 1)
+        let closest = start + line * t
+        return simd_length_squared(center - closest) <= radius * radius
     }
 
     // MARK: - AABB vs AABB

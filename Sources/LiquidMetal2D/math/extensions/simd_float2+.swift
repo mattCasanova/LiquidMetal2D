@@ -18,7 +18,7 @@ public extension Vec2 {
     var lengthSquared: Float { simd_length_squared(self) }
 
     /// Returns a unit vector in the same direction, or zero if length is zero
-    var normalized: Vec2 { simd_normalize(self) }
+    var normalized: Vec2 { lengthSquared > 0 ? simd_normalize(self) : Vec2() }
 
     /// Convenience access for getting the u component when treating this like a texture coordinate
     var u: Float {

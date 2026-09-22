@@ -419,3 +419,35 @@ final class SpatialGridIntegrationTests: XCTestCase {
                       "Broadphase should reduce pairs vs O(n²)")
     }
 }
+
+// MARK: - Out-of-range Positions
+
+/// `Int(_:)` traps on values past `Int.max`; the grid must clamp as a Float
+/// first. (NaN asserts in debug builds, so it is not tested here.)
+@MainActor
+final class SpatialGridExtremePositionTests: XCTestCase {
+
+    func testHugePositiveLandsInLastCell() {
+        let grid = SpatialGrid(bounds: standardBounds, columns: 4, rows: 4)
+        let obj = makeObj(at: Vec2(1e30, 1e30))
+        grid.insert(obj)
+
+        XCTAssertTrue(grid.query(near: Vec2(9, 9)).contains(where: { $0 === obj }))
+    }
+
+    func testHugeNegativeLandsInFirstCell() {
+        let grid = SpatialGrid(bounds: standardBounds, columns: 4, rows: 4)
+        let obj = makeObj(at: Vec2(-1e30, -1e30))
+        grid.insert(obj)
+
+        XCTAssertTrue(grid.query(near: Vec2(-9, -9)).contains(where: { $0 === obj }))
+    }
+
+    func testInfinityLandsInEdgeCell() {
+        let grid = SpatialGrid(bounds: standardBounds, columns: 4, rows: 4)
+        let obj = makeObj(at: Vec2(.infinity, -.infinity))
+        grid.insert(obj)
+
+        XCTAssertTrue(grid.query(near: Vec2(9, -9)).contains(where: { $0 === obj }))
+    }
+}

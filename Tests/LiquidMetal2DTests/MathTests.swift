@@ -1024,3 +1024,102 @@ final class EasingTests: XCTestCase {
         XCTAssertTrue(Easing.easeOutBack(0.8) > 1, "easeOutBack should overshoot past 1")
     }
 }
+
+// MARK: - Intersect Edge Cases (math audit, 2026-09-21)
+
+/// Cases the original `Intersect` got wrong: square end caps on
+/// `circleLineSegment`, a scale-dependent tolerance in `pointLineSegment`,
+/// and zero-length segments.
+final class IntersectEdgeCaseTests: XCTestCase {
+
+    private let start = Vec2(0, 0)
+    private let end = Vec2(10, 0)
+
+    // MARK: circleLineSegment end caps
+
+    func testBigCircleJustBehindStartOverlaps() {
+        XCTAssertTrue(Intersect.circleLineSegment(
+            center: Vec2(-0.5, 0), radius: 10, start: start, end: end))
+    }
+
+    func testCircleDiagonallyPastEndOutsideRadiusMisses() {
+        // Distance to the end point is sqrt(0.81 + 0.81) = 1.27 > 1.
+        XCTAssertFalse(Intersect.circleLineSegment(
+            center: Vec2(10.9, 0.9), radius: 1, start: start, end: end))
+    }
+
+    func testCircleDiagonallyBeforeStartOutsideRadiusMisses() {
+        XCTAssertFalse(Intersect.circleLineSegment(
+            center: Vec2(-0.9, 0.9), radius: 1, start: start, end: end))
+    }
+
+    func testEndCapIsRound() {
+        // (10.7, 0.7) is 0.99 from the end: inside. (10.9, 0.44) is 1.0017: outside.
+        XCTAssertTrue(Intersect.circleLineSegment(
+            center: Vec2(10.7, 0.7), radius: 1, start: start, end: end))
+        XCTAssertFalse(Intersect.circleLineSegment(
+            center: Vec2(10.9, 0.44), radius: 1, start: start, end: end))
+    }
+
+    func testCircleTangentToEndCapTouches() {
+        XCTAssertTrue(Intersect.circleLineSegment(
+            center: Vec2(11, 0), radius: 1, start: start, end: end))
+    }
+
+    func testCircleAgainstZeroLengthSegment() {
+        XCTAssertTrue(Intersect.circleLineSegment(
+            center: Vec2(0.5, 0), radius: 1, start: start, end: start))
+        XCTAssertFalse(Intersect.circleLineSegment(
+            center: Vec2(0.5, 0), radius: 0.1, start: start, end: start))
+    }
+
+    // MARK: pointLineSegment tolerance
+
+    func testPointOnLongSegmentWithinEpsilon() {
+        XCTAssertTrue(Intersect.pointLineSegment(
+            point: Vec2(500, 0.000001), start: start, end: Vec2(1000, 0)))
+    }
+
+    func testPointOffLongSegmentOutsideEpsilon() {
+        XCTAssertFalse(Intersect.pointLineSegment(
+            point: Vec2(500, 0.1), start: start, end: Vec2(1000, 0)))
+    }
+
+    func testPointOffTinySegmentOutsideEpsilon() {
+        // The old area-based check called this "on the line".
+        XCTAssertFalse(Intersect.pointLineSegment(
+            point: Vec2(0.0005, 0.001), start: start, end: Vec2(0.001, 0)))
+    }
+
+    func testPointOnTinySegmentWithinEpsilon() {
+        XCTAssertTrue(Intersect.pointLineSegment(
+            point: Vec2(0.0005, 0.000001), start: start, end: Vec2(0.001, 0)))
+    }
+
+    func testPointAgainstZeroLengthSegment() {
+        XCTAssertTrue(Intersect.pointLineSegment(point: start, start: start, end: start))
+        XCTAssertFalse(Intersect.pointLineSegment(point: Vec2(1, 0), start: start, end: start))
+    }
+}
+
+// MARK: - Normalizing Zero
+
+final class NormalizedZeroVectorTests: XCTestCase {
+
+    func testVec2ZeroNormalizesToZero() {
+        let result = Vec2().normalized
+        XCTAssertFalse(result.x.isNaN)
+        XCTAssertEqual(result, Vec2())
+    }
+
+    func testVec3ZeroNormalizesToZero() {
+        let result = Vec3().normalized
+        XCTAssertFalse(result.x.isNaN)
+        XCTAssertEqual(result, Vec3())
+    }
+
+    func testNonZeroStillNormalizes() {
+        XCTAssertEqual(Vec2(0, 5).normalized, Vec2(0, 1))
+        XCTAssertEqual(Vec3(0, 0, -3).normalized, Vec3(0, 0, -1))
+    }
+}

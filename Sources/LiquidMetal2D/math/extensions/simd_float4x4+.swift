@@ -18,7 +18,8 @@ public extension Mat4 {
         return mtx
     }
 
-    /// Creates a perspective projection matrix.
+    /// Creates a perspective projection matrix. Metal NDC z range is [0, 1]:
+    /// the near plane maps to 0 and the far plane to 1.
     static func makePerspective(fovRadian: Float, aspect: Float, n: Float, f: Float) -> Mat4 {
         let scale: Float = tan(fovRadian * 0.5) * n
 
@@ -28,8 +29,8 @@ public extension Mat4 {
         var mtx = Mat4()
         mtx[0] = Vec4(n / r, 0, 0, 0)
         mtx[1] = Vec4(0, n / t, 0, 0)
-        mtx[2] = Vec4(0, 0, -1 * (f + n) / (f - n), -1)
-        mtx[3] = Vec4(0, 0, -2 * (f * n) / (f - n), 0)
+        mtx[2] = Vec4(0, 0, f / (n - f), -1)
+        mtx[3] = Vec4(0, 0, n * f / (n - f), 0)
         return mtx
     }
 

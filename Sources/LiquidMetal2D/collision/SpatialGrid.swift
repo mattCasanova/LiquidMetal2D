@@ -214,9 +214,19 @@ public class SpatialGrid {
     /// Converts a world position to a (column, row) cell index,
     /// clamping to grid bounds.
     private func cellIndex(for position: Vec2) -> (column: Int, row: Int) {
-        let col = max(0, min(Int((position.x - bounds.minX) / cellWidth), columns - 1))
-        let row = max(0, min(Int((position.y - bounds.minY) / cellHeight), rows - 1))
-        return (col, row)
+        return (
+            axisIndex((position.x - bounds.minX) / cellWidth, count: columns),
+            axisIndex((position.y - bounds.minY) / cellHeight, count: rows))
+    }
+
+    /// Clamps as a Float before converting, because `Int(_:)` traps on NaN
+    /// and on values past `Int.max`. A NaN position is a bug upstream, so
+    /// debug builds assert; release builds put the object in the first cell
+    /// rather than crash the game.
+    private func axisIndex(_ raw: Float, count: Int) -> Int {
+        assert(!raw.isNaN, "SpatialGrid: position is NaN")
+        guard !raw.isNaN else { return 0 }
+        return Int(GameMath.clamp(value: raw, low: 0, high: Float(count - 1)))
     }
 
     /// Converts (column, row) to flat array index.

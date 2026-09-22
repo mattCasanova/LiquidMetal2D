@@ -11,7 +11,8 @@ import CoreGraphics
 ///
 /// Screen space has its origin at the top-left with y pointing down, the
 /// convention touches and mouse events arrive in. World and clip space have
-/// y pointing up, so y is flipped once, at the clip-space boundary.
+/// y pointing up, so y is flipped once, at the clip-space boundary. Screen z
+/// is Metal NDC depth: 0 on the near plane, 1 on the far plane.
 public enum Projection {
 
     public static func project(
@@ -34,7 +35,7 @@ public enum Projection {
         return Vec3(
             (clipPoint.x * 0.5 + 0.5) * width + viewX,
             (1 - (clipPoint.y * 0.5 + 0.5)) * height + viewY,
-            (1.0 + clipPoint.z) * 0.5
+            clipPoint.z
         )
     }
 
@@ -50,7 +51,7 @@ public enum Projection {
         let clipPoint = Vec4(
             2 * (screenPoint.x - viewX) / width - 1,
             1 - 2 * (screenPoint.y - viewY) / height,
-            2 * screenPoint.z - 1,
+            screenPoint.z,
             1
         )
 

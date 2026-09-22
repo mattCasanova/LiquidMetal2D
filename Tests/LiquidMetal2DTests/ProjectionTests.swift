@@ -6,6 +6,11 @@ import XCTest
 final class PerspectiveProjectionTests: XCTestCase {
 
     private let epsilon: Float = 0.001
+    /// Depth round-trips through a Float inverse with n = 0.1 and the camera
+    /// at 50: the point sits at NDC depth ~0.999, where the mapping is steep
+    /// and Float has ~1e-3 to give. `PerspectiveDepthRangeTests` pins the
+    /// planes exactly; this only checks the round trip is sane.
+    private let depthEpsilon: Float = 0.01
 
     func testMakePerspectiveNonZeroDiagonal() {
         let mtx = Mat4.makePerspective(fovRadian: GameMath.piOverTwo, aspect: 1.0, n: 0.1, f: 100)
@@ -25,7 +30,7 @@ final class PerspectiveProjectionTests: XCTestCase {
 
         XCTAssertEqual(unprojected.x, worldPoint.x, accuracy: epsilon)
         XCTAssertEqual(unprojected.y, worldPoint.y, accuracy: epsilon)
-        XCTAssertEqual(unprojected.z, worldPoint.z, accuracy: epsilon)
+        XCTAssertEqual(unprojected.z, worldPoint.z, accuracy: depthEpsilon)
     }
 
     func testPerspectiveRoundTripPositiveCoords() {
@@ -39,7 +44,7 @@ final class PerspectiveProjectionTests: XCTestCase {
 
         XCTAssertEqual(unprojected.x, worldPoint.x, accuracy: epsilon)
         XCTAssertEqual(unprojected.y, worldPoint.y, accuracy: epsilon)
-        XCTAssertEqual(unprojected.z, worldPoint.z, accuracy: epsilon)
+        XCTAssertEqual(unprojected.z, worldPoint.z, accuracy: depthEpsilon)
     }
 
     func testPerspectiveRoundTripNegativeCoords() {
@@ -53,7 +58,7 @@ final class PerspectiveProjectionTests: XCTestCase {
 
         XCTAssertEqual(unprojected.x, worldPoint.x, accuracy: epsilon)
         XCTAssertEqual(unprojected.y, worldPoint.y, accuracy: epsilon)
-        XCTAssertEqual(unprojected.z, worldPoint.z, accuracy: epsilon)
+        XCTAssertEqual(unprojected.z, worldPoint.z, accuracy: depthEpsilon)
     }
 
     func testPerspectiveSymmetry() {
@@ -80,7 +85,7 @@ final class PerspectiveProjectionTests: XCTestCase {
 
         XCTAssertEqual(unprojected.x, worldPoint.x, accuracy: epsilon)
         XCTAssertEqual(unprojected.y, worldPoint.y, accuracy: epsilon)
-        XCTAssertEqual(unprojected.z, worldPoint.z, accuracy: epsilon)
+        XCTAssertEqual(unprojected.z, worldPoint.z, accuracy: depthEpsilon)
     }
 
     func testPerspectiveRoundTripDifferentZDepths() {
@@ -95,7 +100,7 @@ final class PerspectiveProjectionTests: XCTestCase {
 
             XCTAssertEqual(unprojected.x, worldPoint.x, accuracy: epsilon, "Failed at z=\(z)")
             XCTAssertEqual(unprojected.y, worldPoint.y, accuracy: epsilon, "Failed at z=\(z)")
-            XCTAssertEqual(unprojected.z, worldPoint.z, accuracy: epsilon, "Failed at z=\(z)")
+            XCTAssertEqual(unprojected.z, worldPoint.z, accuracy: depthEpsilon, "Failed at z=\(z)")
         }
     }
 
@@ -484,5 +489,66 @@ final class ScreenWorldProjectionTests: XCTestCase {
         XCTAssertEqual(topLeft.y, bounds.maxY, accuracy: epsilon)
         XCTAssertEqual(bottomRight.x, bounds.maxX, accuracy: epsilon)
         XCTAssertEqual(bottomRight.y, bounds.minY, accuracy: epsilon)
+    }
+}
+
+// MARK: - Depth Range Tests
+
+/// Metal clips NDC z to [0, 1]. `makePerspective` must put the near plane
+/// at 0 and the far plane at 1, and `Projection` must pass that depth
+/// through unchanged.
+final class PerspectiveDepthRangeTests: XCTestCase {
+
+    private let epsilon: Float = 0.0001
+    private let near: Float = 1
+    private let far: Float = 100
+    private let frame = CGRect(x: 0, y: 0, width: 800, height: 600)
+
+    private func ndcDepth(ofWorldZ z: Float, cameraDistance: Float = 50) -> Float {
+        let proj = Mat4.makePerspective(fovRadian: GameMath.piOverTwo, aspect: 1, n: near, f: far)
+        let view = Mat4.makeLookAt2D(Vec3(0, 0, cameraDistance))
+        let clip = proj * view * Vec4(0, 0, z, 1)
+        return clip.z / clip.w
+    }
+
+    func testNearPlaneMapsToZero() {
+        XCTAssertEqual(ndcDepth(ofWorldZ: 50 - near), 0, accuracy: epsilon)
+    }
+
+    func testFarPlaneMapsToOne() {
+        XCTAssertEqual(ndcDepth(ofWorldZ: 50 - far), 1, accuracy: epsilon)
+    }
+
+    func testDepthIncreasesAwayFromCamera() {
+        XCTAssertLessThan(ndcDepth(ofWorldZ: 40), ndcDepth(ofWorldZ: 0))
+    }
+
+    func testProjectReturnsNdcDepth() {
+        let proj = Mat4.makePerspective(fovRadian: GameMath.piOverTwo, aspect: 800.0 / 600.0, n: near, f: far)
+        let view = Mat4.makeLookAt2D(Vec3(0, 0, 50))
+
+        let onNear = Projection.project(
+            worldPoint: Vec3(0, 0, 50 - near), projection: proj, viewMatrix: view,
+            viewFrame: frame, viewBounds: frame)
+        let onFar = Projection.project(
+            worldPoint: Vec3(0, 0, 50 - far), projection: proj, viewMatrix: view,
+            viewFrame: frame, viewBounds: frame)
+
+        XCTAssertEqual(onNear.z, 0, accuracy: epsilon)
+        XCTAssertEqual(onFar.z, 1, accuracy: epsilon)
+    }
+
+    func testUnprojectRayRunsFromNearPlaneToFarPlane() {
+        let proj = Mat4.makePerspective(fovRadian: GameMath.piOverTwo, aspect: 800.0 / 600.0, n: near, f: far)
+        let view = Mat4.makeLookAt2D(Vec3(0, 0, 50))
+        let nearPoint = Projection.unproject(
+            screenPoint: Vec3(400, 300, 0), projection: proj, viewMatrix: view,
+            viewFrame: frame, viewBounds: frame)
+        let farPoint = Projection.unproject(
+            screenPoint: Vec3(400, 300, 1), projection: proj, viewMatrix: view,
+            viewFrame: frame, viewBounds: frame)
+
+        XCTAssertEqual(nearPoint.z, 50 - near, accuracy: 0.001)
+        XCTAssertEqual(farPoint.z, 50 - far, accuracy: 0.01)
     }
 }

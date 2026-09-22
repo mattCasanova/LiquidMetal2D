@@ -17,7 +17,7 @@ public extension Vec3 {
     var lengthSquared: Float { simd_length_squared(self) }
 
     /// Returns a unit vector in the same direction, or zero if length is zero
-    var normalized: Vec3 { simd_normalize(self) }
+    var normalized: Vec3 { lengthSquared > 0 ? simd_normalize(self) : Vec3() }
 
     /// Red channel accessor (maps to x).
     var r: Float {
