@@ -28,12 +28,33 @@ public struct Pose: Equatable, Sendable {
         }
     }
 
+    /// Copies every bone from `other` in place, without reallocating.
+    public mutating func copyValues(from other: Pose) {
+        precondition(
+            other.local.count == local.count,
+            "Copying a pose of \(other.local.count) bones into one of \(local.count)")
+        for index in local.indices {
+            local[index] = other.local[index]
+        }
+    }
+
     /// Sets this pose part way from `a` to `b`: positions blend linearly,
     /// rotations the short way round.
+    ///
+    /// At `t <= 0` and `t >= 1` the ends are copied exactly, so a full-weight
+    /// blend hands back a key of 4 rad as 4, not as the equivalent -2.28.
     public mutating func setBlend(from a: Pose, to b: Pose, t: Float) {
         precondition(
             a.local.count == local.count && b.local.count == local.count,
             "Blending poses of different sizes: \(a.local.count), \(b.local.count) into \(local.count)")
+        if t <= 0 {
+            copyValues(from: a)
+            return
+        }
+        if t >= 1 {
+            copyValues(from: b)
+            return
+        }
         for index in local.indices {
             local[index] = RigidTransform2D(
                 position: GameMath.lerp(a: a.local[index].position, b: b.local[index].position, t: t),

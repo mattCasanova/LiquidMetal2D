@@ -83,11 +83,21 @@ public struct ResolvedClip: Equatable, Sendable {
             definition.bones.count == boneCount,
             "Clip \(name) was resolved for \(boneCount) bones, sampled with \(definition.bones.count)")
 
+        pose.reset(to: definition)
+        apply(at: time, onto: &pose)
+    }
+
+    /// Overwrites only the channels this clip has keys for, leaving every other
+    /// bone as it was. This is how an override layer sits on top of the one below.
+    public func apply(at time: Float, onto pose: inout Pose) {
+        precondition(
+            pose.local.count == boneCount,
+            "Clip \(name) was resolved for \(boneCount) bones, applied to a pose of \(pose.local.count)")
+
         let t = loops
             ? GameMath.wrap(value: time, low: 0, high: duration)
             : GameMath.clamp(value: time, low: 0, high: duration)
 
-        pose.reset(to: definition)
         for track in tracks {
             if let rotation = track.rotation.sample(at: t, lerp: { GameMath.lerp(a: $0, b: $1, t: $2) }) {
                 pose.local[track.boneIndex].rotation = rotation
