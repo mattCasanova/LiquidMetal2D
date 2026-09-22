@@ -21,3 +21,6 @@ Carthage/Build/
 
 # Claude Code local config (machine-specific)
 .claude/settings.local.json
+
+# SwiftPM-generated workspace for opening Package.swift in Xcode
+.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
