@@ -125,6 +125,13 @@ public enum GameMath {
         return a + (b - a) * t
     }
 
+    /// Interpolates between two angles in radians the short way round, so
+    /// 170° to -170° passes through 180° rather than sweeping back through 0°.
+    public static func lerpAngle(a: Float, b: Float, t: Float) -> Float {
+        let delta = wrap(value: b - a, low: -pi, high: pi)
+        return a + delta * t
+    }
+
     /// Given a value between a and b, returns the normalized t (0–1).
     public static func inverseLerp(a: Float, b: Float, value: Float) -> Float {
         return (value - a) / (b - a)

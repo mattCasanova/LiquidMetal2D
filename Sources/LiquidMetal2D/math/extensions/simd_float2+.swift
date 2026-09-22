@@ -110,6 +110,13 @@ public extension Vec2 {
     func lerp(to: Vec2, t: Float) -> Vec2 {
         simd_mix(self, to, Vec2(repeating: t))
     }
+
+    /// Returns this vector rotated counter-clockwise by `angle` radians.
+    func rotated(by angle: Float) -> Vec2 {
+        let cosAngle = cos(angle)
+        let sinAngle = sin(angle)
+        return Vec2(x * cosAngle - y * sinAngle, x * sinAngle + y * cosAngle)
+    }
 }
 
 /// Returns `true` if two Vec2 values are equal within `GameMath.epsilon` tolerance.
