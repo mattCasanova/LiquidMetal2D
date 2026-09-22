@@ -31,12 +31,15 @@ public struct AnimationClip: Codable, Equatable, Sendable {
     public var duration: Float
     public var loops: Bool
     public var tracks: [BoneTrack]
+    /// Named moments reported through ``Animator/onEvent``. Any order; sorted on resolve.
+    public var events: [AnimationEvent]
 
-    public init(name: String, duration: Float, loops: Bool, tracks: [BoneTrack]) {
+    public init(name: String, duration: Float, loops: Bool, tracks: [BoneTrack], events: [AnimationEvent] = []) {
         self.name = name
         self.duration = duration
         self.loops = loops
         self.tracks = tracks
+        self.events = events
     }
 
     /// Checks the clip against `definition` and swaps bone names for indices,
@@ -54,9 +57,14 @@ public struct AnimationClip: Codable, Equatable, Sendable {
                 position: track.position)
         }
 
+        for event in events where !(0...duration).contains(event.time) {
+            throw SkeletonError.eventOutOfRange(clip: name, event: event.name)
+        }
+
         return ResolvedClip(
             name: name, duration: duration, loops: loops,
-            boneCount: definition.bones.count, tracks: resolvedTracks)
+            boneCount: definition.bones.count, tracks: resolvedTracks,
+            events: events.sorted { $0.time < $1.time })
     }
 }
 
@@ -73,6 +81,8 @@ public struct ResolvedClip: Equatable, Sendable {
     public let loops: Bool
     let boneCount: Int
     let tracks: [Track]
+    /// Sorted by time.
+    public let events: [AnimationEvent]
 
     /// Writes the clip's pose at `time` into `pose`.
     ///

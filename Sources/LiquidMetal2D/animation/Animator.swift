@@ -19,6 +19,9 @@
 /// - **Layer weight** — a layer fades in from nothing when it starts, and out
 ///   again on ``stop(layer:fadeOut:)``.
 ///
+/// Clip events (footsteps, a sword release) are reported through ``onEvent``
+/// from each layer's current clip. A clip being crossfaded away stays quiet.
+///
 /// The pose is recomputed in ``update(dt:)``. In steady play nothing allocates there.
 public final class Animator {
 
@@ -29,9 +32,16 @@ public final class Animator {
     /// clip name. Called from ``update(dt:)`` before the pose is computed, so
     /// playing the next clip from here shows up the same frame.
     public var onClipFinished: ((_ layer: Int, _ clipName: String) -> Void)?
+    /// Fires for each ``AnimationEvent`` that play passes, in time order, from
+    /// ``update(dt:)`` before the pose is computed. An event at time `t` fires on
+    /// the update whose step covers `[t0, t1)` with `t0 <= t < t1`, so an event at
+    /// 0 fires on the clip's first update. Looping clips fire every lap.
+    public var onEvent: ((_ layer: Int, _ clipName: String, _ eventName: String) -> Void)?
 
     private let definition: SkeletonDefinition
     private var layers: [Layer]
+    /// Events and finishes collected during an update, reported once the layers are advanced.
+    private var notices: [Notice] = []
 
     // Scratch poses, sized once.
     private var lowerPose: Pose
@@ -49,6 +59,7 @@ public final class Animator {
         currentPose = rest
         previousPose = rest
         blendedPose = rest
+        notices.reserveCapacity(16)
     }
 
     public var layerCount: Int { layers.count }
@@ -112,26 +123,52 @@ public final class Animator {
         }
     }
 
-    /// Advances every layer by `dt * speed`, fires finished callbacks, and recomputes ``pose``.
+    /// Advances every layer by `dt * speed`, reports events and finished clips, and recomputes ``pose``.
     public func update(dt: Float) {
         let step = dt * speed
-        var finished: [(layer: Int, clip: String)] = []
 
         for index in layers.indices {
+            let startTime = layers[index].current?.time
             layers[index].advance(by: step)
+
+            if let startTime, let playing = layers[index].current {
+                collectEvents(of: playing.clip, from: startTime, to: playing.time, layer: index)
+            }
             if let playback = layers[index].takeNewlyFinishedClip() {
-                finished.append((index, playback.clip.name))
+                notices.append(.finished(layer: index, clip: playback.clip.name))
                 if let fadeOut = playback.fadeOutWhenFinished {
                     stop(layer: index, fadeOut: fadeOut)
                 }
             }
         }
 
-        for event in finished {
-            onClipFinished?(event.layer, event.clip)
+        for notice in notices {
+            switch notice {
+            case let .event(layer, clip, name): onEvent?(layer, clip, name)
+            case let .finished(layer, clip): onClipFinished?(layer, clip)
+            }
         }
+        notices.removeAll(keepingCapacity: true)
 
         computePose()
+    }
+
+    /// Queues every event `clip` passes in `[start, end)`, in order.
+    /// Times are the clip's running time, which keeps growing across loops.
+    private func collectEvents(of clip: ResolvedClip, from start: Float, to end: Float, layer: Int) {
+        guard !clip.events.isEmpty, end > start else { return }
+
+        let firstLap = clip.loops ? Int((start / clip.duration).rounded(.down)) : 0
+        let lastLap = clip.loops ? Int((end / clip.duration).rounded(.down)) : 0
+        for lap in firstLap...lastLap {
+            let lapStart = Float(lap) * clip.duration
+            for event in clip.events {
+                let time = lapStart + event.time
+                if start <= time && time < end {
+                    notices.append(.event(layer: layer, clip: clip.name, name: event.name))
+                }
+            }
+        }
     }
 
     // MARK: - Queries
@@ -187,6 +224,11 @@ public final class Animator {
 }
 
 // MARK: - Layer state
+
+private enum Notice {
+    case event(layer: Int, clip: String, name: String)
+    case finished(layer: Int, clip: String)
+}
 
 private struct Playback {
     let clip: ResolvedClip

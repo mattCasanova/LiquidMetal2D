@@ -79,6 +79,7 @@ public enum SkeletonError: Error, Equatable {
     case keysNotSorted(bone: String)
     case invalidDuration(clip: String)
     case unknownTexture(String)
+    case eventOutOfRange(clip: String, event: String)
     case duplicateAttachmentName(String)
     case unknownAttachment(String)
 }
