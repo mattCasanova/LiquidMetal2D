@@ -78,6 +78,9 @@ public enum SkeletonError: Error, Equatable {
     case attachmentBoneOutOfRange(attachment: String)
     case keysNotSorted(bone: String)
     case invalidDuration(clip: String)
+    case unknownTexture(String)
+    case duplicateAttachmentName(String)
+    case unknownAttachment(String)
 }
 
 /// A rig: bones stored parents-before-children, plus the quads drawn on them.
@@ -106,9 +109,23 @@ public struct SkeletonDefinition: Codable, Equatable, Sendable {
             }
         }
 
-        for attachment in attachments where !bones.indices.contains(attachment.bone) {
-            throw SkeletonError.attachmentBoneOutOfRange(attachment: attachment.name)
+        var seenAttachments = Set<String>()
+        for attachment in attachments {
+            guard bones.indices.contains(attachment.bone) else {
+                throw SkeletonError.attachmentBoneOutOfRange(attachment: attachment.name)
+            }
+            guard seenAttachments.insert(attachment.name).inserted else {
+                throw SkeletonError.duplicateAttachmentName(attachment.name)
+            }
         }
+    }
+
+    /// Looks up an attachment by name.
+    public func attachmentIndex(named name: String) throws -> Int {
+        guard let index = attachments.firstIndex(where: { $0.name == name }) else {
+            throw SkeletonError.unknownAttachment(name)
+        }
+        return index
     }
 
     /// Looks up a bone by name. Files refer to bones by name; runtime code by index.
