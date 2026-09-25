@@ -11,8 +11,9 @@ import Metal
 /// Filters objects by ``WireframeComponent`` presence and reads the attached
 /// ``Collider`` to determine shape + size.
 ///
-/// Unlike ``AlphaBlendShader``, there is no texture batching — all instances
-/// issue in one instanced draw call, with color/shape/thickness per instance.
+/// Unlike ``AlphaBlendShader``, there is no texture batching — the instances
+/// submitted since the last flush issue in one instanced draw call, with
+/// color/shape/thickness per instance.
 @MainActor
 public final class WireframeShader: Shader {
 
@@ -27,8 +28,12 @@ public final class WireframeShader: Shader {
     let bufferProvider: BufferProvider
 
     private var worldBuffer: MTLBuffer?
-    private var worldBufferContents: UnsafeMutableRawPointer?
+    /// This frame's uniforms. Readable by tests.
+    private(set) var worldBufferContents: UnsafeMutableRawPointer?
+    /// Instances written this frame.
     private var drawCount: Int = 0
+    /// Instances already encoded by an earlier ``flush(pass:)`` this frame.
+    private var drawnCount: Int = 0
 
     public init(renderCore: RenderCore, maxObjects: Int) {
         self.renderCore = renderCore
@@ -48,6 +53,7 @@ public final class WireframeShader: Shader {
         worldBuffer = buffer
         worldBufferContents = buffer.contents()
         drawCount = 0
+        drawnCount = 0
         return true
     }
 
@@ -103,12 +109,18 @@ public final class WireframeShader: Shader {
         }
     }
 
+    /// Draws the instances submitted since the last flush, from their own
+    /// slots. Their slots stay taken until the next frame: the GPU reads them
+    /// after encoding ends, so a later submit this frame must not reuse them.
     public func flush(pass: RenderPass) {
-        guard drawCount > 0 else { return }
-        pass.encoder.drawPrimitives(
+        guard drawCount > drawnCount else { return }
+        let encoder = pass.encoder
+        encoder.setVertexBufferOffset(
+            drawnCount * WireframeUniform.stride, index: WireframePipeline.worldBufferIndex)
+        encoder.drawPrimitives(
             type: .triangleStrip, vertexStart: 0,
-            vertexCount: 4, instanceCount: drawCount)
-        drawCount = 0
+            vertexCount: 4, instanceCount: drawCount - drawnCount)
+        drawnCount = drawCount
     }
 
     public nonisolated func signalFrameComplete() {

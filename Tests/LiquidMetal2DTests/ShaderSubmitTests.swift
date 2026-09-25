@@ -58,4 +58,37 @@ final class ShaderSubmitTests: XCTestCase {
                        [InstanceBatches.Batch(textureId: 0, startIndex: 0, count: 1000)])
         XCTAssertEqual(shader.instances.count, 1000)
     }
+
+    /// A pass that switches away from the wireframe shader and back flushes
+    /// in between. The first flush's draw reads its uniforms when the GPU
+    /// runs, after the second submit, so that submit must not reuse them.
+    func testWireframeKeepsEarlierInstancesAcrossAFlush() throws {
+        let renderCore = try ShaderTestSupport.makeRenderCore()
+        let shader = WireframeShader(renderCore: renderCore, maxObjects: 8)
+        let red = Vec4(1, 0, 0, 1)
+        let blue = Vec4(0, 0, 1, 1)
+        let first = ShaderTestSupport.makeWireframes(count: 3, color: red)
+        let second = ShaderTestSupport.makeWireframes(count: 2, color: blue)
+        let projection = try XCTUnwrap(renderCore.device.makeBuffer(length: ProjectionUniform.stride))
+
+        try withExtendedLifetime(renderCore) {
+            XCTAssertTrue(shader.beginFrame())
+            let pass = try ShaderTestSupport.makeRenderPass(renderCore)
+            shader.bind(pass: pass, projectionBuffer: projection)
+            shader.submit(objects: first)
+            shader.flush(pass: pass)
+            shader.bind(pass: pass, projectionBuffer: projection)
+            shader.submit(objects: second)
+            shader.flush(pass: pass)
+            pass.end()
+            shader.signalFrameComplete()
+        }
+
+        let contents = try XCTUnwrap(shader.worldBufferContents)
+        let colorOffset = try XCTUnwrap(MemoryLayout<WireframeUniform>.offset(of: \.color))
+        let colors = (0..<5).map {
+            contents.load(fromByteOffset: $0 * WireframeUniform.stride + colorOffset, as: Vec4.self)
+        }
+        XCTAssertEqual(colors, [red, red, red, blue, blue])
+    }
 }

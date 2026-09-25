@@ -57,6 +57,23 @@ enum ShaderTestSupport {
         return (parent, emitter)
     }
 
+    /// A render pass on a 64×64 drawable, for tests that encode real draws.
+    static func makeRenderPass(_ renderCore: RenderCore) throws -> RenderPass {
+        renderCore.resize(scale: 1, layerSize: CGSize(width: 64, height: 64))
+        return try XCTUnwrap(RenderPass(renderCore: renderCore), "the test layer gave no drawable")
+    }
+
+    /// `count` objects in a row, each with a circle collider outlined in `color`.
+    static func makeWireframes(count: Int, color: Vec4) -> [GameObj] {
+        return (0..<count).map { index in
+            let obj = GameObj()
+            obj.position = Vec2(Float(index) * 3, 0)
+            obj.add(CircleCollider(parent: obj, radius: 1))
+            obj.add(WireframeComponent(parent: obj, color: color))
+            return obj
+        }
+    }
+
     /// One frame's CPU side: take this frame's buffer, write every uniform,
     /// hand the buffer back. The real engine signals when the GPU finishes;
     /// with no GPU work, the buffer is free at once.
