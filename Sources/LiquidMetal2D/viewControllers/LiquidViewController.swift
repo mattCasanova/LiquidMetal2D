@@ -13,7 +13,7 @@ open class LiquidViewController: UIViewController {
 
     open override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        let scale = view.window?.screen.nativeScale ?? UIScreen.main.nativeScale
+        let scale = view.window?.screen.nativeScale ?? traitCollection.displayScale
         gameEngine.resize(scale: scale, layerSize: view.bounds.size)
     }
 
