@@ -101,6 +101,30 @@ final class PerformanceTests: XCTestCase {
         XCTAssertGreaterThan(drawn, 0)
     }
 
+    /// The steady state: objects already in draw order, as in a scene whose
+    /// objects don't change z or texture. `DrawList` checks the order in one
+    /// pass and skips the sort.
+    func testAlphaBlendSortSteadyState() {
+        var rng = SeededRandom(seed: 3)
+        let shuffled: [GameObj] = (0..<5000).map { _ in
+            let obj = GameObj()
+            obj.zOrder = Float(Int.random(in: 0...4, using: &rng))
+            obj.add(AlphaBlendComponent(parent: obj, textureID: Int.random(in: 0...7, using: &rng)))
+            return obj
+        }
+        var drawList = DrawList<AlphaBlendComponent>()
+        drawList.rebuild(from: shuffled)
+        let ordered = drawList.pairs.map(\.0)
+
+        var drawn = 0
+        measure {
+            drawList.rebuild(from: ordered)
+            drawn += drawList.pairs.count
+            drawList.clear()
+        }
+        XCTAssertGreaterThan(drawn, 0)
+    }
+
     // MARK: - Helpers
 
     /// Returns the parent too: the emitter holds it `unowned`, so the caller

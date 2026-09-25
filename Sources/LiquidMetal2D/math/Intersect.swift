@@ -124,23 +124,30 @@ public enum Intersect {
 
     /// Returns `true` if a circle and a line segment overlap or touch.
     ///
-    /// Finds the closest point on the segment to the circle's center and
-    /// compares the squared distance to `radius²`. No square roots, and the
-    /// segment's end caps are round, as they must be.
+    /// No square roots and no divides. The dot product of `center - start`
+    /// with the segment says which part of the segment is closest: behind
+    /// `start`, past `end`, or somewhere between. In between, the cross
+    /// product is `length × distance`, so `distance ≤ radius` becomes
+    /// `cross² ≤ radius² × length²`. A zero-length segment has a dot of 0 and
+    /// takes the first branch, which tests it as a point.
     @inlinable
     public static func circleLineSegment(
         center: Vec2, radius: Float, start: Vec2, end: Vec2
     ) -> Bool {
         let line = end - start
-        let lengthSquared = simd_length_squared(line)
-        guard lengthSquared > 0 else {
-            // Degenerate segment: it is a point.
-            return pointCircle(point: start, circle: center, radius: radius)
-        }
+        let toCenter = center - start
+        let radiusSquared = radius * radius
+        let along = simd_dot(toCenter, line)
 
-        let t = GameMath.clamp(value: simd_dot(center - start, line) / lengthSquared, low: 0, high: 1)
-        let closest = start + line * t
-        return simd_length_squared(center - closest) <= radius * radius
+        if along <= 0 {
+            return simd_length_squared(toCenter) <= radiusSquared
+        }
+        let lengthSquared = simd_length_squared(line)
+        if along >= lengthSquared {
+            return simd_length_squared(center - end) <= radiusSquared
+        }
+        let cross = line.cross(toCenter)
+        return cross * cross <= radiusSquared * lengthSquared
     }
 
     // MARK: - AABB vs AABB

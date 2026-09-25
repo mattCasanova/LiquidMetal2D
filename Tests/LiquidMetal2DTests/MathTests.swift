@@ -1073,6 +1073,33 @@ final class IntersectEdgeCaseTests: XCTestCase {
             center: Vec2(0.5, 0), radius: 0.1, start: start, end: start))
     }
 
+    func testCircleLineMatchesClosestPointReference() {
+        // Reference: clamp the projection onto the segment and measure to the
+        // closest point (the textbook form, with a divide). The divide-free
+        // version must agree everywhere except within float noise of the edge.
+        var rng = SeededRandom(seed: 11)
+        var checked = 0
+        for _ in 0..<10_000 {
+            let center = Vec2(Float.random(in: -20...20, using: &rng), Float.random(in: -20...20, using: &rng))
+            let radius = Float.random(in: 0.1...8, using: &rng)
+            let segStart = Vec2(Float.random(in: -20...20, using: &rng), Float.random(in: -20...20, using: &rng))
+            let segEnd = Vec2(Float.random(in: -20...20, using: &rng), Float.random(in: -20...20, using: &rng))
+
+            let line = segEnd - segStart
+            let along = simd_dot(center - segStart, line) / simd_length_squared(line)
+            let t = GameMath.clamp(value: along, low: 0, high: 1)
+            let distanceSquared = simd_length_squared(center - (segStart + line * t))
+            guard abs(distanceSquared - radius * radius) > 1e-3 else { continue }
+
+            XCTAssertEqual(
+                Intersect.circleLineSegment(center: center, radius: radius, start: segStart, end: segEnd),
+                distanceSquared <= radius * radius,
+                "center \(center) r \(radius) segment \(segStart)→\(segEnd)")
+            checked += 1
+        }
+        XCTAssertGreaterThan(checked, 9_900)
+    }
+
     // MARK: pointLineSegment tolerance
 
     func testPointOnLongSegmentWithinEpsilon() {
