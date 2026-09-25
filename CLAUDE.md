@@ -25,7 +25,7 @@ Swift/Metal 2D game engine library for iOS.
 - **Game Engine** (`engine/`) — `GameEngine` protocol + `DefaultEngine`. Main loop via CADisplayLink with dt clamping. Full shutdown chain (engine → scenes → renderer)
 - **Input** (`input/`) — `InputReader`/`InputWriter` protocols. Touch with screen-to-world unprojection
 - **Game Objects** (`dataTypes/`) — `GameObj` (`final`: position, velocity, scale, rotation, zOrder, isActive, components) — **no subclassing, compose via components**. Plain value types: `Particle` (particle pool data), `WorldBounds`, `UnprojectRay`. The `Component` protocol + render components live in `components/`.
-- **Colliders** (`colliders/`) — `Collider` protocol with double-dispatch. `CircleCollider`, `PointCollider`, `AABBCollider`, `NilCollider`
+- **Colliders** (`colliders/`) — `Collider` protocol with double-dispatch. `CircleCollider`, `PointCollider`, `AABBCollider`, `NilCollider`. `SpatialGrid` (broad phase): `forEachPotentialPair` and `forEachNear` allocate nothing in optimized builds; `potentialPairs()` / `query(near:)` return arrays for convenience
 - **Math** (`math/`) — Merged from MetalMath, no external dependency
   - `GameMath` enum — clamp, wrap, lerp, inverseLerp, remap, smoothstep, bezier curves, angle conversion, float comparison
   - `Easing` enum — quad, cubic, quartic, sine, expo, elastic, bounce, back (in/out/inOut)
@@ -67,6 +67,10 @@ xcodebuild -scheme LiquidMetal2D -destination 'platform=iOS Simulator,name=iPhon
 
 # Test
 xcodebuild -scheme LiquidMetal2D -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -skipPackagePluginValidation test
+
+# Zero-allocation claims (skipped in Debug; only meaningful optimized)
+xcodebuild -scheme LiquidMetal2D -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -skipPackagePluginValidation \
+  -configuration Release ENABLE_TESTABILITY=YES test -only-testing:LiquidMetal2DTests/AllocationTests
 ```
 
 ## Notes

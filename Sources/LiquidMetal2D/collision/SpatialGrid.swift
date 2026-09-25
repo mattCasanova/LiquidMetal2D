@@ -102,54 +102,21 @@ public class SpatialGrid {
 
     /// Returns all candidate collision pairs.
     ///
+    /// Allocates the returned array. In a per-frame loop, prefer
+    /// ``forEachPotentialPair(_:)``, which allocates nothing.
+    public func potentialPairs() -> [(GameObj, GameObj)] {
+        var result = [(GameObj, GameObj)]()
+        forEachPotentialPair { result.append(($0, $1)) }
+        return result
+    }
+
+    /// Calls the closure for each candidate collision pair. Allocates nothing
+    /// in optimized builds (pinned by `AllocationTests`).
+    ///
     /// Uses half-neighbor traversal: for each cell, pairs objects within the
     /// cell, then pairs with the 4 forward neighbors (right, below-left,
     /// below, below-right). This visits each cell-pair exactly once, so
     /// no deduplication is needed.
-    public func potentialPairs() -> [(GameObj, GameObj)] {
-        var result = [(GameObj, GameObj)]()
-
-        for row in 0..<rows {
-            for col in 0..<columns {
-                let cell = cells[flatIndex(column: col, row: row)]
-                guard !cell.isEmpty else { continue }
-
-                // Pair objects within this cell
-                for i in 0..<cell.count {
-                    for j in (i + 1)..<cell.count {
-                        result.append((cell[i], cell[j]))
-                    }
-                }
-
-                // Pair with 4 forward neighbors to avoid double-counting:
-                // right, below-left, below, below-right.
-                let neighbors = [
-                    (col + 1, row),
-                    (col - 1, row + 1),
-                    (col, row + 1),
-                    (col + 1, row + 1)
-                ]
-
-                for (nc, nr) in neighbors {
-                    guard nc >= 0, nc < columns, nr >= 0, nr < rows else { continue }
-                    let neighbor = cells[flatIndex(column: nc, row: nr)]
-                    guard !neighbor.isEmpty else { continue }
-
-                    for objA in cell {
-                        for objB in neighbor {
-                            result.append((objA, objB))
-                        }
-                    }
-                }
-            }
-        }
-        return result
-    }
-
-    /// Calls the closure for each candidate collision pair. Zero allocation.
-    ///
-    /// Same half-neighbor traversal as ``potentialPairs()`` but avoids
-    /// building an array. Use this in hot loops where allocation matters.
     public func forEachPotentialPair(_ body: (GameObj, GameObj) -> Void) {
         for row in 0..<rows {
             for col in 0..<columns {
@@ -162,24 +129,13 @@ public class SpatialGrid {
                     }
                 }
 
-                let neighbors = [
-                    (col + 1, row),
-                    (col - 1, row + 1),
-                    (col, row + 1),
-                    (col + 1, row + 1)
-                ]
-
-                for (nc, nr) in neighbors {
-                    guard nc >= 0, nc < columns, nr >= 0, nr < rows else { continue }
-                    let neighbor = cells[flatIndex(column: nc, row: nr)]
-                    guard !neighbor.isEmpty else { continue }
-
-                    for objA in cell {
-                        for objB in neighbor {
-                            body(objA, objB)
-                        }
-                    }
-                }
+                // Four explicit calls, not an array of offsets. The optimizer
+                // stack-promotes such an array in Release, but Debug builds
+                // heap-allocate it once per cell per frame.
+                pairAcross(cell, column: col + 1, row: row, body)
+                pairAcross(cell, column: col - 1, row: row + 1, body)
+                pairAcross(cell, column: col, row: row + 1, body)
+                pairAcross(cell, column: col + 1, row: row + 1, body)
             }
         }
     }
@@ -188,25 +144,38 @@ public class SpatialGrid {
     /// neighboring cells.
     ///
     /// Positions outside the grid bounds are clamped to the nearest edge cell.
+    /// Allocates the returned array; in a per-object, per-frame loop prefer
+    /// ``forEachNear(_:_:)``.
     public func query(near position: Vec2) -> [GameObj] {
-        let (col, row) = cellIndex(for: position)
         var result = [GameObj]()
-
-        for dr in -1...1 {
-            for dc in -1...1 {
-                let nc = col + dc
-                let nr = row + dr
-                guard nc >= 0, nc < columns, nr >= 0, nr < rows else { continue }
-                result.append(contentsOf: cells[flatIndex(column: nc, row: nr)])
-            }
-        }
+        forEachNear(position) { result.append($0) }
         return result
     }
 
     /// Returns all objects near the given object's position,
     /// excluding the object itself.
     public func query(near obj: GameObj) -> [GameObj] {
-        return query(near: obj.position).filter { $0 !== obj }
+        var result = [GameObj]()
+        forEachNear(obj.position) { other in
+            if other !== obj { result.append(other) }
+        }
+        return result
+    }
+
+    /// Calls the closure for every object in the position's cell and its 8
+    /// neighbors. Allocates nothing in optimized builds, so it suits "what's
+    /// near me?" for every object every frame.
+    ///
+    /// Positions outside the grid bounds are clamped to the nearest edge cell.
+    public func forEachNear(_ position: Vec2, _ body: (GameObj) -> Void) {
+        let (col, row) = cellIndex(for: position)
+        for nr in (row - 1)...(row + 1) where nr >= 0 && nr < rows {
+            for nc in (col - 1)...(col + 1) where nc >= 0 && nc < columns {
+                for obj in cells[flatIndex(column: nc, row: nr)] {
+                    body(obj)
+                }
+            }
+        }
     }
 
     // MARK: - Private Helpers
@@ -227,6 +196,20 @@ public class SpatialGrid {
         assert(!raw.isNaN, "SpatialGrid: position is NaN")
         guard !raw.isNaN else { return 0 }
         return Int(GameMath.clamp(value: raw, low: 0, high: Float(count - 1)))
+    }
+
+    /// Pairs every object in `cell` with every object in the cell at
+    /// (column, row), if that cell exists.
+    private func pairAcross(
+        _ cell: [GameObj], column: Int, row: Int, _ body: (GameObj, GameObj) -> Void
+    ) {
+        guard column >= 0, column < columns, row >= 0, row < rows else { return }
+        let neighbor = cells[flatIndex(column: column, row: row)]
+        for objA in cell {
+            for objB in neighbor {
+                body(objA, objB)
+            }
+        }
     }
 
     /// Converts (column, row) to flat array index.
