@@ -25,4 +25,12 @@ public struct Transform2D: Equatable, Sendable, BitwiseCopyable {
         self.rotation = rotation
         self.zOrder = zOrder
     }
+
+    /// A quad of size `scale` placed at `rigid`'s position and rotation. Scale
+    /// joins only here, on the drawn quad: bones compose as
+    /// ``RigidTransform2D``, which has none, so chains (and IK) stay rigid.
+    @inlinable
+    public init(_ rigid: RigidTransform2D, scale: Vec2 = Vec2(1, 1), zOrder: Float = 0) {
+        self.init(position: rigid.position, scale: scale, rotation: rigid.rotation, zOrder: zOrder)
+    }
 }

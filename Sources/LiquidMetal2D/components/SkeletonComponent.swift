@@ -136,10 +136,10 @@ public final class SkeletonComponent: Component {
             let placed = placeInWorld(RigidTransform2D(
                 position: centre, rotation: bone.rotation + attachment.rotation))
 
-            part.position = placed.position
-            part.rotation = placed.rotation
-            part.scale = Vec2(attachment.size.x, flipX ? -attachment.size.y : attachment.size.y) * scale
-            part.zOrder = parent.zOrder + Float(attachment.drawOrder) * Self.zStep
+            part.transform = Transform2D(
+                placed,
+                scale: Vec2(attachment.size.x, flipX ? -attachment.size.y : attachment.size.y) * scale,
+                zOrder: parent.zOrder + Float(attachment.drawOrder) * Self.zStep)
             part.isActive = parent.isActive && visible[index]
         }
     }

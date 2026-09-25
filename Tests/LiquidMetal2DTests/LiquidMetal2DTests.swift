@@ -27,6 +27,15 @@ final class LiquidMetal2DTests: XCTestCase {
         XCTAssertEqual(obj.transform, Transform2D(position: Vec2(7, 2), scale: Vec2(3, -4), rotation: 0.5, zOrder: 6))
     }
 
+    func testTransform2DFromARigidTransform() {
+        let rigid = RigidTransform2D(position: Vec2(1, 2), rotation: 0.5)
+
+        XCTAssertEqual(Transform2D(rigid, scale: Vec2(3, -4), zOrder: 6),
+                       Transform2D(position: Vec2(1, 2), scale: Vec2(3, -4), rotation: 0.5, zOrder: 6))
+        XCTAssertEqual(Transform2D(rigid),
+                       Transform2D(position: Vec2(1, 2), scale: Vec2(1, 1), rotation: 0.5, zOrder: 0))
+    }
+
     func testCamera2DDefaults() {
         let camera = Camera2D()
         XCTAssertEqual(camera.eye.x, 0)
