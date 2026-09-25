@@ -13,7 +13,7 @@ import Foundation
 /// The scene is responsible for advancing ``time`` each frame (typically
 /// `comp.time += dt`). Tweak ``amplitude``, ``frequency``, and ``speed``
 /// to tune the effect.
-public final class RippleComponent: Component {
+public final class RippleComponent: TexturedComponent {
     public unowned var parent: GameObj
     public var textureID: Int
     public var tintColor: Vec4
@@ -46,13 +46,14 @@ public final class RippleComponent: Component {
         self.speed = speed
     }
 
-    func fillUniform(_ uniform: RippleUniform) {
-        uniform.transform.setToTransform2D(
-            scale: parent.scale,
-            angle: parent.rotation,
-            translate: Vec3(parent.position, parent.zOrder))
-        uniform.texTrans = texTrans
-        uniform.color = tintColor
-        uniform.params = Vec4(time, amplitude, frequency, speed)
+    func makeUniform() -> RippleUniform {
+        return RippleUniform(
+            transform: Mat4.makeTransform2D(
+                scale: parent.scale,
+                angle: parent.rotation,
+                translate: Vec3(parent.position, parent.zOrder)),
+            texTrans: texTrans,
+            color: tintColor,
+            params: Vec4(time, amplitude, frequency, speed))
     }
 }

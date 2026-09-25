@@ -36,7 +36,7 @@ public enum EmitterShape: Sendable, Codable {
 /// attach the component to a moving GameObj (ship, character, weapon) and
 /// the emitter follows automatically. Use ``shape`` to spread spawns across
 /// a line, box, or disc instead of a single point.
-public final class ParticleEmitterComponent: Component {
+public final class ParticleEmitterComponent: TexturedComponent {
     public unowned var parent: GameObj
 
     // MARK: - Config

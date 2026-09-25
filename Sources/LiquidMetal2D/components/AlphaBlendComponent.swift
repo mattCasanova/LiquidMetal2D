@@ -14,7 +14,7 @@ import Foundation
 /// ``AlphaBlendShader/submit(objects:)`` — attach additional render
 /// components (e.g., a future wireframe component) to render the same
 /// object through multiple shaders.
-public final class AlphaBlendComponent: Component {
+public final class AlphaBlendComponent: TexturedComponent {
     public unowned var parent: GameObj
     public var textureID: Int
     public var tintColor: Vec4
@@ -32,14 +32,15 @@ public final class AlphaBlendComponent: Component {
         self.texTrans = texTrans
     }
 
-    /// Fill an ``AlphaBlendUniform`` from this component's fields combined
-    /// with the parent's transform. Called by ``AlphaBlendShader`` per draw.
-    func fillUniform(_ uniform: AlphaBlendUniform) {
-        uniform.transform.setToTransform2D(
-            scale: parent.scale,
-            angle: parent.rotation,
-            translate: Vec3(parent.position, parent.zOrder))
-        uniform.texTrans = texTrans
-        uniform.color = tintColor
+    /// The ``AlphaBlendUniform`` for this component combined with the
+    /// parent's transform. Called by ``AlphaBlendShader`` per draw.
+    func makeUniform() -> AlphaBlendUniform {
+        return AlphaBlendUniform(
+            transform: Mat4.makeTransform2D(
+                scale: parent.scale,
+                angle: parent.rotation,
+                translate: Vec3(parent.position, parent.zOrder)),
+            texTrans: texTrans,
+            color: tintColor)
     }
 }

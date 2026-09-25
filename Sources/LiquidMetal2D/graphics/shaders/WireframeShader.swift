@@ -30,8 +30,6 @@ public final class WireframeShader: Shader {
     private var worldBufferContents: UnsafeMutableRawPointer?
     private var drawCount: Int = 0
 
-    private let scratchUniform = WireframeUniform()
-
     public init(renderCore: RenderCore, maxObjects: Int) {
         self.renderCore = renderCore
         self.maxObjects = maxObjects
@@ -39,7 +37,7 @@ public final class WireframeShader: Shader {
         self.vertexBuffer = renderCore.createQuad()
         self.bufferProvider = BufferProvider(
             device: renderCore.device,
-            size: WireframeUniform.typeSize() * maxObjects)
+            size: WireframeUniform.stride * maxObjects)
     }
 
     // MARK: - Shader protocol
@@ -90,13 +88,14 @@ public final class WireframeShader: Shader {
                    "WireframeShader draw count \(drawCount) exceeds maxObjects \(maxObjects)")
             guard drawCount < maxObjects else { break }
 
-            scratchUniform.transform.setToTransform2D(
-                scale: shapeScale,
-                angle: 0,
-                translate: Vec3(obj.position, obj.zOrder))
-            scratchUniform.color = wire.color
-            scratchUniform.params = Vec4(shapeParam, wire.thickness, 0, 0)
-            scratchUniform.setBuffer(buffer: contents, offsetIndex: drawCount)
+            WireframeUniform(
+                transform: Mat4.makeTransform2D(
+                    scale: shapeScale,
+                    angle: 0,
+                    translate: Vec3(obj.position, obj.zOrder)),
+                color: wire.color,
+                params: Vec4(shapeParam, wire.thickness, 0, 0))
+                .store(into: contents, index: drawCount)
             drawCount += 1
         }
     }

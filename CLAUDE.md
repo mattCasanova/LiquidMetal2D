@@ -16,10 +16,11 @@ Swift/Metal 2D game engine library for iOS.
   - `renderers/` — orchestration: `Renderer` protocol, `DefaultRenderer` (open for subclassing), `RenderCore` (Metal device/layer/queue)
   - `shaders/` — `Shader` protocol + built-in shaders (`AlphaBlendShader`, `WireframeShader`, `RippleShader`, `ParticleShader`) and their matching `*Pipeline` factories
   - `textures/` — `TextureManager` (async loading, ref counting, error/default textures, 64×64 procedural soft-circle particle texture), `TextureDescriptor`, `Texture`
-  - `uniforms/` — `ProjectionUniform`, `AlphaBlendUniform`, `WireframeUniform`, `RippleUniform`, `ParticleUniform`, `UniformData` protocol
+  - `uniforms/` — `ProjectionUniform`, `AlphaBlendUniform`, `WireframeUniform`, `RippleUniform`, `ParticleUniform`: plain structs whose fields mirror the MSL struct in order. `UniformData` gives `stride` (= `MemoryLayout.stride`, padding included) and `store(into:index:)`, one store per instance. `UniformLayoutTests` pins every stride and offset
+  - `shaders/DrawList.swift` — `DrawList<Comp: TexturedComponent>`: the per-frame `(GameObj, Comp)` list sorted by `(zOrder, textureID)`, reused across frames (no per-frame allocation). `AlphaBlendShader`, `RippleShader` and `ParticleShader` all use it
   - `metalHelpers/` — `BufferProvider` (triple-buffered semaphore)
   - `Camera2D`, `PerspectiveProjection`, `OrthographicProjection`, `RenderPass` (generic — owns encoder/drawable/command buffer)
-- **Components** (`components/`) — `Component` protocol + render-state components: `AlphaBlendComponent`, `WireframeComponent`, `RippleComponent`, `ParticleEmitterComponent` (owns particle pool)
+- **Components** (`components/`) — `Component` protocol + render-state components: `AlphaBlendComponent`, `WireframeComponent`, `RippleComponent`, `ParticleEmitterComponent` (owns particle pool). `TexturedComponent` (`textureID`) is the refinement `DrawList` sorts by; the alpha-blend, ripple and emitter components conform
 - **Scene Management** (`scenes/`) — Stack-based transitions (push/pop/set) via `SceneManager`. `SceneType` is a `Hashable` protocol (use an enum). `SceneFactory` maps types to `SceneBuilder`s. `DefaultScene` base class with built-in scheduler and object list
 - **Game Engine** (`engine/`) — `GameEngine` protocol + `DefaultEngine`. Main loop via CADisplayLink with dt clamping. Full shutdown chain (engine → scenes → renderer)
 - **Input** (`input/`) — `InputReader`/`InputWriter` protocols. Touch with screen-to-world unprojection
@@ -52,9 +53,9 @@ Swift/Metal 2D game engine library for iOS.
 - Draw flow: `beginPass()` → `usePerspective()`/`useOrthographic()` → `useShader(shader)` (optional; `submit` auto-binds alphaBlend) → `submit(objects:)` → `endPass()`. Switching shaders mid-pass flushes the previous shader's batches
 - Multi-shader per object: attach multiple render components (e.g., `AlphaBlendComponent` + a future `WireframeComponent`) to one GameObj and each shader picks up its matching component. No duplicate objects
 - Advanced manual path: `renderer.alphaBlend.draw(transform:texTrans:color:textureId:)` — per-call, no sort, batches consecutive same-texture calls
-- `submit(objects:)` sorts by `(zOrder, textureID)` from the component and batches by texture for instanced drawing
+- `submit(objects:)` sorts by `(zOrder, textureID)` via `DrawList` and batches by texture for instanced drawing. Ascending `zOrder` is far-to-near (the camera sits at `z = distance` looking down −z), so the painter's order is ascending. Components build their uniform with `makeUniform()`
 - Textures load asynchronously; missing textures show magenta error texture. Built-in 1×1 white `defaultTexture` (for solid-color tinting via `AlphaBlendComponent.tintColor`) and 64×64 soft-circle `defaultParticleTexture` (for additive `ParticleShader` glow) are procedurally generated — no asset files
-- `ParticleShader` uses **additive blending** (order-independent — no z-sort). `ParticleEmitterComponent` owns a pre-allocated `[Particle]` pool; scenes call `emitter.update(dt:)` each frame. Shader walks emitters and writes one uniform per live particle. CPU interpolates `startColor`→`endColor` by `age/lifetime`
+- `ParticleShader` has two blend modes, **additive** (default, order-independent) and **alpha** ("over"). Both walk emitters in `DrawList` order (ascending `zOrder`, then texture); every particle of an emitter shares its `zOrder`, so sorting emitters sorts particles. `ParticleEmitterComponent` owns a pre-allocated `[Particle]` pool with a free-list stack (O(1) spawn); scenes call `emitter.update(dt:)` each frame. Shader writes one uniform per live particle. CPU interpolates `startColor`→`endColor` by `age/lifetime`
 
 ## Build & Test
 

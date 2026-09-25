@@ -6,20 +6,11 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-import Foundation
+/// Mirrors `ProjectionUniform` in every `.metalSource`: one matrix, 64 bytes.
+public struct ProjectionUniform: UniformData {
+    public var transform: Mat4
 
-public class ProjectionUniform: UniformData {
-    public var transform: Mat4 = Mat4()
-    public var size: Int = ProjectionUniform.typeSize()
-
-    public init() {}
-
-    public func setBuffer(buffer: UnsafeMutableRawPointer, offsetIndex: Int) {
-        assert(offsetIndex >= 0, "ProjectionUniform offsetIndex must be non-negative")
-        memcpy(buffer + (offsetIndex * size), &transform, size)
-    }
-
-    public static func typeSize() -> Int {
-        return MemoryLayout<Mat4>.size
+    public init(transform: Mat4 = Mat4()) {
+        self.transform = transform
     }
 }

@@ -33,8 +33,7 @@ public final class RippleShader: Shader {
         var count: Int
     }
     private var batches: [TextureBatch] = []
-
-    private let scratchUniform = RippleUniform()
+    private var drawList = DrawList<RippleComponent>()
 
     public init(renderCore: RenderCore, maxObjects: Int) {
         self.renderCore = renderCore
@@ -48,7 +47,7 @@ public final class RippleShader: Shader {
         self.samplerState = sampler
         self.bufferProvider = BufferProvider(
             device: renderCore.device,
-            size: RippleUniform.typeSize() * maxObjects)
+            size: RippleUniform.stride * maxObjects)
     }
 
     // MARK: - Shader protocol
@@ -81,23 +80,14 @@ public final class RippleShader: Shader {
     public func submit(objects: [GameObj]) {
         guard let contents = worldBufferContents else { return }
 
-        let pairs: [(GameObj, RippleComponent)] = objects.compactMap { obj in
-            guard obj.isActive, let comp = obj.get(RippleComponent.self) else {
-                return nil
-            }
-            return (obj, comp)
-        }.sorted { lhs, rhs in
-            if lhs.0.zOrder != rhs.0.zOrder { return lhs.0.zOrder < rhs.0.zOrder }
-            return lhs.1.textureID < rhs.1.textureID
-        }
-
-        for (_, comp) in pairs {
+        drawList.rebuild(from: objects)
+        defer { drawList.clear() }
+        for (_, comp) in drawList.pairs {
             assert(drawCount < maxObjects,
                    "RippleShader draw count \(drawCount) exceeds maxObjects \(maxObjects)")
             guard drawCount < maxObjects else { break }
 
-            comp.fillUniform(scratchUniform)
-            scratchUniform.setBuffer(buffer: contents, offsetIndex: drawCount)
+            comp.makeUniform().store(into: contents, index: drawCount)
             appendBatch(textureId: comp.textureID)
             drawCount += 1
         }
@@ -110,7 +100,7 @@ public final class RippleShader: Shader {
             encoder.setFragmentTexture(
                 renderCore.textureManager.getTexture(id: batch.textureId),
                 index: RipplePipeline.textureIndex)
-            let offset = batch.startIndex * RippleUniform.typeSize()
+            let offset = batch.startIndex * RippleUniform.stride
             encoder.setVertexBufferOffset(
                 offset, index: RipplePipeline.worldBufferIndex)
             encoder.drawPrimitives(

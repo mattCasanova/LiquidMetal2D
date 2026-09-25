@@ -82,8 +82,7 @@ final class PerformanceTests: XCTestCase {
 
     // MARK: - Shader submit ordering
 
-    /// The sort `AlphaBlendShader.submit` runs each frame, without the GPU:
-    /// filter to active objects with the component, sort by (zOrder, textureID).
+    /// The ordering `AlphaBlendShader.submit` runs each frame, without the GPU.
     func testAlphaBlendSortOrder() {
         var rng = SeededRandom(seed: 3)
         let objects: [GameObj] = (0..<5000).map { _ in
@@ -93,16 +92,11 @@ final class PerformanceTests: XCTestCase {
             return obj
         }
 
+        var drawList = DrawList<AlphaBlendComponent>()
         var drawn = 0
         measure {
-            let pairs: [(GameObj, AlphaBlendComponent)] = objects.compactMap { obj in
-                guard obj.isActive, let comp = obj.get(AlphaBlendComponent.self) else { return nil }
-                return (obj, comp)
-            }.sorted { lhs, rhs in
-                if lhs.0.zOrder != rhs.0.zOrder { return lhs.0.zOrder < rhs.0.zOrder }
-                return lhs.1.textureID < rhs.1.textureID
-            }
-            drawn += pairs.count
+            drawList.rebuild(from: objects)
+            drawn += drawList.pairs.count
         }
         XCTAssertGreaterThan(drawn, 0)
     }

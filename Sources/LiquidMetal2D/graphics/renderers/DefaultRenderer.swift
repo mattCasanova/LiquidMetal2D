@@ -31,7 +31,7 @@ open class DefaultRenderer: Renderer {
     public var screenWidth: Float = 0
     public var screenAspect: Float = 0
 
-    private let projectionUniforms = ProjectionUniform()
+    private var projectionUniforms = ProjectionUniform()
     private let projectionBufferProvider: BufferProvider
     private var projectionBuffer: MTLBuffer!
 
@@ -48,7 +48,7 @@ open class DefaultRenderer: Renderer {
     public init(parentView: UIView, maxObjects: Int) {
         renderCore = RenderCore(parentView: parentView)
         projectionBufferProvider = BufferProvider(
-            device: renderCore.device, size: projectionUniforms.size)
+            device: renderCore.device, size: ProjectionUniform.stride)
         alphaBlend = AlphaBlendShader(renderCore: renderCore, maxObjects: maxObjects)
         shaders = [alphaBlend]
     }
@@ -207,12 +207,12 @@ open class DefaultRenderer: Renderer {
 
     open func usePerspective() {
         projectionUniforms.transform = renderCore.perspective.make() * renderCore.camera2D.make()
-        projectionUniforms.setBuffer(buffer: projectionBuffer.contents(), offsetIndex: 0)
+        projectionUniforms.store(into: projectionBuffer.contents(), index: 0)
     }
 
     open func useOrthographic() {
         projectionUniforms.transform = renderCore.orthographic.make()
-        projectionUniforms.setBuffer(buffer: projectionBuffer.contents(), offsetIndex: 0)
+        projectionUniforms.store(into: projectionBuffer.contents(), index: 0)
     }
 
     open func useShader(_ shader: Shader) {

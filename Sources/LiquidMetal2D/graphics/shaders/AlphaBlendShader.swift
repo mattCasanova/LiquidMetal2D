@@ -33,8 +33,7 @@ public final class AlphaBlendShader: Shader {
         var count: Int
     }
     private var batches: [TextureBatch] = []
-
-    private let scratchUniform = AlphaBlendUniform()
+    private var drawList = DrawList<AlphaBlendComponent>()
 
     public init(renderCore: RenderCore, maxObjects: Int) {
         self.renderCore = renderCore
@@ -48,7 +47,7 @@ public final class AlphaBlendShader: Shader {
         self.samplerState = sampler
         self.bufferProvider = BufferProvider(
             device: renderCore.device,
-            size: AlphaBlendUniform.typeSize() * maxObjects)
+            size: AlphaBlendUniform.stride * maxObjects)
     }
 
     // MARK: - Shader protocol
@@ -81,23 +80,14 @@ public final class AlphaBlendShader: Shader {
     public func submit(objects: [GameObj]) {
         guard let contents = worldBufferContents else { return }
 
-        let pairs: [(GameObj, AlphaBlendComponent)] = objects.compactMap { obj in
-            guard obj.isActive, let comp = obj.get(AlphaBlendComponent.self) else {
-                return nil
-            }
-            return (obj, comp)
-        }.sorted { lhs, rhs in
-            if lhs.0.zOrder != rhs.0.zOrder { return lhs.0.zOrder < rhs.0.zOrder }
-            return lhs.1.textureID < rhs.1.textureID
-        }
-
-        for (_, comp) in pairs {
+        drawList.rebuild(from: objects)
+        defer { drawList.clear() }
+        for (_, comp) in drawList.pairs {
             assert(drawCount < maxObjects,
                    "AlphaBlendShader draw count \(drawCount) exceeds maxObjects \(maxObjects)")
             guard drawCount < maxObjects else { break }
 
-            comp.fillUniform(scratchUniform)
-            scratchUniform.setBuffer(buffer: contents, offsetIndex: drawCount)
+            comp.makeUniform().store(into: contents, index: drawCount)
             appendBatch(textureId: comp.textureID)
             drawCount += 1
         }
@@ -110,7 +100,7 @@ public final class AlphaBlendShader: Shader {
             encoder.setFragmentTexture(
                 renderCore.textureManager.getTexture(id: batch.textureId),
                 index: AlphaBlendPipeline.textureIndex)
-            let offset = batch.startIndex * AlphaBlendUniform.typeSize()
+            let offset = batch.startIndex * AlphaBlendUniform.stride
             encoder.setVertexBufferOffset(
                 offset, index: AlphaBlendPipeline.worldBufferIndex)
             encoder.drawPrimitives(
@@ -138,10 +128,8 @@ public final class AlphaBlendShader: Shader {
                "AlphaBlendShader draw count \(drawCount) exceeds maxObjects \(maxObjects)")
         guard drawCount < maxObjects, let contents = worldBufferContents else { return }
 
-        scratchUniform.transform = transform
-        scratchUniform.texTrans = texTrans
-        scratchUniform.color = color
-        scratchUniform.setBuffer(buffer: contents, offsetIndex: drawCount)
+        AlphaBlendUniform(transform: transform, texTrans: texTrans, color: color)
+            .store(into: contents, index: drawCount)
         appendBatch(textureId: textureId)
         drawCount += 1
     }

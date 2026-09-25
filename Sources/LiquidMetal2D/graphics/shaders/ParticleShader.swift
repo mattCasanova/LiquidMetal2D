@@ -10,13 +10,21 @@ import Metal
 /// Renders live particles from every ``ParticleEmitterComponent`` in the
 /// object list. Supports two blend modes:
 ///
-/// - ``BlendMode/additive`` (default): order-independent, overlapping
-///   particles brighten into hotspots — glow, fire, sparks, lasers.
-/// - ``BlendMode/alpha``: classic "over" compositing, back-to-front sorted
-///   by each particle's `zOrder` before drawing — smoke, dust, fog.
+/// - ``BlendMode/additive`` (default): overlapping particles brighten into
+///   hotspots — glow, fire, sparks, lasers.
+/// - ``BlendMode/alpha``: classic "over" compositing — smoke, dust, fog.
 ///
-/// Batches by the emitter's `textureID` so emitters with different textures
-/// split into separate instanced draws.
+/// Both modes walk emitters in ``DrawList`` order: ascending `zOrder`
+/// (far to near, which "over" compositing needs) and then by texture, so
+/// particles sharing a texture form one instanced draw. Every particle of an
+/// emitter shares its `zOrder`, so sorting the emitters orders the particles.
+///
+/// Additive mode doesn't need the z sort: addition (clamped at 1) gives the
+/// same pixel in any order, and z only affects each particle's transform.
+/// The cost is at most one extra instanced draw per emitter when emitters at
+/// different z alternate textures. Kept for one code path; if a scene ever
+/// has many additive emitters sharing few textures, give additive mode a
+/// texture-only sort key.
 @MainActor
 public final class ParticleShader: Shader {
 
@@ -44,19 +52,7 @@ public final class ParticleShader: Shader {
         var count: Int
     }
     private var batches: [TextureBatch] = []
-
-    /// Scratch record used to collect particles during `submit` in alpha
-    /// mode, where we need to sort by `zOrder` before writing uniforms.
-    /// Additive mode writes directly and skips this buffer.
-    private struct DrawItem {
-        let textureId: Int
-        let transform: Mat4
-        let color: Vec4
-        let zOrder: Float
-    }
-    private var alphaItems: [DrawItem] = []
-
-    private let scratchUniform = ParticleUniform()
+    private var drawList = DrawList<ParticleEmitterComponent>()
 
     public init(
         renderCore: RenderCore,
@@ -76,7 +72,7 @@ public final class ParticleShader: Shader {
         self.samplerState = sampler
         self.bufferProvider = BufferProvider(
             device: renderCore.device,
-            size: ParticleUniform.typeSize() * maxObjects)
+            size: ParticleUniform.stride * maxObjects)
     }
 
     // MARK: - Shader protocol
@@ -88,7 +84,6 @@ public final class ParticleShader: Shader {
         worldBufferContents = buffer.contents()
         drawCount = 0
         batches.removeAll(keepingCapacity: true)
-        alphaItems.removeAll(keepingCapacity: true)
         return true
     }
 
@@ -110,11 +105,25 @@ public final class ParticleShader: Shader {
     public func submit(objects: [GameObj]) {
         guard let contents = worldBufferContents else { return }
 
-        switch blendMode {
-        case .additive:
-            submitAdditive(objects: objects, contents: contents)
-        case .alpha:
-            submitAlpha(objects: objects, contents: contents)
+        drawList.rebuild(from: objects)
+        defer { drawList.clear() }
+        for (obj, emitter) in drawList.pairs {
+            for particle in emitter.particles where particle.isAlive {
+                assert(drawCount < maxObjects,
+                       "ParticleShader draw count \(drawCount) exceeds maxObjects \(maxObjects)")
+                guard drawCount < maxObjects else { return }
+
+                let t = min(particle.age / particle.lifetime, 1)
+                ParticleUniform(
+                    transform: Mat4.makeTransform2D(
+                        scale: mix(particle.startScale, particle.endScale, t: t),
+                        angle: particle.rotation,
+                        translate: Vec3(particle.position, obj.zOrder)),
+                    color: mix(particle.startColor, particle.endColor, t: t))
+                    .store(into: contents, index: drawCount)
+                appendBatch(textureId: emitter.textureID)
+                drawCount += 1
+            }
         }
     }
 
@@ -125,7 +134,7 @@ public final class ParticleShader: Shader {
             encoder.setFragmentTexture(
                 renderCore.textureManager.getTexture(id: batch.textureId),
                 index: ParticlePipeline.textureIndex)
-            let offset = batch.startIndex * ParticleUniform.typeSize()
+            let offset = batch.startIndex * ParticleUniform.stride
             encoder.setVertexBufferOffset(
                 offset, index: ParticlePipeline.worldBufferIndex)
             encoder.drawPrimitives(
@@ -137,90 +146,6 @@ public final class ParticleShader: Shader {
 
     public nonisolated func signalFrameComplete() {
         bufferProvider.signal()
-    }
-
-    // MARK: - Submit implementations
-
-    /// Additive path: sort emitters by `textureID` so particles sharing a
-    /// texture form one contiguous batch even when emitters are interleaved
-    /// in the object list. Addition is commutative, so reordering emitters
-    /// has no visual effect — the sort is a pure batching win.
-    private func submitAdditive(
-        objects: [GameObj],
-        contents: UnsafeMutableRawPointer
-    ) {
-        let pairs: [(GameObj, ParticleEmitterComponent)] = objects.compactMap { obj in
-            guard obj.isActive,
-                  let emitter = obj.get(ParticleEmitterComponent.self) else {
-                return nil
-            }
-            return (obj, emitter)
-        }.sorted { $0.1.textureID < $1.1.textureID }
-
-        for (obj, emitter) in pairs {
-            for particle in emitter.particles where particle.isAlive {
-                assert(drawCount < maxObjects,
-                       "ParticleShader draw count \(drawCount) exceeds maxObjects \(maxObjects)")
-                guard drawCount < maxObjects else { return }
-
-                let t = min(particle.age / particle.lifetime, 1)
-                let scale = mix(particle.startScale, particle.endScale, t: t)
-                scratchUniform.transform.setToTransform2D(
-                    scale: scale,
-                    angle: particle.rotation,
-                    translate: Vec3(particle.position, obj.zOrder))
-                scratchUniform.color = mix(particle.startColor, particle.endColor, t: t)
-                scratchUniform.setBuffer(buffer: contents, offsetIndex: drawCount)
-                appendBatch(textureId: emitter.textureID)
-                drawCount += 1
-            }
-        }
-    }
-
-    /// Alpha path: collect every live particle into `alphaItems`, sort by
-    /// `zOrder` back-to-front, then write uniforms + batches in the sorted
-    /// order. More expensive than additive but required for correct "over"
-    /// compositing.
-    private func submitAlpha(
-        objects: [GameObj],
-        contents: UnsafeMutableRawPointer
-    ) {
-        for obj in objects where obj.isActive {
-            guard let emitter = obj.get(ParticleEmitterComponent.self) else { continue }
-
-            for particle in emitter.particles where particle.isAlive {
-                let t = min(particle.age / particle.lifetime, 1)
-                let scale = mix(particle.startScale, particle.endScale, t: t)
-                var transform = Mat4()
-                transform.setToTransform2D(
-                    scale: scale,
-                    angle: particle.rotation,
-                    translate: Vec3(particle.position, obj.zOrder))
-                let color = mix(particle.startColor, particle.endColor, t: t)
-                alphaItems.append(DrawItem(
-                    textureId: emitter.textureID,
-                    transform: transform,
-                    color: color,
-                    zOrder: obj.zOrder))
-            }
-        }
-
-        // Back-to-front: larger zOrder (farther from the camera) drawn first.
-        // In this engine, zOrder ascending means closer to the camera, so we
-        // sort descending for the painter's algorithm.
-        alphaItems.sort { $0.zOrder > $1.zOrder }
-
-        for item in alphaItems {
-            assert(drawCount < maxObjects,
-                   "ParticleShader draw count \(drawCount) exceeds maxObjects \(maxObjects)")
-            guard drawCount < maxObjects else { return }
-
-            scratchUniform.transform = item.transform
-            scratchUniform.color = item.color
-            scratchUniform.setBuffer(buffer: contents, offsetIndex: drawCount)
-            appendBatch(textureId: item.textureId)
-            drawCount += 1
-        }
     }
 
     // MARK: - Helpers
