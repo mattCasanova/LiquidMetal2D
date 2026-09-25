@@ -6,6 +6,14 @@ import XCTest
 /// Metal sides agree; a mismatch here draws garbage from instance 1 onward.
 final class UniformLayoutTests: XCTestCase {
 
+    func testTransform2D() {
+        XCTAssertEqual(MemoryLayout<Transform2D>.stride, 24)
+        XCTAssertEqual(MemoryLayout<Transform2D>.offset(of: \.position), 0)
+        XCTAssertEqual(MemoryLayout<Transform2D>.offset(of: \.scale), 8)
+        XCTAssertEqual(MemoryLayout<Transform2D>.offset(of: \.rotation), 16)
+        XCTAssertEqual(MemoryLayout<Transform2D>.offset(of: \.zOrder), 20)
+    }
+
     func testProjectionUniform() {
         XCTAssertEqual(ProjectionUniform.stride, 64)
         XCTAssertEqual(MemoryLayout<ProjectionUniform>.offset(of: \.transform), 0)

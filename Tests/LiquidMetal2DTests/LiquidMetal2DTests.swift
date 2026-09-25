@@ -14,6 +14,19 @@ final class LiquidMetal2DTests: XCTestCase {
         XCTAssertNil(obj.get(AlphaBlendComponent.self))
     }
 
+    func testGameObjTransformIsItsFourFields() {
+        let obj = GameObj()
+        obj.transform = Transform2D(position: Vec2(1, 2), scale: Vec2(3, -4), rotation: 0.5, zOrder: 6)
+
+        XCTAssertEqual(obj.position, Vec2(1, 2))
+        XCTAssertEqual(obj.scale, Vec2(3, -4))
+        XCTAssertEqual(obj.rotation, 0.5)
+        XCTAssertEqual(obj.zOrder, 6)
+
+        obj.position.x = 7
+        XCTAssertEqual(obj.transform, Transform2D(position: Vec2(7, 2), scale: Vec2(3, -4), rotation: 0.5, zOrder: 6))
+    }
+
     func testCamera2DDefaults() {
         let camera = Camera2D()
         XCTAssertEqual(camera.eye.x, 0)

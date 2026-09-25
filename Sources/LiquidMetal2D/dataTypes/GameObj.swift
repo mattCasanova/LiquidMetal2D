@@ -34,6 +34,19 @@ public final class GameObj {
 
     public init() {}
 
+    /// ``position``, ``scale``, ``rotation`` and ``zOrder`` as one value, the
+    /// form shaders draw from. Setting it sets all four.
+    @inlinable
+    public var transform: Transform2D {
+        get { Transform2D(position: position, scale: scale, rotation: rotation, zOrder: zOrder) }
+        set {
+            position = newValue.position
+            scale = newValue.scale
+            rotation = newValue.rotation
+            zOrder = newValue.zOrder
+        }
+    }
+
     /// Adds a component, stored under its type's ``Component/id``.
     @inlinable
     public func add(_ component: Component) {

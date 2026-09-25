@@ -23,6 +23,26 @@ struct WireframeUniform {
     float4 params;
 };
 
+// Where a sprite sits. Mirrors Transform2D in Swift, field for field (24 bytes).
+struct Transform2D {
+    float2 position;
+    float2 scale;
+    float rotation;
+    float zOrder;
+};
+
+// A quad vertex in world space: scale, then rotate, then move. The same
+// transform Mat4.makeTransform2D builds on the CPU; SpriteTransformTests runs
+// this copy on the GPU and checks it against the CPU.
+static float4 spriteWorld(float3 v, Transform2D t) {
+    float c;
+    float s = sincos(t.rotation, c);
+    float2 p = v.xy * t.scale;
+    return float4(p.x * c - p.y * s + t.position.x,
+                  p.x * s + p.y * c + t.position.y,
+                  v.z + t.zOrder, 1.0);
+}
+
 vertex VertOut wireframe_vertex(VertIn inVert [[ stage_in ]],
                                 const device ProjectionUniform& proj [[ buffer(1) ]],
                                 const device WireframeUniform* worlds [[ buffer(2) ]],

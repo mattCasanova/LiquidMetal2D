@@ -81,21 +81,23 @@ public class RenderCore {
     }
 
     public func loadShaderLibrary(resource: String, withExtension ext: String) -> MTLLibrary {
-        guard let shaderURL = Bundle.module.url(forResource: resource, withExtension: ext) else {
-            fatalError("Failed to find \(resource).\(ext) in bundle")
-        }
-
-        let shaderSource: String
-        do {
-            shaderSource = try String(contentsOf: shaderURL, encoding: .utf8)
-        } catch {
-            fatalError("Failed to read \(resource).\(ext): \(error)")
-        }
-
+        let shaderSource = Self.shaderSource(resource: resource, withExtension: ext)
         do {
             return try device.makeLibrary(source: shaderSource, options: nil)
         } catch {
             fatalError("Failed to compile shader library \(resource): \(error)")
+        }
+    }
+
+    /// The text of a bundled shader. Tests compile it with test kernels added.
+    static func shaderSource(resource: String, withExtension ext: String) -> String {
+        guard let shaderURL = Bundle.module.url(forResource: resource, withExtension: ext) else {
+            fatalError("Failed to find \(resource).\(ext) in bundle")
+        }
+        do {
+            return try String(contentsOf: shaderURL, encoding: .utf8)
+        } catch {
+            fatalError("Failed to read \(resource).\(ext): \(error)")
         }
     }
 

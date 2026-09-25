@@ -14,10 +14,16 @@ enum ShaderTestSupport {
     /// so the test must keep it alive while they're in use. Skips, instead
     /// of hitting `RenderCore`'s `fatalError`, on a host with no Metal device.
     static func makeRenderCore() throws -> RenderCore {
-        guard MTLCreateSystemDefaultDevice() != nil else {
+        _ = try makeDevice()
+        return RenderCore(parentView: UIView())
+    }
+
+    /// The system Metal device, or a skip on a host without one.
+    static func makeDevice() throws -> MTLDevice {
+        guard let device = MTLCreateSystemDefaultDevice() else {
             throw XCTSkip("No Metal device on this host")
         }
-        return RenderCore(parentView: UIView())
+        return device
     }
 
     /// `count` sprites with seeded position, scale and rotation, already in
