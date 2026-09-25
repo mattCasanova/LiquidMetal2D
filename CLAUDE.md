@@ -35,6 +35,7 @@ All source files live in `LiquidMetal2D-Demo/LiquidMetal2D-Demo/`:
 | Camera Rotation | `CameraRotationDemo.swift` | Camera rotation and shake effects |
 | Camera Pan | `CameraPanDemo.swift` | Camera x/y pan, parallax, unproject and visible bounds tracking the camera |
 | Skeletal Animation | `SkeletonDemo.swift`, `StickFigure.swift` | White-box stick figure: `SkeletonComponent`, idle/walk/jump crossfades, slash on an override layer, `flipX`. Auto-plays until the first touch |
+| Smoke Layers | `SmokeLayersDemo.swift` | Two alpha-blended plumes at different z: the nearer (bigger) one must draw on top; Swap exchanges their `zOrder`. Checks `ParticleShader`'s far-to-near order (0.15.0) |
 | Async Loading | `AsyncLoadDemo.swift` | Async texture loading with starfield loading screen |
 | Pause Menu | `PauseDemo.swift` | Push/pop scene stack, SlidePanel UI, scene navigation |
 

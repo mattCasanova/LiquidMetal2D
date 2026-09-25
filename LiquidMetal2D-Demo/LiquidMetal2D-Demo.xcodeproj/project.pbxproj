@@ -49,6 +49,7 @@
 		F57FE9762427C72F005D5A59 /* MoveRightBehavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = F57FE9752427C72F005D5A59 /* MoveRightBehavior.swift */; };
 		F57FE9782427CEF3005D5A59 /* MoveRightState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F57FE9772427CEF3005D5A59 /* MoveRightState.swift */; };
 		C4A3E7A12E80000100C42A29 /* CameraPanDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A3E7A02E80000100C42A29 /* CameraPanDemo.swift */; };
+		C4A3E7A12E80000100C42A30 /* SmokeLayersDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A3E7A02E80000100C42A30 /* SmokeLayersDemo.swift */; };
 		F5EDA0B42416952400C42A29 /* TouchZoomDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5EDA0B32416952400C42A29 /* TouchZoomDemo.swift */; };
 		F5ZOMBIE012F67A0A7003831F3 /* ZombieDemoComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5ZOMBIE002F67A0A7003831F3 /* ZombieDemoComponent.swift */; };
 /* End PBXBuildFile section */
@@ -97,6 +98,7 @@
 		F57FE9752427C72F005D5A59 /* MoveRightBehavior.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveRightBehavior.swift; sourceTree = "<group>"; };
 		F57FE9772427CEF3005D5A59 /* MoveRightState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveRightState.swift; sourceTree = "<group>"; };
 		C4A3E7A02E80000100C42A29 /* CameraPanDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPanDemo.swift; sourceTree = "<group>"; };
+		C4A3E7A02E80000100C42A30 /* SmokeLayersDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeLayersDemo.swift; sourceTree = "<group>"; };
 		F5EDA0B32416952400C42A29 /* TouchZoomDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchZoomDemo.swift; sourceTree = "<group>"; };
 		F5ZOMBIE002F67A0A7003831F3 /* ZombieDemoComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZombieDemoComponent.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -162,6 +164,7 @@
 			isa = PBXGroup;
 			children = (
 				F5021AC02F958340000FC89F /* RocketTrailDemo.swift */,
+				C4A3E7A02E80000100C42A30 /* SmokeLayersDemo.swift */,
 				F5021ABE2F957BB8000FC89F /* ParticleDemo.swift */,
 				F5021AC22F95B0A7003831F3 /* LineParticleDemo.swift */,
 				C4A3E7A22E80000100C42A29 /* SkeletonDemo.swift */,
@@ -338,6 +341,7 @@
 				F53AAB182F6770A7003831F3 /* CollisionDemo.swift in Sources */,
 				F5ZOMBIE012F67A0A7003831F3 /* ZombieDemoComponent.swift in Sources */,
 				F5021AC12F958340000FC89F /* RocketTrailDemo.swift in Sources */,
+				C4A3E7A12E80000100C42A30 /* SmokeLayersDemo.swift in Sources */,
 				F536B6AE2416925800B3566F /* MassRenderDemo.swift in Sources */,
 				F536B693241690A800B3566F /* ViewController.swift in Sources */,
 				F536B6AF2416925800B3566F /* SceneTypes.swift in Sources */,

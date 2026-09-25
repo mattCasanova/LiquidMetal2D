@@ -41,6 +41,7 @@ enum SceneTypes: SceneType {
     case particleDemo
     case lineParticleDemo
     case smokeDemo
+    case smokeLayersDemo
     case skeletonDemo
     case pauseDemo
 
@@ -62,6 +63,7 @@ enum SceneTypes: SceneType {
         case .particleDemo: return "Particles - Additive Campfire"
         case .lineParticleDemo: return "Particles - Line Emitter"
         case .smokeDemo: return "Particles - Alpha Smoke"
+        case .smokeLayersDemo: return "Particles - Smoke Layers (Draw Order)"
         case .skeletonDemo: return "Skeletal Animation - Stick Figure"
         case .pauseDemo: return "Paused"
         }
@@ -72,7 +74,7 @@ enum SceneTypes: SceneType {
         .massRenderDemo, .touchZoomDemo, .instanceDemo,
         .schedulerDemo, .spawnDemo, .collisionDemo, .collisionStressDemo,
         .bezierDemo, .cameraRotationDemo, .cameraPanDemo, .multiShaderDemo,
-        .particleDemo, .lineParticleDemo, .smokeDemo, .skeletonDemo
+        .particleDemo, .lineParticleDemo, .smokeDemo, .smokeLayersDemo, .skeletonDemo
     ]
 
     /// Returns the next scene in the navigable list, or nil if this is the last one.
