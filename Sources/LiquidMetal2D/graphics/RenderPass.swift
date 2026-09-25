@@ -21,7 +21,7 @@ open class RenderPass {
 
         guard let safeDrawable = renderCore.layer.nextDrawable(),
             let safeBuffer = renderCore.commandQueue.makeCommandBuffer(),
-            let safeDescriptor = RenderPass.createDescriptor(drawable: safeDrawable, clearColor: renderCore.clearColor),
+            let safeDescriptor = Self.createDescriptor(drawable: safeDrawable, clearColor: renderCore.clearColor),
             let safeEncoder = safeBuffer.makeRenderCommandEncoder(descriptor: safeDescriptor)
         else {
             return nil
