@@ -14,19 +14,20 @@ import Foundation
 /// `comp.time += dt`). Tweak ``amplitude``, ``frequency``, and ``speed``
 /// to tune the effect.
 public final class RippleComponent: TexturedComponent {
-    public unowned var parent: GameObj
-    public var textureID: Int
-    public var tintColor: Vec4
-    public var texTrans: Vec4
+    public unowned let parent: GameObj
+    // Plain values read every frame: no run-time exclusivity check (see GameObj).
+    @exclusivity(unchecked) public var textureID: Int
+    @exclusivity(unchecked) public var tintColor: Vec4
+    @exclusivity(unchecked) public var texTrans: Vec4
 
     /// Scene-advanced clock. Mutate per-frame: `comp.time += dt`.
-    public var time: Float = 0
+    @exclusivity(unchecked) public var time: Float = 0
     /// Max UV offset, in UV space. Typical: 0.01..0.05.
-    public var amplitude: Float = 0.02
+    @exclusivity(unchecked) public var amplitude: Float = 0.02
     /// Spatial frequency — number of wave cycles across the sprite.
-    public var frequency: Float = 10
+    @exclusivity(unchecked) public var frequency: Float = 10
     /// Temporal speed multiplier.
-    public var speed: Float = 4
+    @exclusivity(unchecked) public var speed: Float = 4
 
     public init(
         parent: GameObj,

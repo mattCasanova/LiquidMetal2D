@@ -15,10 +15,11 @@ import Foundation
 /// components (e.g., a future wireframe component) to render the same
 /// object through multiple shaders.
 public final class AlphaBlendComponent: TexturedComponent {
-    public unowned var parent: GameObj
-    public var textureID: Int
-    public var tintColor: Vec4
-    public var texTrans: Vec4
+    public unowned let parent: GameObj
+    // Plain values read every frame: no run-time exclusivity check (see GameObj).
+    @exclusivity(unchecked) public var textureID: Int
+    @exclusivity(unchecked) public var tintColor: Vec4
+    @exclusivity(unchecked) public var texTrans: Vec4
 
     public init(
         parent: GameObj,

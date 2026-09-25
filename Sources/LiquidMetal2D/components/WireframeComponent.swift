@@ -18,11 +18,12 @@ import Foundation
 /// Mutate ``color`` at runtime to signal state changes (e.g., turn red on
 /// collision, green when clear). The shader reads the field every frame.
 public final class WireframeComponent: Component {
-    public unowned var parent: GameObj
-    public var color: Vec4
+    public unowned let parent: GameObj
+    // Plain values read every frame: no run-time exclusivity check (see GameObj).
+    @exclusivity(unchecked) public var color: Vec4
     /// Outline thickness in UV space (fraction of the shape's size).
     /// Typical values: 0.02..0.08. Clamp to (0, 0.5).
-    public var thickness: Float
+    @exclusivity(unchecked) public var thickness: Float
 
     public init(
         parent: GameObj,

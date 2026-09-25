@@ -37,15 +37,16 @@ public enum EmitterShape: Sendable, Codable {
 /// the emitter follows automatically. Use ``shape`` to spread spawns across
 /// a line, box, or disc instead of a single point.
 public final class ParticleEmitterComponent: TexturedComponent {
-    public unowned var parent: GameObj
+    public unowned let parent: GameObj
 
     // MARK: - Config
 
     /// Pool size. Pre-allocated at init; hard cap on simultaneously-alive particles.
     public let maxParticles: Int
     /// Texture sampled by each particle — pass `renderer.defaultParticleTextureId`
-    /// for the built-in soft-circle, or supply your own.
-    public var textureID: Int
+    /// for the built-in soft-circle, or supply your own. Read every frame, so
+    /// no run-time exclusivity check (see GameObj).
+    @exclusivity(unchecked) public var textureID: Int
     /// Particles per second. Set `isEmitting = false` to pause.
     public var emissionRate: Float
     /// Position of the emit point relative to `parent.position`. Rotated by

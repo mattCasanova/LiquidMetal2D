@@ -15,12 +15,20 @@
 /// for collision, ``Behavior`` conformers for state machines, and any
 /// game-specific components you define.
 public final class GameObj {
-    public var position = Vec2()
-    public var velocity = Vec2()
-    public var scale = Vec2()
-    public var zOrder: Float = 0.0
-    public var rotation: Float = 0.0
-    public var isActive: Bool = true
+    // Plain values that shaders, colliders and behaviors read every frame.
+    // `@exclusivity(unchecked)` drops Swift's run-time exclusivity check from
+    // the engine's own accesses; code in other modules still checks unless it
+    // turns checks off itself (`SWIFT_ENFORCE_EXCLUSIVE_ACCESS = debug-only`).
+    // Safe for plain values: an overlapping access, such as passing
+    // `&obj.position` inout to a function that also reads `obj.position`,
+    // sees the value mid-change instead of trapping, and can't corrupt memory.
+    // `components` is a dictionary, so it keeps its check.
+    @exclusivity(unchecked) public var position = Vec2()
+    @exclusivity(unchecked) public var velocity = Vec2()
+    @exclusivity(unchecked) public var scale = Vec2()
+    @exclusivity(unchecked) public var zOrder: Float = 0.0
+    @exclusivity(unchecked) public var rotation: Float = 0.0
+    @exclusivity(unchecked) public var isActive: Bool = true
 
     @usableFromInline var components = [ObjectIdentifier: Component]()
 

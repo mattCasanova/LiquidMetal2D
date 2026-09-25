@@ -24,7 +24,7 @@ import Foundation
 /// Size the figure with ``scale``, not the root object's `scale` — a fresh
 /// `GameObj` has a scale of (0, 0), and the root is not drawn anyway.
 public final class SkeletonComponent: Component {
-    public unowned var parent: GameObj
+    public unowned let parent: GameObj
     public let definition: SkeletonDefinition
     public let animator: Animator
     /// One drawn object per attachment, in the rig's attachment order.
