@@ -13,56 +13,61 @@ private struct TestCircle: Circle {
 @MainActor
 final class PointColliderTests: XCTestCase {
 
+    /// Colliders hold their parent `unowned`; this keeps each test's
+    /// objects alive for the whole test, so call sites can ignore them.
+    private var parents: [GameObj] = []
+
     private func makePointCollider(at position: Vec2) -> (GameObj, PointCollider) {
         let obj = GameObj()
         obj.position = position
+        parents.append(obj)
         return (obj, PointCollider(parent: obj))
     }
 
     // MARK: Point vs Point
 
     func testPointSamePosition() {
-        let (obj, collider) = makePointCollider(at: Vec2(5, 3))
+        let (_, collider) = makePointCollider(at: Vec2(5, 3))
         XCTAssertTrue(collider.doesCollideWith(point: Vec2(5, 3)))
     }
 
     func testPointDifferentPosition() {
-        let (obj, collider) = makePointCollider(at: Vec2(5, 3))
+        let (_, collider) = makePointCollider(at: Vec2(5, 3))
         XCTAssertFalse(collider.doesCollideWith(point: Vec2(10, 3)))
     }
 
     func testPointBothAtOrigin() {
-        let (obj, collider) = makePointCollider(at: Vec2(0, 0))
+        let (_, collider) = makePointCollider(at: Vec2(0, 0))
         XCTAssertTrue(collider.doesCollideWith(point: Vec2(0, 0)))
     }
 
     func testPointNegativeCoordinates() {
-        let (obj, collider) = makePointCollider(at: Vec2(-5, -3))
+        let (_, collider) = makePointCollider(at: Vec2(-5, -3))
         XCTAssertTrue(collider.doesCollideWith(point: Vec2(-5, -3)))
     }
 
     // MARK: Point vs Circle
 
     func testPointAtCircleCenter() {
-        let (obj, collider) = makePointCollider(at: Vec2(0, 0))
+        let (_, collider) = makePointCollider(at: Vec2(0, 0))
         let circle = TestCircle(center: Vec2(0, 0), radius: 5)
         XCTAssertTrue(collider.doesCollideWith(circle: circle))
     }
 
     func testPointInsideCircle() {
-        let (obj, collider) = makePointCollider(at: Vec2(1, 1))
+        let (_, collider) = makePointCollider(at: Vec2(1, 1))
         let circle = TestCircle(center: Vec2(0, 0), radius: 5)
         XCTAssertTrue(collider.doesCollideWith(circle: circle))
     }
 
     func testPointOutsideCircle() {
-        let (obj, collider) = makePointCollider(at: Vec2(10, 10))
+        let (_, collider) = makePointCollider(at: Vec2(10, 10))
         let circle = TestCircle(center: Vec2(0, 0), radius: 5)
         XCTAssertFalse(collider.doesCollideWith(circle: circle))
     }
 
     func testPointOnCircleEdge() {
-        let (obj, collider) = makePointCollider(at: Vec2(5, 0))
+        let (_, collider) = makePointCollider(at: Vec2(5, 0))
         let circle = TestCircle(center: Vec2(0, 0), radius: 5)
         XCTAssertTrue(collider.doesCollideWith(circle: circle))
     }
@@ -70,50 +75,50 @@ final class PointColliderTests: XCTestCase {
     // MARK: Point vs AABB
 
     func testPointAtAABBCenter() {
-        let (obj, collider) = makePointCollider(at: Vec2(0, 0))
+        let (_, collider) = makePointCollider(at: Vec2(0, 0))
         XCTAssertTrue(collider.doesCollideWith(aabbCenter: Vec2(0, 0), width: 10, height: 10))
     }
 
     func testPointInsideAABB() {
-        let (obj, collider) = makePointCollider(at: Vec2(2, 3))
+        let (_, collider) = makePointCollider(at: Vec2(2, 3))
         XCTAssertTrue(collider.doesCollideWith(aabbCenter: Vec2(0, 0), width: 10, height: 10))
     }
 
     func testPointOutsideAABBLeft() {
-        let (obj, collider) = makePointCollider(at: Vec2(-10, 0))
+        let (_, collider) = makePointCollider(at: Vec2(-10, 0))
         XCTAssertFalse(collider.doesCollideWith(aabbCenter: Vec2(0, 0), width: 10, height: 10))
     }
 
     func testPointOutsideAABBRight() {
-        let (obj, collider) = makePointCollider(at: Vec2(10, 0))
+        let (_, collider) = makePointCollider(at: Vec2(10, 0))
         XCTAssertFalse(collider.doesCollideWith(aabbCenter: Vec2(0, 0), width: 10, height: 10))
     }
 
     func testPointOutsideAABBAbove() {
-        let (obj, collider) = makePointCollider(at: Vec2(0, 10))
+        let (_, collider) = makePointCollider(at: Vec2(0, 10))
         XCTAssertFalse(collider.doesCollideWith(aabbCenter: Vec2(0, 0), width: 10, height: 10))
     }
 
     func testPointOutsideAABBBelow() {
-        let (obj, collider) = makePointCollider(at: Vec2(0, -10))
+        let (_, collider) = makePointCollider(at: Vec2(0, -10))
         XCTAssertFalse(collider.doesCollideWith(aabbCenter: Vec2(0, 0), width: 10, height: 10))
     }
 
     func testPointOnAABBEdge() {
-        let (obj, collider) = makePointCollider(at: Vec2(5, 0))
+        let (_, collider) = makePointCollider(at: Vec2(5, 0))
         XCTAssertTrue(collider.doesCollideWith(aabbCenter: Vec2(0, 0), width: 10, height: 10))
     }
 
     func testPointAABBAtNonOriginCenter() {
-        let (obj, collider) = makePointCollider(at: Vec2(15, 15))
+        let (_, collider) = makePointCollider(at: Vec2(15, 15))
         XCTAssertTrue(collider.doesCollideWith(aabbCenter: Vec2(10, 10), width: 20, height: 20))
     }
 
     // MARK: Double dispatch
 
     func testPointVsPointColliderDoubleDispatch() {
-        let (obj1, collider1) = makePointCollider(at: Vec2(5, 5))
-        let (obj2, collider2) = makePointCollider(at: Vec2(5, 5))
+        let (_, collider1) = makePointCollider(at: Vec2(5, 5))
+        let (_, collider2) = makePointCollider(at: Vec2(5, 5))
         XCTAssertTrue(collider1.doesCollideWith(collider: collider2))
     }
 
@@ -134,41 +139,46 @@ final class PointColliderTests: XCTestCase {
 @MainActor
 final class CircleColliderComponentTests: XCTestCase {
 
+    /// Colliders hold their parent `unowned`; this keeps each test's
+    /// objects alive for the whole test, so call sites can ignore them.
+    private var parents: [GameObj] = []
+
     private func makeCircleCollider(at position: Vec2, radius: Float) -> (GameObj, CircleCollider) {
         let obj = GameObj()
         obj.position = position
+        parents.append(obj)
         return (obj, CircleCollider(parent: obj, radius: radius))
     }
 
     func testCircleVsPointInside() {
-        let (obj, collider) = makeCircleCollider(at: Vec2(0, 0), radius: 5)
+        let (_, collider) = makeCircleCollider(at: Vec2(0, 0), radius: 5)
         XCTAssertTrue(collider.doesCollideWith(point: Vec2(1, 1)))
     }
 
     func testCircleVsPointOutside() {
-        let (obj, collider) = makeCircleCollider(at: Vec2(0, 0), radius: 5)
+        let (_, collider) = makeCircleCollider(at: Vec2(0, 0), radius: 5)
         XCTAssertFalse(collider.doesCollideWith(point: Vec2(10, 10)))
     }
 
     func testCircleVsCircleOverlap() {
-        let (obj1, c1) = makeCircleCollider(at: Vec2(0, 0), radius: 5)
-        let (obj2, c2) = makeCircleCollider(at: Vec2(8, 0), radius: 5)
+        let (_, c1) = makeCircleCollider(at: Vec2(0, 0), radius: 5)
+        let (_, c2) = makeCircleCollider(at: Vec2(8, 0), radius: 5)
         XCTAssertTrue(c1.doesCollideWith(collider: c2))
     }
 
     func testCircleVsCircleNoOverlap() {
-        let (obj1, c1) = makeCircleCollider(at: Vec2(0, 0), radius: 5)
-        let (obj2, c2) = makeCircleCollider(at: Vec2(20, 0), radius: 5)
+        let (_, c1) = makeCircleCollider(at: Vec2(0, 0), radius: 5)
+        let (_, c2) = makeCircleCollider(at: Vec2(20, 0), radius: 5)
         XCTAssertFalse(c1.doesCollideWith(collider: c2))
     }
 
     func testCircleVsAABBOverlap() {
-        let (obj, collider) = makeCircleCollider(at: Vec2(6, 0), radius: 2)
+        let (_, collider) = makeCircleCollider(at: Vec2(6, 0), radius: 2)
         XCTAssertTrue(collider.doesCollideWith(aabbCenter: Vec2(0, 0), width: 10, height: 10))
     }
 
     func testCircleVsAABBNoOverlap() {
-        let (obj, collider) = makeCircleCollider(at: Vec2(20, 0), radius: 2)
+        let (_, collider) = makeCircleCollider(at: Vec2(20, 0), radius: 2)
         XCTAssertFalse(collider.doesCollideWith(aabbCenter: Vec2(0, 0), width: 10, height: 10))
     }
 
@@ -187,52 +197,57 @@ final class CircleColliderComponentTests: XCTestCase {
 @MainActor
 final class AABBColliderTests: XCTestCase {
 
+    /// Colliders hold their parent `unowned`; this keeps each test's
+    /// objects alive for the whole test, so call sites can ignore them.
+    private var parents: [GameObj] = []
+
     private func makeAABBCollider(
         at position: Vec2, width: Float, height: Float
     ) -> (GameObj, AABBCollider) {
         let obj = GameObj()
         obj.position = position
+        parents.append(obj)
         return (obj, AABBCollider(parent: obj, width: width, height: height))
     }
 
     // MARK: AABB vs Point
 
     func testPointAtCenter() {
-        let (obj, collider) = makeAABBCollider(at: Vec2(0, 0), width: 10, height: 10)
+        let (_, collider) = makeAABBCollider(at: Vec2(0, 0), width: 10, height: 10)
         XCTAssertTrue(collider.doesCollideWith(point: Vec2(0, 0)))
     }
 
     func testPointInside() {
-        let (obj, collider) = makeAABBCollider(at: Vec2(0, 0), width: 10, height: 10)
+        let (_, collider) = makeAABBCollider(at: Vec2(0, 0), width: 10, height: 10)
         XCTAssertTrue(collider.doesCollideWith(point: Vec2(3, 3)))
     }
 
     func testPointOutside() {
-        let (obj, collider) = makeAABBCollider(at: Vec2(0, 0), width: 10, height: 10)
+        let (_, collider) = makeAABBCollider(at: Vec2(0, 0), width: 10, height: 10)
         XCTAssertFalse(collider.doesCollideWith(point: Vec2(20, 20)))
     }
 
     func testPointOnEdge() {
-        let (obj, collider) = makeAABBCollider(at: Vec2(0, 0), width: 10, height: 10)
+        let (_, collider) = makeAABBCollider(at: Vec2(0, 0), width: 10, height: 10)
         XCTAssertTrue(collider.doesCollideWith(point: Vec2(5, 0)))
     }
 
     // MARK: AABB vs Circle
 
     func testCircleOverlapping() {
-        let (obj, collider) = makeAABBCollider(at: Vec2(0, 0), width: 10, height: 10)
+        let (_, collider) = makeAABBCollider(at: Vec2(0, 0), width: 10, height: 10)
         let circle = TestCircle(center: Vec2(7, 0), radius: 3)
         XCTAssertTrue(collider.doesCollideWith(circle: circle))
     }
 
     func testCircleNotOverlapping() {
-        let (obj, collider) = makeAABBCollider(at: Vec2(0, 0), width: 10, height: 10)
+        let (_, collider) = makeAABBCollider(at: Vec2(0, 0), width: 10, height: 10)
         let circle = TestCircle(center: Vec2(20, 0), radius: 2)
         XCTAssertFalse(collider.doesCollideWith(circle: circle))
     }
 
     func testCircleInsideAABB() {
-        let (obj, collider) = makeAABBCollider(at: Vec2(0, 0), width: 10, height: 10)
+        let (_, collider) = makeAABBCollider(at: Vec2(0, 0), width: 10, height: 10)
         let circle = TestCircle(center: Vec2(0, 0), radius: 1)
         XCTAssertTrue(collider.doesCollideWith(circle: circle))
     }
@@ -240,29 +255,29 @@ final class AABBColliderTests: XCTestCase {
     // MARK: AABB vs AABB
 
     func testAABBOverlapping() {
-        let (obj, collider) = makeAABBCollider(at: Vec2(0, 0), width: 10, height: 10)
+        let (_, collider) = makeAABBCollider(at: Vec2(0, 0), width: 10, height: 10)
         XCTAssertTrue(collider.doesCollideWith(aabbCenter: Vec2(8, 0), width: 10, height: 10))
     }
 
     func testAABBNotOverlapping() {
-        let (obj, collider) = makeAABBCollider(at: Vec2(0, 0), width: 10, height: 10)
+        let (_, collider) = makeAABBCollider(at: Vec2(0, 0), width: 10, height: 10)
         XCTAssertFalse(collider.doesCollideWith(aabbCenter: Vec2(20, 0), width: 5, height: 5))
     }
 
     func testAABBTouching() {
-        let (obj, collider) = makeAABBCollider(at: Vec2(0, 0), width: 10, height: 10)
+        let (_, collider) = makeAABBCollider(at: Vec2(0, 0), width: 10, height: 10)
         XCTAssertTrue(collider.doesCollideWith(aabbCenter: Vec2(10, 0), width: 10, height: 10))
     }
 
     func testAABBAtNonOrigin() {
-        let (obj, collider) = makeAABBCollider(at: Vec2(10, 10), width: 6, height: 6)
+        let (_, collider) = makeAABBCollider(at: Vec2(10, 10), width: 6, height: 6)
         XCTAssertTrue(collider.doesCollideWith(aabbCenter: Vec2(14, 10), width: 6, height: 6))
     }
 
     // MARK: Double dispatch
 
     func testAABBVsCircleColliderDoubleDispatch() {
-        let (obj, aabbCollider) = makeAABBCollider(at: Vec2(0, 0), width: 10, height: 10)
+        let (_, aabbCollider) = makeAABBCollider(at: Vec2(0, 0), width: 10, height: 10)
         let circleObj = GameObj()
         circleObj.position.set(3, 3)
         let circleCollider = CircleCollider(parent: circleObj, radius: 2)
