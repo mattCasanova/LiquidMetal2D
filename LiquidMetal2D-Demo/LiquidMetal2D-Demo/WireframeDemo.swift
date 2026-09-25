@@ -87,9 +87,13 @@ class MultiShaderDemo: DefaultScene {
             obj.get(RippleComponent.self)?.time += dt
         }
 
-        // Remove any ship that has fully crossed to the far side.
-        objects.removeAll { obj in
-            obj.position.x < bounds.minX - size || obj.position.x > bounds.maxX + size
+        // Remove any ship that has fully crossed to the far side. `@Sendable`
+        // keeps the closure off the main actor; a `@MainActor` closure would
+        // make `removeAll` check the actor on every call.
+        let minX = bounds.minX - size
+        let maxX = bounds.maxX + size
+        objects.removeAll { @Sendable obj in
+            obj.position.x < minX || obj.position.x > maxX
         }
 
         // Reset all wireframes to idle (red), then mark colliding pairs (green).

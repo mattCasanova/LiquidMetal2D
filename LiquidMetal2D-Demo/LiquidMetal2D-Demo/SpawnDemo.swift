@@ -98,7 +98,13 @@ class SpawnDemo: Scene {
 
         // Sort by scale so smaller objects (appearing further away) draw behind larger ones.
         // Since all objects are at z=0, scale-based sorting simulates depth layering.
-        objects.sort(by: { $0.scale.x < $1.scale.x })
+        objects.sort(by: Self.isSmaller)
+    }
+
+    /// A `nonisolated` function, not a closure: a closure written in this
+    /// `@MainActor` scene would make `sort` check the actor on every comparison.
+    private nonisolated static func isSmaller(_ lhs: GameObj, _ rhs: GameObj) -> Bool {
+        lhs.scale.x < rhs.scale.x
     }
 
     /// Uses the advanced AlphaBlendShader.draw() API instead of submit() to

@@ -113,7 +113,14 @@ class CollisionDemo: Scene {
 
         checkCollision()
 
-        objects.sort(by: { $0.isActive && !$1.isActive })
+        objects.sort(by: Self.activeFirst)
+    }
+
+    /// Active objects first.
+    /// A `nonisolated` function, not a closure: a closure written in this
+    /// `@MainActor` scene would make `sort` check the actor on every comparison.
+    private nonisolated static func activeFirst(_ lhs: GameObj, _ rhs: GameObj) -> Bool {
+        lhs.isActive && !rhs.isActive
     }
 
     func draw() {

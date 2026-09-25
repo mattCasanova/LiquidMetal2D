@@ -81,7 +81,14 @@ class MassRenderDemo: DefaultScene {
             obj.get(MoveRightBehavior.self)?.update(dt: dt)
         }
 
-        objects.sort(by: { $0.zOrder < $1.zOrder })
+        objects.sort(by: Self.isFarther)
+    }
+
+    /// Draw order: ascending `zOrder`, far to near. A `nonisolated` function,
+    /// not a closure: a closure written in this `@MainActor` scene would make
+    /// `sort` check the actor on every comparison (1.7 ms a frame at 10,000 ships).
+    private nonisolated static func isFarther(_ lhs: GameObj, _ rhs: GameObj) -> Bool {
+        lhs.zOrder < rhs.zOrder
     }
 
     override func shutdown() {

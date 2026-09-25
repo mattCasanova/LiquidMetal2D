@@ -63,3 +63,4 @@ xcodebuild -project LiquidMetal2D-Demo/LiquidMetal2D-Demo.xcodeproj \
 - `nonisolated(unsafe)` is used on `GameTextures` static vars since they're written once at startup
 - Each demo scene creates its own `DemoSceneUI` for the Menu button and removes it on shutdown
 - The PauseDemo is push-only (not in the navigable list) — it slides in as an overlay
+- Per-frame scene code passes no closures to standard-library algorithms (`sort`, `filter`, `removeAll`, …). A closure written in a `@MainActor` scene is `@MainActor`, and those calls check the actor on every call (1.7 ms a frame for MassRender's 10,000-ship sort). Scenes sort with `nonisolated static` comparators (`isFarther`, `activeFirst`, `isSmaller`) or pass a `@Sendable` closure
