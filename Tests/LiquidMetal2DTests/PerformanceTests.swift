@@ -3,8 +3,8 @@ import XCTest
 
 /// Timing baselines for the hot paths. `measure` prints per-run timings to
 /// the test log; compare them before and after a change. These are not
-/// pass/fail gates. Numbers are recorded in
-/// `~/workspace/LM2D/math-and-hot-path-audit.md`.
+/// pass/fail gates. Numbers are recorded in `~/workspace/LM2D/`:
+/// `math-and-hot-path-audit.md`, and `gpu-sprite-transform.md` for shader submit.
 ///
 /// Inputs come from a fixed-seed `SeededRandom` so every run measures the same work.
 @MainActor
@@ -125,7 +125,69 @@ final class PerformanceTests: XCTestCase {
         XCTAssertGreaterThan(drawn, 0)
     }
 
+    // MARK: - Shader submit (baselines for the GPU sprite transform)
+
+    /// The real `AlphaBlendShader.submit` for 5,000 sprites already in draw
+    /// order: the draw-list pass plus one uniform per sprite, written into
+    /// the shader's Metal buffer. 60 frames per run.
+    func testAlphaBlendSubmit5k() throws {
+        let renderCore = try ShaderTestSupport.makeRenderCore()
+        let shader = AlphaBlendShader(renderCore: renderCore, maxObjects: 5000)
+        let sprites = ShaderTestSupport.makeSprites(count: 5000, seed: 4)
+
+        withExtendedLifetime(renderCore) {
+            measureClock {
+                for _ in 0..<60 { ShaderTestSupport.submitFrame(shader, objects: sprites) }
+            }
+        }
+    }
+
+    /// Only the per-sprite uniform build and store, the part the GPU sprite
+    /// transform changes. 60 frames per run.
+    func testAlphaBlendMakeUniform5k() throws {
+        let sprites = ShaderTestSupport.makeSprites(count: 5000, seed: 4)
+        let components = try sprites.map { try XCTUnwrap($0.get(AlphaBlendComponent.self)) }
+        let buffer = UnsafeMutableRawPointer.allocate(
+            byteCount: AlphaBlendUniform.stride * components.count, alignment: 16)
+        defer { buffer.deallocate() }
+
+        withExtendedLifetime(sprites) {
+            measureClock {
+                for _ in 0..<60 {
+                    for (index, comp) in components.enumerated() {
+                        comp.makeUniform().store(into: buffer, index: index)
+                    }
+                }
+            }
+        }
+    }
+
+    /// The real `ParticleShader.submit` for one emitter with 10,000 live
+    /// particles. It builds each particle's uniform inline, so this is the
+    /// particle side of the same cost. 60 frames per run.
+    func testParticleSubmit10k() throws {
+        let renderCore = try ShaderTestSupport.makeRenderCore()
+        let shader = ParticleShader(renderCore: renderCore, maxObjects: 10_000)
+        let (parent, _) = ShaderTestSupport.makeFullEmitter(count: 10_000, seed: 6)
+        let objects = [parent]
+
+        withExtendedLifetime(renderCore) {
+            measureClock {
+                for _ in 0..<60 { ShaderTestSupport.submitFrame(shader, objects: objects) }
+            }
+        }
+    }
+
     // MARK: - Helpers
+
+    /// Wall-clock `measure` through the metrics API, 10 runs. Its spread is a
+    /// few percent; plain `measure`'s first run is a ~2× outlier that pushes
+    /// the spread to 20–30%. (`XCTCPUMetric` reports nothing on the simulator.)
+    private func measureClock(_ block: () -> Void) {
+        let options = XCTMeasureOptions()
+        options.iterationCount = 10
+        measure(metrics: [XCTClockMetric()], options: options, block: block)
+    }
 
     /// Returns the parent too: the emitter holds it `unowned`, so the caller
     /// must keep it alive for as long as the emitter is used.

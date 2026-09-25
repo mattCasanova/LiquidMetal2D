@@ -116,6 +116,39 @@ final class AllocationTests: XCTestCase {
         XCTAssertEqual(count, 0)
     }
 
+    // MARK: - Shader submit
+
+    func testSteadyAlphaBlendSubmitAllocatesNothing() throws {
+        try requireOptimizedBuild()
+        let renderCore = try ShaderTestSupport.makeRenderCore()
+        let shader = AlphaBlendShader(renderCore: renderCore, maxObjects: 500)
+        let sprites = ShaderTestSupport.makeSprites(count: 500, seed: 7)
+        keepAlive += sprites
+        ShaderTestSupport.submitFrame(shader, objects: sprites)     // grow the draw list and batches once
+
+        let count = withExtendedLifetime(renderCore) {
+            AllocationCounter.count { ShaderTestSupport.submitFrame(shader, objects: sprites) }
+        }
+
+        XCTAssertEqual(count, 0)
+    }
+
+    func testParticleSubmitAllocatesNothing() throws {
+        try requireOptimizedBuild()
+        let renderCore = try ShaderTestSupport.makeRenderCore()
+        let shader = ParticleShader(renderCore: renderCore, maxObjects: 1000)
+        let (parent, _) = ShaderTestSupport.makeFullEmitter(count: 1000, seed: 8)
+        keepAlive.append(parent)
+        let objects = [parent]
+        ShaderTestSupport.submitFrame(shader, objects: objects)
+
+        let count = withExtendedLifetime(renderCore) {
+            AllocationCounter.count { ShaderTestSupport.submitFrame(shader, objects: objects) }
+        }
+
+        XCTAssertEqual(count, 0)
+    }
+
     // MARK: - Particles
 
     func testEmitterUpdateAndSpawnAllocateNothing() throws {
