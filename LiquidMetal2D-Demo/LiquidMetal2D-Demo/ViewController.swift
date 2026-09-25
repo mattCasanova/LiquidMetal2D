@@ -42,6 +42,7 @@ class ViewController: LiquidViewController {
             CollisionStressDemo.self,
             BezierDemo.self,
             CameraRotationDemo.self,
+            CameraPanDemo.self,
             AsyncLoadDemo.self,
             MultiShaderDemo.self,
             ParticleDemo.self,

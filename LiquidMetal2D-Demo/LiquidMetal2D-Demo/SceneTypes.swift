@@ -35,6 +35,7 @@ enum SceneTypes: SceneType {
     case collisionStressDemo
     case bezierDemo
     case cameraRotationDemo
+    case cameraPanDemo
     case asyncLoadDemo
     case multiShaderDemo
     case particleDemo
@@ -54,6 +55,7 @@ enum SceneTypes: SceneType {
         case .collisionStressDemo: return "Collision Stress Test"
         case .bezierDemo: return "Cubic Bezier Curves"
         case .cameraRotationDemo: return "Camera Rotation & Shake"
+        case .cameraPanDemo: return "Camera Pan - Unproject & Visible Bounds"
         case .asyncLoadDemo: return "Async Texture Loading"
         case .multiShaderDemo: return "Multi-Shader (Wireframe + Ripple)"
         case .particleDemo: return "Particles - Additive Campfire"
@@ -67,7 +69,7 @@ enum SceneTypes: SceneType {
     static let navigable: [SceneTypes] = [
         .massRenderDemo, .touchZoomDemo, .instanceDemo,
         .schedulerDemo, .spawnDemo, .collisionDemo, .collisionStressDemo,
-        .bezierDemo, .cameraRotationDemo, .multiShaderDemo,
+        .bezierDemo, .cameraRotationDemo, .cameraPanDemo, .multiShaderDemo,
         .particleDemo, .lineParticleDemo, .smokeDemo
     ]
 

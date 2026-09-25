@@ -46,6 +46,7 @@
 		F57FE9732426D8E4005D5A59 /* RandomAngleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F57FE9722426D8E4005D5A59 /* RandomAngleState.swift */; };
 		F57FE9762427C72F005D5A59 /* MoveRightBehavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = F57FE9752427C72F005D5A59 /* MoveRightBehavior.swift */; };
 		F57FE9782427CEF3005D5A59 /* MoveRightState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F57FE9772427CEF3005D5A59 /* MoveRightState.swift */; };
+		C4A3E7A12E80000100C42A29 /* CameraPanDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A3E7A02E80000100C42A29 /* CameraPanDemo.swift */; };
 		F5EDA0B42416952400C42A29 /* TouchZoomDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5EDA0B32416952400C42A29 /* TouchZoomDemo.swift */; };
 		F5ZOMBIE012F67A0A7003831F3 /* ZombieDemoComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5ZOMBIE002F67A0A7003831F3 /* ZombieDemoComponent.swift */; };
 /* End PBXBuildFile section */
@@ -91,6 +92,7 @@
 		F57FE9722426D8E4005D5A59 /* RandomAngleState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomAngleState.swift; sourceTree = "<group>"; };
 		F57FE9752427C72F005D5A59 /* MoveRightBehavior.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveRightBehavior.swift; sourceTree = "<group>"; };
 		F57FE9772427CEF3005D5A59 /* MoveRightState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveRightState.swift; sourceTree = "<group>"; };
+		C4A3E7A02E80000100C42A29 /* CameraPanDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPanDemo.swift; sourceTree = "<group>"; };
 		F5EDA0B32416952400C42A29 /* TouchZoomDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchZoomDemo.swift; sourceTree = "<group>"; };
 		F5ZOMBIE002F67A0A7003831F3 /* ZombieDemoComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZombieDemoComponent.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -163,6 +165,7 @@
 				A1B2C3D12F67B0A7003831F3 /* AsyncLoadDemo.swift */,
 				F536B6AC2416925800B3566F /* MassRenderDemo.swift */,
 				F5593FB22F717F1D005C0470 /* CollisionStressDemo.swift */,
+				C4A3E7A02E80000100C42A29 /* CameraPanDemo.swift */,
 				F5EDA0B32416952400C42A29 /* TouchZoomDemo.swift */,
 				A1B2C3D32F6780A7003831F3 /* BezierDemo.swift */,
 				F53AAB042F6770A7003831F3 /* CollisionDemo.swift */,
@@ -333,6 +336,7 @@
 				F536B68F241690A800B3566F /* AppDelegate.swift in Sources */,
 				F5593FB32F717F1D005C0470 /* CollisionStressDemo.swift in Sources */,
 				F536B691241690A800B3566F /* SceneDelegate.swift in Sources */,
+				C4A3E7A12E80000100C42A29 /* CameraPanDemo.swift in Sources */,
 				F5EDA0B42416952400C42A29 /* TouchZoomDemo.swift in Sources */,
 				F57FE9762427C72F005D5A59 /* MoveRightBehavior.swift in Sources */,
 				A1B2C3D82F67A0A7003831F3 /* MoveRightBehaviorFOV.swift in Sources */,
