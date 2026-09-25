@@ -14,6 +14,8 @@
 		A1B2C3D62F6790A7003831F3 /* CameraRotationDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D52F6790A7003831F3 /* CameraRotationDemo.swift */; };
 		A1B2C3D82F67A0A7003831F3 /* MoveRightBehaviorFOV.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D72F67A0A7003831F3 /* MoveRightBehaviorFOV.swift */; };
 		A1B2C3DA2F67A0A7003831F3 /* MoveRightStateFOV.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D92F67A0A7003831F3 /* MoveRightStateFOV.swift */; };
+		C4A3E7A32E80000100C42A29 /* SkeletonDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A3E7A22E80000100C42A29 /* SkeletonDemo.swift */; };
+		C4A3E7A52E80000100C42A29 /* StickFigure.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A3E7A42E80000100C42A29 /* StickFigure.swift */; };
 		F5021ABD2F94D074000FC89F /* WireframeDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5021ABC2F94D074000FC89F /* WireframeDemo.swift */; };
 		F5021ABF2F957BB8000FC89F /* ParticleDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5021ABE2F957BB8000FC89F /* ParticleDemo.swift */; };
 		F5021AC12F958340000FC89F /* RocketTrailDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5021AC02F958340000FC89F /* RocketTrailDemo.swift */; };
@@ -59,6 +61,8 @@
 		A1B2C3D52F6790A7003831F3 /* CameraRotationDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraRotationDemo.swift; sourceTree = "<group>"; };
 		A1B2C3D72F67A0A7003831F3 /* MoveRightBehaviorFOV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveRightBehaviorFOV.swift; sourceTree = "<group>"; };
 		A1B2C3D92F67A0A7003831F3 /* MoveRightStateFOV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveRightStateFOV.swift; sourceTree = "<group>"; };
+		C4A3E7A22E80000100C42A29 /* SkeletonDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkeletonDemo.swift; sourceTree = "<group>"; };
+		C4A3E7A42E80000100C42A29 /* StickFigure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StickFigure.swift; sourceTree = "<group>"; };
 		F5021ABC2F94D074000FC89F /* WireframeDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WireframeDemo.swift; sourceTree = "<group>"; };
 		F5021ABE2F957BB8000FC89F /* ParticleDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParticleDemo.swift; sourceTree = "<group>"; };
 		F5021AC02F958340000FC89F /* RocketTrailDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RocketTrailDemo.swift; sourceTree = "<group>"; };
@@ -160,6 +164,8 @@
 				F5021AC02F958340000FC89F /* RocketTrailDemo.swift */,
 				F5021ABE2F957BB8000FC89F /* ParticleDemo.swift */,
 				F5021AC22F95B0A7003831F3 /* LineParticleDemo.swift */,
+				C4A3E7A22E80000100C42A29 /* SkeletonDemo.swift */,
+				C4A3E7A42E80000100C42A29 /* StickFigure.swift */,
 				F5021ABC2F94D074000FC89F /* WireframeDemo.swift */,
 				F536B6AD2416925800B3566F /* SceneTypes.swift */,
 				A1B2C3D12F67B0A7003831F3 /* AsyncLoadDemo.swift */,
@@ -313,6 +319,8 @@
 			files = (
 				A1B2C3D22F67B0A7003831F3 /* AsyncLoadDemo.swift in Sources */,
 				A1B2C3D42F6780A7003831F3 /* BezierDemo.swift in Sources */,
+				C4A3E7A32E80000100C42A29 /* SkeletonDemo.swift in Sources */,
+				C4A3E7A52E80000100C42A29 /* StickFigure.swift in Sources */,
 				F5021ABD2F94D074000FC89F /* WireframeDemo.swift in Sources */,
 				A1B2C3D62F6790A7003831F3 /* CameraRotationDemo.swift in Sources */,
 				F57FE9732426D8E4005D5A59 /* RandomAngleState.swift in Sources */,

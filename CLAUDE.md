@@ -34,6 +34,7 @@ All source files live in `LiquidMetal2D-Demo/LiquidMetal2D-Demo/`:
 | Bezier Curves | `BezierDemo.swift` | Cubic bezier path following |
 | Camera Rotation | `CameraRotationDemo.swift` | Camera rotation and shake effects |
 | Camera Pan | `CameraPanDemo.swift` | Camera x/y pan, parallax, unproject and visible bounds tracking the camera |
+| Skeletal Animation | `SkeletonDemo.swift`, `StickFigure.swift` | White-box stick figure: `SkeletonComponent`, idle/walk/jump crossfades, slash on an override layer, `flipX`. Auto-plays until the first touch |
 | Async Loading | `AsyncLoadDemo.swift` | Async texture loading with starfield loading screen |
 | Pause Menu | `PauseDemo.swift` | Push/pop scene stack, SlidePanel UI, scene navigation |
 

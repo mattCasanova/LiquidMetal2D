@@ -48,6 +48,7 @@ class ViewController: LiquidViewController {
             ParticleDemo.self,
             LineParticleDemo.self,
             SmokeDemo.self,
+            SkeletonDemo.self,
             PauseDemo.self,
         ])
 
