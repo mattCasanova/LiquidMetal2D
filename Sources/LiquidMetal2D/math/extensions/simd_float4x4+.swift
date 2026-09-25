@@ -11,6 +11,7 @@ public extension Mat4 {
     // MARK: - Static Methods
 
     /// Creates a 2D look-at (view) matrix that translates the world opposite to the eye position.
+    @inlinable
     static func makeLookAt2D(_ eye: Vec3) -> Mat4 {
         // A 2D camera always looks straight down -z, so the view is a pure translation
         var mtx = Mat4(1)
@@ -20,6 +21,7 @@ public extension Mat4 {
 
     /// Creates a perspective projection matrix. Metal NDC z range is [0, 1]:
     /// the near plane maps to 0 and the far plane to 1.
+    @inlinable
     static func makePerspective(fovRadian: Float, aspect: Float, n: Float, f: Float) -> Mat4 {
         let scale: Float = tan(fovRadian * 0.5) * n
 
@@ -35,6 +37,7 @@ public extension Mat4 {
     }
 
     /// Creates an orthographic projection matrix. Metal NDC z range is [0, 1].
+    @inlinable
     static func makeOrthographic( // swiftlint:disable:this function_parameter_count
         left: Float, right: Float, bottom: Float, top: Float,
         nearZ: Float, farZ: Float
@@ -51,11 +54,13 @@ public extension Mat4 {
     }
 
     /// Creates a 2D scale matrix from x and y scale factors.
+    @inlinable
     static func makeScale2D(_ scale: Vec2) -> Mat4 {
         return Mat4(diagonal: Vec4(lowHalf: scale, highHalf: Vec2(1, 1)))
     }
 
     /// Creates a 2D translation matrix.
+    @inlinable
     static func makeTranslate2D(_ translate: Vec3) -> Mat4 {
         var mtx = Mat4(1)
         mtx[3] = Vec4(translate, 1)
@@ -63,6 +68,7 @@ public extension Mat4 {
     }
 
     /// Creates a 2D rotation matrix for the given angle in radians.
+    @inlinable
     static func makeRotate2D(_ angle: Float) -> Mat4 {
         let cosAngle = cos(angle)
         let sinAngle = sin(angle)
@@ -74,6 +80,7 @@ public extension Mat4 {
     }
 
     /// Creates a combined 2D scale-rotate-translate matrix.
+    @inlinable
     static func makeTransform2D(scale: Vec2, angle: Float, translate: Vec3) -> Mat4 {
         var mtx = Mat4()
 
@@ -90,11 +97,13 @@ public extension Mat4 {
     // MARK: - Mutating Methods
 
     /// Sets all elements to zero.
+    @inlinable
     mutating func setToZero() {
         self = Mat4()
     }
 
     /// Zeroes the matrix then sets the diagonal to the given values.
+    @inlinable
     mutating func setDiagonal(_ diagonal: Vec4) {
         setToZero()
         self[0][0] = diagonal.x
@@ -104,6 +113,7 @@ public extension Mat4 {
     }
 
     /// Sets this matrix to a 2D look-at (view) matrix for the given eye position.
+    @inlinable
     mutating func setToLookAt2D(_ eye: Vec3) {
         self[0] = Vec4(1, 0, 0, 0)
         self[1] = Vec4(0, 1, 0, 0)
@@ -112,17 +122,20 @@ public extension Mat4 {
     }
 
     /// Sets this matrix to a 2D scale matrix.
+    @inlinable
     mutating func setToScale2D(_ scale: Vec2) {
         setDiagonal(Vec4(lowHalf: scale, highHalf: Vec2(1, 1)))
     }
 
     /// Sets this matrix to a translation matrix.
+    @inlinable
     mutating func setToTranslate(_ translate: Vec3) {
         setDiagonal(Vec4(repeating: 1))
         self[3] = Vec4(translate, 1)
     }
 
     /// Sets this matrix to a 2D rotation matrix for the given angle in radians.
+    @inlinable
     mutating func setToRotate2D(_ angle: Float) {
         let cosAngle = cos(angle)
         let sinAngle = sin(angle)
@@ -133,6 +146,7 @@ public extension Mat4 {
     }
 
     /// Sets this matrix to a combined 2D scale-rotate-translate matrix.
+    @inlinable
     mutating func setToTransform2D(scale: Vec2, angle: Float, translate: Vec3) {
         let cosAngle = cos(angle)
         let sinAngle = sin(angle)
@@ -143,6 +157,7 @@ public extension Mat4 {
         self[3] = Vec4(translate.x, translate.y, translate.z, 1)
     }
 
+    @inlinable
     static func multiply(_ matrix: Mat4, _ vector: Vec4) -> Vec4 {
         simd_mul(matrix, vector)
     }

@@ -80,3 +80,4 @@ xcodebuild -scheme LiquidMetal2D -destination 'platform=iOS Simulator,name=iPhon
 - All rendering types are `@MainActor`; `DefaultRenderer` is `open` for subclassing; `AlphaBlendShader` is `final`
 - `GameObj` is `final` — don't subclass. Compose via `Component` conformers in the component bag
 - `@_exported import simd` in TypeAliases.swift — consumers get simd types automatically
+- **Small public helpers are `@inlinable`** (math, `Intersect`, `Easing`, simd extensions, `WorldBounds`, `GameObj` component methods). Without it, game code calls them as real functions and generics like `GameObj.get<T>` run unspecialized (verified by disassembling the Release demo). New small, hot public helpers in these files get `@inlinable` too; anything they touch that isn't public needs `@usableFromInline`. Constants are `@inlinable static var x: Float { … }`, not `static let` (a `let` is read through an accessor function across modules). Don't mark large functions inlinable

@@ -36,5 +36,6 @@ public protocol Component: AnyObject {
 /// Base protocols (Collider, Behavior) override this to group
 /// all their subtypes under one key.
 public extension Component {
+    @inlinable
     static var id: ObjectIdentifier { ObjectIdentifier(Self.self) }
 }

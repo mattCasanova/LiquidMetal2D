@@ -14,6 +14,7 @@ public struct WorldBounds {
 
     /// Creates world bounds with the given extents.
     /// - Precondition: `minX <= maxX` and `minY <= maxY`.
+    @inlinable
     public init(minX: Float, maxX: Float, minY: Float, maxY: Float) {
         precondition(minX <= maxX, "minX (\(minX)) must be <= maxX (\(maxX))")
         precondition(minY <= maxY, "minY (\(minY)) must be <= maxY (\(maxY))")
@@ -25,15 +26,19 @@ public struct WorldBounds {
     }
 
     /// The horizontal size of the bounds.
+    @inlinable
     public var width: Float { maxX - minX }
 
     /// The vertical size of the bounds.
+    @inlinable
     public var height: Float { maxY - minY }
 
     /// The center point of the bounds.
+    @inlinable
     public var center: Vec2 { Vec2((minX + maxX) / 2, (minY + maxY) / 2) }
 
     /// Whether the given point is inside or on the edge of the bounds.
+    @inlinable
     public func contains(_ point: Vec2) -> Bool {
         return point.x >= minX && point.x <= maxX
             && point.y >= minY && point.y <= maxY

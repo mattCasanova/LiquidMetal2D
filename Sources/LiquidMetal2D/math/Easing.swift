@@ -11,16 +11,19 @@ public enum Easing {
     // MARK: - Quadratic
 
     /// Starts slow, accelerates. t² curve.
+    @inlinable
     public static func easeInQuad(_ t: Float) -> Float {
         return t * t
     }
 
     /// Starts fast, decelerates. Inverse t² curve.
+    @inlinable
     public static func easeOutQuad(_ t: Float) -> Float {
         return t * (2 - t)
     }
 
     /// Slow start and end, fast middle. Quadratic.
+    @inlinable
     public static func easeInOutQuad(_ t: Float) -> Float {
         return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
     }
@@ -28,17 +31,20 @@ public enum Easing {
     // MARK: - Cubic
 
     /// Starts slow, accelerates. t³ curve.
+    @inlinable
     public static func easeInCubic(_ t: Float) -> Float {
         return t * t * t
     }
 
     /// Starts fast, decelerates. Inverse t³ curve.
+    @inlinable
     public static func easeOutCubic(_ t: Float) -> Float {
         let u = t - 1
         return u * u * u + 1
     }
 
     /// Slow start and end, fast middle. Cubic.
+    @inlinable
     public static func easeInOutCubic(_ t: Float) -> Float {
         if t < 0.5 {
             return 4 * t * t * t
@@ -50,17 +56,20 @@ public enum Easing {
     // MARK: - Quartic
 
     /// Starts slow, accelerates. t⁴ curve.
+    @inlinable
     public static func easeInQuart(_ t: Float) -> Float {
         return t * t * t * t
     }
 
     /// Starts fast, decelerates. Inverse t⁴ curve.
+    @inlinable
     public static func easeOutQuart(_ t: Float) -> Float {
         let u = t - 1
         return 1 - u * u * u * u
     }
 
     /// Slow start and end, fast middle. Quartic.
+    @inlinable
     public static func easeInOutQuart(_ t: Float) -> Float {
         if t < 0.5 {
             return 8 * t * t * t * t
@@ -72,16 +81,19 @@ public enum Easing {
     // MARK: - Sine
 
     /// Starts slow, accelerates. Sine curve.
+    @inlinable
     public static func easeInSine(_ t: Float) -> Float {
         return 1 - cos(t * Float.pi / 2)
     }
 
     /// Starts fast, decelerates. Sine curve.
+    @inlinable
     public static func easeOutSine(_ t: Float) -> Float {
         return sin(t * Float.pi / 2)
     }
 
     /// Slow start and end, fast middle. Sine curve.
+    @inlinable
     public static func easeInOutSine(_ t: Float) -> Float {
         return (1 - cos(Float.pi * t)) / 2
     }
@@ -89,16 +101,19 @@ public enum Easing {
     // MARK: - Exponential
 
     /// Starts slow, accelerates exponentially.
+    @inlinable
     public static func easeInExpo(_ t: Float) -> Float {
         return t == 0 ? 0 : pow(2, 10 * (t - 1))
     }
 
     /// Starts fast, decelerates exponentially.
+    @inlinable
     public static func easeOutExpo(_ t: Float) -> Float {
         return t == 1 ? 1 : 1 - pow(2, -10 * t)
     }
 
     /// Slow start and end, fast middle. Exponential curve.
+    @inlinable
     public static func easeInOutExpo(_ t: Float) -> Float {
         if t == 0 { return 0 }
         if t == 1 { return 1 }
@@ -111,16 +126,19 @@ public enum Easing {
     // MARK: - Elastic
 
     /// Oscillates with increasing amplitude, like a spring winding up.
+    @inlinable
     public static func easeInElastic(_ t: Float) -> Float {
         return sin(13 * Float.pi / 2 * t) * pow(2, 10 * (t - 1))
     }
 
     /// Oscillates with decreasing amplitude, like a spring settling.
+    @inlinable
     public static func easeOutElastic(_ t: Float) -> Float {
         return sin(-13 * Float.pi / 2 * (t + 1)) * pow(2, -10 * t) + 1
     }
 
     /// Elastic oscillation at both ends.
+    @inlinable
     public static func easeInOutElastic(_ t: Float) -> Float {
         if t < 0.5 {
             return 0.5 * sin(13 * Float.pi * t) * pow(2, 10 * (2 * t - 1))
@@ -131,6 +149,7 @@ public enum Easing {
     // MARK: - Bounce
 
     /// Bounces at the end, like a ball hitting the floor.
+    @inlinable
     public static func easeOutBounce(_ t: Float) -> Float {
         if t < 1 / 2.75 {
             return 7.5625 * t * t
@@ -147,11 +166,13 @@ public enum Easing {
     }
 
     /// Bounces at the start, like a ball thrown upward.
+    @inlinable
     public static func easeInBounce(_ t: Float) -> Float {
         return 1 - easeOutBounce(1 - t)
     }
 
     /// Bounces at both start and end.
+    @inlinable
     public static func easeInOutBounce(_ t: Float) -> Float {
         if t < 0.5 {
             return (1 - easeOutBounce(1 - 2 * t)) / 2
@@ -162,12 +183,14 @@ public enum Easing {
     // MARK: - Back (overshoot)
 
     /// Pulls back slightly before accelerating forward.
+    @inlinable
     public static func easeInBack(_ t: Float) -> Float {
         let s: Float = 1.70158
         return t * t * ((s + 1) * t - s)
     }
 
     /// Overshoots the target then settles back.
+    @inlinable
     public static func easeOutBack(_ t: Float) -> Float {
         let s: Float = 1.70158
         let u = t - 1
@@ -175,6 +198,7 @@ public enum Easing {
     }
 
     /// Pulls back at start, overshoots at end.
+    @inlinable
     public static func easeInOutBack(_ t: Float) -> Float {
         let s: Float = 1.70158 * 1.525
         if t < 0.5 {

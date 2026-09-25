@@ -22,31 +22,36 @@ public final class GameObj {
     public var rotation: Float = 0.0
     public var isActive: Bool = true
 
-    private var components = [ObjectIdentifier: Component]()
+    @usableFromInline var components = [ObjectIdentifier: Component]()
 
     public init() {}
 
     /// Adds a component, stored under its type's ``Component/id``.
+    @inlinable
     public func add(_ component: Component) {
         components[type(of: component).id] = component
     }
 
     /// Returns the component stored under the given type's id, cast to that type.
+    @inlinable
     public func get<T: Component>(_ type: T.Type) -> T? {
         components[T.id] as? T
     }
 
     /// Returns the component stored under the given id without casting.
+    @inlinable
     public func get(id: ObjectIdentifier) -> Component? {
         components[id]
     }
 
     /// Removes the component stored under the given type's id.
+    @inlinable
     public func remove<T: Component>(_ type: T.Type) {
         components.removeValue(forKey: T.id)
     }
 
     /// Removes the component stored under the given id.
+    @inlinable
     public func remove(id: ObjectIdentifier) {
         components.removeValue(forKey: id)
     }
