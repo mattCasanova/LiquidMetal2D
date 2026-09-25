@@ -42,7 +42,7 @@ final class ShaderSubmitTests: XCTestCase {
         // The first list ends on texture 7 and the second starts on 0, so no run merges.
         XCTAssertEqual(shader.instances.count, 200)
         XCTAssertEqual(shader.instances.batches.count, 80)
-        XCTAssertEqual(shader.instances.batches[40].startIndex, 100)
+        XCTAssertEqual(shader.instances.batches.dropFirst(40).first?.startIndex, 100)
     }
 
     func testParticlesQueueOneBatchPerEmitter() throws {
