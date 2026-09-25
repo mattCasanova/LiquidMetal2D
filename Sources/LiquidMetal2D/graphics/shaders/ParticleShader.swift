@@ -14,17 +14,14 @@ import Metal
 ///   hotspots — glow, fire, sparks, lasers.
 /// - ``BlendMode/alpha``: classic "over" compositing — smoke, dust, fog.
 ///
-/// Both modes walk emitters in ``DrawList`` order: ascending `zOrder`
-/// (far to near, which "over" compositing needs) and then by texture, so
-/// particles sharing a texture form one instanced draw. Every particle of an
-/// emitter shares its `zOrder`, so sorting the emitters orders the particles.
+/// Emitters are walked in ``DrawList`` order, which depends on the mode:
 ///
-/// Additive mode doesn't need the z sort: addition (clamped at 1) gives the
-/// same pixel in any order, and z only affects each particle's transform.
-/// The cost is at most one extra instanced draw per emitter when emitters at
-/// different z alternate textures. Kept for one code path; if a scene ever
-/// has many additive emitters sharing few textures, give additive mode a
-/// texture-only sort key.
+/// - Alpha: ascending `zOrder` (far to near, which "over" compositing needs),
+///   then texture. Every particle of an emitter shares its `zOrder`, so
+///   sorting the emitters orders the particles.
+/// - Additive: texture only. Clamped addition gives the same pixel in any
+///   order, and z only affects each particle's transform, so the mode sorts
+///   purely for batching: every emitter sharing a texture is one draw.
 @MainActor
 public final class ParticleShader: Shader {
 
@@ -52,7 +49,7 @@ public final class ParticleShader: Shader {
         var count: Int
     }
     private var batches: [TextureBatch] = []
-    private var drawList = DrawList<ParticleEmitterComponent>()
+    private var drawList: DrawList<ParticleEmitterComponent>
 
     public init(
         renderCore: RenderCore,
@@ -62,6 +59,7 @@ public final class ParticleShader: Shader {
         self.renderCore = renderCore
         self.maxObjects = maxObjects
         self.blendMode = blendMode
+        self.drawList = DrawList(order: Self.drawOrder(for: blendMode))
         self.pipelineState = ParticlePipeline.create(
             renderCore: renderCore, blendMode: blendMode)
         self.vertexBuffer = renderCore.createQuad()
@@ -149,6 +147,14 @@ public final class ParticleShader: Shader {
     }
 
     // MARK: - Helpers
+
+    /// Alpha compositing needs far-to-near; additive only needs batching.
+    static func drawOrder(for blendMode: BlendMode) -> DrawList<ParticleEmitterComponent>.Order {
+        switch blendMode {
+        case .alpha: return .farToNear
+        case .additive: return .byTexture
+        }
+    }
 
     private func appendBatch(textureId: Int) {
         if let last = batches.last, last.textureId == textureId {

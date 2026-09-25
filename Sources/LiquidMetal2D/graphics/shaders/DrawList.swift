@@ -8,21 +8,36 @@
 /// The objects one shader draws this frame, in draw order.
 ///
 /// ``rebuild(from:)`` collects the active objects that carry `Comp` and
-/// sorts them by `(zOrder, textureID)`. Ascending `zOrder` is far-to-near
-/// for this engine's camera (it sits at `z = distance` looking down −z),
-/// which "over" blending needs; grouping by texture within a z level lets
-/// consecutive instances batch.
+/// sorts them by the list's ``Order``:
+///
+/// - ``Order/farToNear`` (default): `(zOrder, textureID)`. Ascending
+///   `zOrder` is far-to-near for this engine's camera (it sits at
+///   `z = distance` looking down −z), which "over" blending needs; grouping
+///   by texture within a z level lets consecutive instances batch.
+/// - ``Order/byTexture``: `textureID` only, for order-independent blending
+///   (additive). Every object sharing a texture lands in one instanced draw.
 ///
 /// The array keeps its capacity between frames. When the objects arrive
 /// already in draw order (the common case for a steady scene), the sort is
 /// skipped, so a steady frame allocates nothing. Otherwise the standard
 /// library's stable sort allocates a scratch buffer for that frame.
 public struct DrawList<Comp: TexturedComponent> {
+    public enum Order: Sendable {
+        /// Ascending `zOrder`, then `textureID`. For "over" blending.
+        case farToNear
+        /// `textureID` only. For blending where draw order doesn't change the result.
+        case byTexture
+    }
+
+    public let order: Order
+
     /// This frame's `(object, component)` pairs in draw order. Empty
     /// between frames once the shader calls ``clear()``.
     public private(set) var pairs: [(GameObj, Comp)] = []
 
-    public init() {}
+    public init(order: Order = .farToNear) {
+        self.order = order
+    }
 
     /// Replaces the list with the active objects in `objects` that carry
     /// `Comp`, in draw order.
@@ -33,7 +48,7 @@ public struct DrawList<Comp: TexturedComponent> {
             pairs.append((obj, comp))
         }
         if !isInDrawOrder() {
-            pairs.sort(by: Self.drawsBefore)
+            pairs.sort(by: drawsBefore)
         }
     }
 
@@ -45,15 +60,19 @@ public struct DrawList<Comp: TexturedComponent> {
     }
 
     private func isInDrawOrder() -> Bool {
-        for index in pairs.indices.dropFirst() where Self.drawsBefore(pairs[index], pairs[index - 1]) {
+        for index in pairs.indices.dropFirst() where drawsBefore(pairs[index], pairs[index - 1]) {
             return false
         }
         return true
     }
 
-    /// Lower `zOrder` first (farther from the camera), then lower `textureID`.
-    private static func drawsBefore(_ lhs: (GameObj, Comp), _ rhs: (GameObj, Comp)) -> Bool {
-        if lhs.0.zOrder != rhs.0.zOrder { return lhs.0.zOrder < rhs.0.zOrder }
-        return lhs.1.textureID < rhs.1.textureID
+    private func drawsBefore(_ lhs: (GameObj, Comp), _ rhs: (GameObj, Comp)) -> Bool {
+        switch order {
+        case .farToNear:
+            if lhs.0.zOrder != rhs.0.zOrder { return lhs.0.zOrder < rhs.0.zOrder }
+            return lhs.1.textureID < rhs.1.textureID
+        case .byTexture:
+            return lhs.1.textureID < rhs.1.textureID
+        }
     }
 }

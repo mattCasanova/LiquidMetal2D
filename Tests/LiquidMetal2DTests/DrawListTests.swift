@@ -109,6 +109,30 @@ final class DrawListTests: XCTestCase {
         XCTAssertNil(released, "cleared list still holds the object")
     }
 
+    // MARK: byTexture
+
+    func testByTextureIgnoresZOrder() {
+        // Alternating textures at rising z: farToNear would give 4 runs, byTexture gives 2.
+        let objects = [
+            makeObj(zOrder: 0, textureID: 1), makeObj(zOrder: 1, textureID: 2),
+            makeObj(zOrder: 2, textureID: 1), makeObj(zOrder: 3, textureID: 2)
+        ]
+        var list = DrawList<AlphaBlendComponent>(order: .byTexture)
+
+        list.rebuild(from: objects)
+
+        XCTAssertEqual(order(list).map(\.1), [1, 1, 2, 2])
+    }
+
+    func testFarToNearIsTheDefault() {
+        XCTAssertEqual(DrawList<AlphaBlendComponent>().order, .farToNear)
+    }
+
+    func testParticleShaderOrderPerBlendMode() {
+        XCTAssertEqual(ParticleShader.drawOrder(for: .alpha), .farToNear)
+        XCTAssertEqual(ParticleShader.drawOrder(for: .additive), .byTexture)
+    }
+
     func testPicksUpOtherTexturedComponents() {
         let obj = GameObj()
         obj.add(ParticleEmitterComponent(parent: obj, maxParticles: 1, textureID: 4))
