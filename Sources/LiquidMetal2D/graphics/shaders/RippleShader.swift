@@ -25,14 +25,9 @@ public final class RippleShader: Shader {
 
     private var worldBuffer: MTLBuffer?
     private var worldBufferContents: UnsafeMutableRawPointer?
-    private var drawCount: Int = 0
 
-    private struct TextureBatch {
-        let textureId: Int
-        let startIndex: Int
-        var count: Int
-    }
-    private var batches: [TextureBatch] = []
+    /// This frame's instances and texture runs. Readable by tests.
+    private(set) var instances = InstanceBatches()
     private var drawList = DrawList<RippleComponent>()
 
     public init(renderCore: RenderCore, maxObjects: Int) {
@@ -57,8 +52,7 @@ public final class RippleShader: Shader {
         let buffer = bufferProvider.nextBuffer()
         worldBuffer = buffer
         worldBufferContents = buffer.contents()
-        drawCount = 0
-        batches.removeAll(keepingCapacity: true)
+        instances.reset()
         return true
     }
 
@@ -82,21 +76,24 @@ public final class RippleShader: Shader {
 
         drawList.rebuild(from: objects)
         defer { drawList.clear() }
+        // Loop on a local: the stored property would pay an exclusivity check per sprite.
+        var frame = InstanceBatches()
+        swap(&frame, &instances)
+        defer { swap(&frame, &instances) }
         for (_, comp) in drawList.pairs {
-            assert(drawCount < maxObjects,
-                   "RippleShader draw count \(drawCount) exceeds maxObjects \(maxObjects)")
-            guard drawCount < maxObjects else { break }
+            assert(frame.count < maxObjects,
+                   "RippleShader draw count \(frame.count) exceeds maxObjects \(maxObjects)")
+            guard frame.count < maxObjects else { break }
 
-            comp.makeUniform().store(into: contents, index: drawCount)
-            appendBatch(textureId: comp.textureID)
-            drawCount += 1
+            comp.makeUniform().store(into: contents, index: frame.count)
+            frame.append(textureId: comp.textureID)
         }
     }
 
     public func flush(pass: RenderPass) {
-        guard !batches.isEmpty else { return }
+        guard !instances.batches.isEmpty else { return }
         let encoder = pass.encoder
-        for batch in batches {
+        for batch in instances.batches {
             encoder.setFragmentTexture(
                 renderCore.textureManager.getTexture(id: batch.textureId),
                 index: RipplePipeline.textureIndex)
@@ -107,21 +104,10 @@ public final class RippleShader: Shader {
                 type: .triangleStrip, vertexStart: 0,
                 vertexCount: 4, instanceCount: batch.count)
         }
-        batches.removeAll(keepingCapacity: true)
+        instances.removeDrawnBatches()
     }
 
     public nonisolated func signalFrameComplete() {
         bufferProvider.signal()
-    }
-
-    // MARK: - Helpers
-
-    private func appendBatch(textureId: Int) {
-        if let last = batches.last, last.textureId == textureId {
-            batches[batches.count - 1].count += 1
-        } else {
-            batches.append(TextureBatch(
-                textureId: textureId, startIndex: drawCount, count: 1))
-        }
     }
 }

@@ -67,6 +67,9 @@ public final class WireframeShader: Shader {
     public func submit(objects: [GameObj]) {
         guard let contents = worldBufferContents else { return }
 
+        // Count in a local: the stored property would pay an exclusivity check per object.
+        var count = drawCount
+        defer { drawCount = count }
         for obj in objects where obj.isActive {
             guard let wire = obj.get(WireframeComponent.self) else { continue }
 
@@ -84,9 +87,9 @@ public final class WireframeShader: Shader {
                 continue
             }
 
-            assert(drawCount < maxObjects,
-                   "WireframeShader draw count \(drawCount) exceeds maxObjects \(maxObjects)")
-            guard drawCount < maxObjects else { break }
+            assert(count < maxObjects,
+                   "WireframeShader draw count \(count) exceeds maxObjects \(maxObjects)")
+            guard count < maxObjects else { break }
 
             WireframeUniform(
                 transform: Mat4.makeTransform2D(
@@ -95,8 +98,8 @@ public final class WireframeShader: Shader {
                     translate: Vec3(obj.position, obj.zOrder)),
                 color: wire.color,
                 params: Vec4(shapeParam, wire.thickness, 0, 0))
-                .store(into: contents, index: drawCount)
-            drawCount += 1
+                .store(into: contents, index: count)
+            count += 1
         }
     }
 

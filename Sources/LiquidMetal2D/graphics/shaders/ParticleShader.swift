@@ -41,14 +41,9 @@ public final class ParticleShader: Shader {
 
     private var worldBuffer: MTLBuffer?
     private var worldBufferContents: UnsafeMutableRawPointer?
-    private var drawCount: Int = 0
 
-    private struct TextureBatch {
-        let textureId: Int
-        let startIndex: Int
-        var count: Int
-    }
-    private var batches: [TextureBatch] = []
+    /// This frame's instances and texture runs. Readable by tests.
+    private(set) var instances = InstanceBatches()
     private var drawList: DrawList<ParticleEmitterComponent>
 
     public init(
@@ -80,8 +75,7 @@ public final class ParticleShader: Shader {
         let buffer = bufferProvider.nextBuffer()
         worldBuffer = buffer
         worldBufferContents = buffer.contents()
-        drawCount = 0
-        batches.removeAll(keepingCapacity: true)
+        instances.reset()
         return true
     }
 
@@ -105,30 +99,36 @@ public final class ParticleShader: Shader {
 
         drawList.rebuild(from: objects)
         defer { drawList.clear() }
+        // Loop on locals: a stored `var` of a class pays an exclusivity check
+        // on every access, and these would be read once per particle.
+        var frame = InstanceBatches()
+        swap(&frame, &instances)
+        defer { swap(&frame, &instances) }
         for (obj, emitter) in drawList.pairs {
+            let textureId = emitter.textureID
+            let zOrder = obj.zOrder
             for particle in emitter.particles where particle.isAlive {
-                assert(drawCount < maxObjects,
-                       "ParticleShader draw count \(drawCount) exceeds maxObjects \(maxObjects)")
-                guard drawCount < maxObjects else { return }
+                assert(frame.count < maxObjects,
+                       "ParticleShader draw count \(frame.count) exceeds maxObjects \(maxObjects)")
+                guard frame.count < maxObjects else { return }
 
                 let t = min(particle.age / particle.lifetime, 1)
                 ParticleUniform(
                     transform: Mat4.makeTransform2D(
                         scale: mix(particle.startScale, particle.endScale, t: t),
                         angle: particle.rotation,
-                        translate: Vec3(particle.position, obj.zOrder)),
+                        translate: Vec3(particle.position, zOrder)),
                     color: mix(particle.startColor, particle.endColor, t: t))
-                    .store(into: contents, index: drawCount)
-                appendBatch(textureId: emitter.textureID)
-                drawCount += 1
+                    .store(into: contents, index: frame.count)
+                frame.append(textureId: textureId)
             }
         }
     }
 
     public func flush(pass: RenderPass) {
-        guard !batches.isEmpty else { return }
+        guard !instances.batches.isEmpty else { return }
         let encoder = pass.encoder
-        for batch in batches {
+        for batch in instances.batches {
             encoder.setFragmentTexture(
                 renderCore.textureManager.getTexture(id: batch.textureId),
                 index: ParticlePipeline.textureIndex)
@@ -139,7 +139,7 @@ public final class ParticleShader: Shader {
                 type: .triangleStrip, vertexStart: 0,
                 vertexCount: 4, instanceCount: batch.count)
         }
-        batches.removeAll(keepingCapacity: true)
+        instances.removeDrawnBatches()
     }
 
     public nonisolated func signalFrameComplete() {
@@ -153,15 +153,6 @@ public final class ParticleShader: Shader {
         switch blendMode {
         case .alpha: return .farToNear
         case .additive: return .byTexture
-        }
-    }
-
-    private func appendBatch(textureId: Int) {
-        if let last = batches.last, last.textureId == textureId {
-            batches[batches.count - 1].count += 1
-        } else {
-            batches.append(TextureBatch(
-                textureId: textureId, startIndex: drawCount, count: 1))
         }
     }
 
