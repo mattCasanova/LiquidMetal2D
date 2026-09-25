@@ -46,17 +46,13 @@ class TextureManager {
             return []
         }
 
-        let total = items.count
-        let loaded = UnsafeMutablePointer<Int>.allocate(capacity: 1)
-        loaded.initialize(to: 0)
-
+        // Every per-texture completion runs on the main thread, so a plain
+        // counter is enough to know when the whole batch is done.
+        let progress = LoadProgress(total: items.count)
         return items.map { item in
             loadTexture(name: item.name, ext: item.ext, isMipmapped: item.isMipmapped) {
-                let count = loaded.pointee + 1
-                loaded.pointee = count
-                if count == total {
-                    loaded.deallocate()
-                    DispatchQueue.main.async { completion?() }
+                if progress.finishOne() {
+                    completion?()
                 }
             }
         }
@@ -93,7 +89,7 @@ class TextureManager {
     // MARK: - Private
 
     private func loadTexture(name: String, ext: String, isMipmapped: Bool,
-                             completion: (() -> Void)? = nil) -> Int {
+                             completion: (@MainActor () -> Void)? = nil) -> Int {
         let fileName = "\(name).\(ext)".lowercased()
 
         if let existing = textures.first(where: { $0.fileName == fileName }) {
@@ -190,5 +186,22 @@ class TextureManager {
             bytesPerRow: 4)
 
         return texture
+    }
+}
+
+/// Counts finished loads in one `loadTextures` batch.
+@MainActor
+private final class LoadProgress {
+    private let total: Int
+    private var finished = 0
+
+    init(total: Int) {
+        self.total = total
+    }
+
+    /// Records one finished load. Returns `true` when it was the last.
+    func finishOne() -> Bool {
+        finished += 1
+        return finished == total
     }
 }
