@@ -517,6 +517,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.mattcasanova.LiquidMetal2D-Demo";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ENFORCE_EXCLUSIVE_ACCESS = "debug-only";
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -534,6 +535,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.mattcasanova.LiquidMetal2D-Demo";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ENFORCE_EXCLUSIVE_ACCESS = "debug-only";
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

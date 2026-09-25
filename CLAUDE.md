@@ -64,3 +64,4 @@ xcodebuild -project LiquidMetal2D-Demo/LiquidMetal2D-Demo.xcodeproj \
 - Each demo scene creates its own `DemoSceneUI` for the Menu button and removes it on shutdown
 - The PauseDemo is push-only (not in the navigable list) — it slides in as an overlay
 - Per-frame scene code passes no closures to standard-library algorithms (`sort`, `filter`, `removeAll`, …). A closure written in a `@MainActor` scene is `@MainActor`, and those calls check the actor on every call (1.7 ms a frame for MassRender's 10,000-ship sort). Scenes sort with `nonisolated static` comparators (`isFarther`, `activeFirst`, `isSmaller`) or pass a `@Sendable` closure
+- `SWIFT_ENFORCE_EXCLUSIVE_ACCESS = debug-only` on the app target: run-time exclusivity checks in Debug builds only. They cost MassRender ~0.9 ms a frame in Release (every `obj.position` read is checked)
