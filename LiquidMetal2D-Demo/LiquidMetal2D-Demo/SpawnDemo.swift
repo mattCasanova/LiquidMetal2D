@@ -126,15 +126,10 @@ class SpawnDemo: Scene {
         }
         renderer.useShader(defaultRenderer.alphaBlend)
 
-        var transform = Mat4()
         for obj in objects {
             guard let comp = obj.get(AlphaBlendComponent.self) else { continue }
-            transform.setToTransform2D(
-                scale: obj.scale,
-                angle: obj.rotation,
-                translate: Vec3(obj.position, obj.zOrder))
             defaultRenderer.alphaBlend.draw(
-                transform: transform,
+                obj.transform,
                 texTrans: comp.texTrans,
                 color: comp.tintColor,
                 textureId: comp.textureID)
