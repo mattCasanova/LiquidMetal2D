@@ -17,12 +17,6 @@ struct ProjectionUniform {
     float4x4 m;
 };
 
-struct WireframeUniform {
-    float4x4 m;
-    float4 color;
-    float4 params;
-};
-
 // Where a sprite sits. Mirrors Transform2D in Swift, field for field (24 bytes).
 struct Transform2D {
     float2 position;
@@ -43,13 +37,19 @@ static float4 spriteWorld(float3 v, Transform2D t) {
                   v.z + t.zOrder, 1.0);
 }
 
+struct WireframeUniform {
+    float4 color;
+    float4 params;
+    Transform2D transform;
+};
+
 vertex VertOut wireframe_vertex(VertIn inVert [[ stage_in ]],
                                 const device ProjectionUniform& proj [[ buffer(1) ]],
                                 const device WireframeUniform* worlds [[ buffer(2) ]],
                                 unsigned int iid [[ instance_id ]]) {
     WireframeUniform world = worlds[iid];
 
-    float4 position = proj.m * world.m * float4(inVert.position, 1.0);
+    float4 position = proj.m * spriteWorld(inVert.position, world.transform);
 
     VertOut out;
     out.position = position;

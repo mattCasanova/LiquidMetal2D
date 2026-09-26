@@ -9,8 +9,8 @@
 /// A per-instance GPU uniform: a plain struct whose fields mirror, in order,
 /// the matching struct in the shader's `.metalSource`.
 ///
-/// Keep every field a simd type (`Mat4`, `Vec4`, `Vec2`, `Float`) declared in
-/// the same order as the MSL struct. ``stride`` then comes from Swift's own
+/// Keep every field a simd type (`Mat4`, `Vec4`, `Vec2`, `Float`) or a struct
+/// of them (``Transform2D``), declared in the same order as the MSL struct. ``stride`` then comes from Swift's own
 /// layout, padding included, so it matches what the GPU indexes by. A test in
 /// `UniformLayoutTests` pins each uniform's stride and offsets.
 ///

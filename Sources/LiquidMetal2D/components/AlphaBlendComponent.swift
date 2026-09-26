@@ -36,12 +36,6 @@ public final class AlphaBlendComponent: TexturedComponent {
     /// The ``AlphaBlendUniform`` for this component combined with the
     /// parent's transform. Called by ``AlphaBlendShader`` per draw.
     func makeUniform() -> AlphaBlendUniform {
-        return AlphaBlendUniform(
-            transform: Mat4.makeTransform2D(
-                scale: parent.scale,
-                angle: parent.rotation,
-                translate: Vec3(parent.position, parent.zOrder)),
-            texTrans: texTrans,
-            color: tintColor)
+        return AlphaBlendUniform(texTrans: texTrans, color: tintColor, transform: parent.transform)
     }
 }

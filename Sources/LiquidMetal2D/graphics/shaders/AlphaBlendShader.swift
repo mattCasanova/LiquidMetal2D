@@ -115,8 +115,9 @@ public final class AlphaBlendShader: Shader {
 
     /// Appends a single instance to the current frame. No sort; consecutive
     /// calls with the same `textureId` batch into one instanced draw call.
+    /// Pass `obj.transform` to draw a ``GameObj`` where it stands.
     public func draw(
-        transform: Mat4,
+        _ transform: Transform2D,
         texTrans: Vec4 = Vec4(1, 1, 0, 0),
         color: Vec4 = Vec4(1, 1, 1, 1),
         textureId: Int
@@ -125,7 +126,7 @@ public final class AlphaBlendShader: Shader {
                "AlphaBlendShader draw count \(instances.count) exceeds maxObjects \(maxObjects)")
         guard instances.count < maxObjects, let contents = worldBufferContents else { return }
 
-        AlphaBlendUniform(transform: transform, texTrans: texTrans, color: color)
+        AlphaBlendUniform(texTrans: texTrans, color: color, transform: transform)
             .store(into: contents, index: instances.count)
         instances.append(textureId: textureId)
     }

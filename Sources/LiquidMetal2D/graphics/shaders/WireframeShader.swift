@@ -98,12 +98,9 @@ public final class WireframeShader: Shader {
             guard count < maxObjects else { break }
 
             WireframeUniform(
-                transform: Mat4.makeTransform2D(
-                    scale: shapeScale,
-                    angle: 0,
-                    translate: Vec3(obj.position, obj.zOrder)),
                 color: wire.color,
-                params: Vec4(shapeParam, wire.thickness, 0, 0))
+                params: Vec4(shapeParam, wire.thickness, 0, 0),
+                transform: Transform2D(position: obj.position, scale: shapeScale, zOrder: obj.zOrder))
                 .store(into: contents, index: count)
             count += 1
         }

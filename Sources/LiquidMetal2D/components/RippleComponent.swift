@@ -49,12 +49,9 @@ public final class RippleComponent: TexturedComponent {
 
     func makeUniform() -> RippleUniform {
         return RippleUniform(
-            transform: Mat4.makeTransform2D(
-                scale: parent.scale,
-                angle: parent.rotation,
-                translate: Vec3(parent.position, parent.zOrder)),
             texTrans: texTrans,
             color: tintColor,
-            params: Vec4(time, amplitude, frequency, speed))
+            params: Vec4(time, amplitude, frequency, speed),
+            transform: parent.transform)
     }
 }

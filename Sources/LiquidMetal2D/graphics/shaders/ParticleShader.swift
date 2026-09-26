@@ -114,11 +114,12 @@ public final class ParticleShader: Shader {
 
                 let t = min(particle.age / particle.lifetime, 1)
                 ParticleUniform(
-                    transform: Mat4.makeTransform2D(
+                    color: mix(particle.startColor, particle.endColor, t: t),
+                    transform: Transform2D(
+                        position: particle.position,
                         scale: mix(particle.startScale, particle.endScale, t: t),
-                        angle: particle.rotation,
-                        translate: Vec3(particle.position, zOrder)),
-                    color: mix(particle.startColor, particle.endColor, t: t))
+                        rotation: particle.rotation,
+                        zOrder: zOrder))
                     .store(into: contents, index: frame.count)
                 frame.append(textureId: textureId)
             }

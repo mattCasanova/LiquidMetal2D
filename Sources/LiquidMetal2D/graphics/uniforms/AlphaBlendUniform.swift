@@ -6,19 +6,20 @@
 //
 
 /// Mirrors `AlphaBlendUniform` in `AlphaBlendShader.metalSource`:
-/// `transform` (64) + `texTrans` (16) + `color` (16) = 96 bytes.
+/// `texTrans` (16) + `color` (16) + `transform` (24) = 56 bytes, 64 with the
+/// padding to the `float4`s' 16-byte alignment.
 public struct AlphaBlendUniform: UniformData {
-    public var transform: Mat4
     public var texTrans: Vec4
     public var color: Vec4
+    public var transform: Transform2D
 
     public init(
-        transform: Mat4 = Mat4(),
         texTrans: Vec4 = Vec4(1, 1, 0, 0),
-        color: Vec4 = Vec4(1, 1, 1, 1)
+        color: Vec4 = Vec4(1, 1, 1, 1),
+        transform: Transform2D = Transform2D()
     ) {
-        self.transform = transform
         self.texTrans = texTrans
         self.color = color
+        self.transform = transform
     }
 }

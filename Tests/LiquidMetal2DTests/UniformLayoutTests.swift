@@ -20,31 +20,31 @@ final class UniformLayoutTests: XCTestCase {
     }
 
     func testAlphaBlendUniform() {
-        XCTAssertEqual(AlphaBlendUniform.stride, 96)
-        XCTAssertEqual(MemoryLayout<AlphaBlendUniform>.offset(of: \.transform), 0)
-        XCTAssertEqual(MemoryLayout<AlphaBlendUniform>.offset(of: \.texTrans), 64)
-        XCTAssertEqual(MemoryLayout<AlphaBlendUniform>.offset(of: \.color), 80)
+        XCTAssertEqual(AlphaBlendUniform.stride, 64)
+        XCTAssertEqual(MemoryLayout<AlphaBlendUniform>.offset(of: \.texTrans), 0)
+        XCTAssertEqual(MemoryLayout<AlphaBlendUniform>.offset(of: \.color), 16)
+        XCTAssertEqual(MemoryLayout<AlphaBlendUniform>.offset(of: \.transform), 32)
     }
 
     func testParticleUniform() {
-        XCTAssertEqual(ParticleUniform.stride, 80)
-        XCTAssertEqual(MemoryLayout<ParticleUniform>.offset(of: \.transform), 0)
-        XCTAssertEqual(MemoryLayout<ParticleUniform>.offset(of: \.color), 64)
+        XCTAssertEqual(ParticleUniform.stride, 48)
+        XCTAssertEqual(MemoryLayout<ParticleUniform>.offset(of: \.color), 0)
+        XCTAssertEqual(MemoryLayout<ParticleUniform>.offset(of: \.transform), 16)
     }
 
     func testWireframeUniform() {
-        XCTAssertEqual(WireframeUniform.stride, 96)
-        XCTAssertEqual(MemoryLayout<WireframeUniform>.offset(of: \.transform), 0)
-        XCTAssertEqual(MemoryLayout<WireframeUniform>.offset(of: \.color), 64)
-        XCTAssertEqual(MemoryLayout<WireframeUniform>.offset(of: \.params), 80)
+        XCTAssertEqual(WireframeUniform.stride, 64)
+        XCTAssertEqual(MemoryLayout<WireframeUniform>.offset(of: \.color), 0)
+        XCTAssertEqual(MemoryLayout<WireframeUniform>.offset(of: \.params), 16)
+        XCTAssertEqual(MemoryLayout<WireframeUniform>.offset(of: \.transform), 32)
     }
 
     func testRippleUniform() {
-        XCTAssertEqual(RippleUniform.stride, 112)
-        XCTAssertEqual(MemoryLayout<RippleUniform>.offset(of: \.transform), 0)
-        XCTAssertEqual(MemoryLayout<RippleUniform>.offset(of: \.texTrans), 64)
-        XCTAssertEqual(MemoryLayout<RippleUniform>.offset(of: \.color), 80)
-        XCTAssertEqual(MemoryLayout<RippleUniform>.offset(of: \.params), 96)
+        XCTAssertEqual(RippleUniform.stride, 80)
+        XCTAssertEqual(MemoryLayout<RippleUniform>.offset(of: \.texTrans), 0)
+        XCTAssertEqual(MemoryLayout<RippleUniform>.offset(of: \.color), 16)
+        XCTAssertEqual(MemoryLayout<RippleUniform>.offset(of: \.params), 32)
+        XCTAssertEqual(MemoryLayout<RippleUniform>.offset(of: \.transform), 48)
     }
 
     func testStoreLandsAtStrideOffsets() {
@@ -55,7 +55,7 @@ final class UniformLayoutTests: XCTestCase {
         AlphaBlendUniform(color: Vec4(1, 2, 3, 4)).store(into: buffer, index: 0)
         AlphaBlendUniform(color: Vec4(5, 6, 7, 8)).store(into: buffer, index: 1)
 
-        XCTAssertEqual(buffer.load(fromByteOffset: 80, as: Vec4.self), Vec4(1, 2, 3, 4))
-        XCTAssertEqual(buffer.load(fromByteOffset: 96 + 80, as: Vec4.self), Vec4(5, 6, 7, 8))
+        XCTAssertEqual(buffer.load(fromByteOffset: 16, as: Vec4.self), Vec4(1, 2, 3, 4))
+        XCTAssertEqual(buffer.load(fromByteOffset: 64 + 16, as: Vec4.self), Vec4(5, 6, 7, 8))
     }
 }
