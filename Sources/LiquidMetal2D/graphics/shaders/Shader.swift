@@ -35,8 +35,11 @@ public protocol Shader: AnyObject {
     /// own sort/batching strategy internally.
     func submit(objects: [GameObj])
 
-    /// Emit queued draw commands to the encoder and reset batching state.
-    /// Called on shader switch and at end of pass. Idempotent.
+    /// Encode the draws submitted since the last flush. Called on shader
+    /// switch and at end of pass. Idempotent. Keep the instance count: the
+    /// GPU reads these slots after encoding ends, so a later submit in the
+    /// same frame must write the next slots, not reuse them. Only
+    /// ``beginFrame()`` starts again from slot 0.
     func flush(pass: RenderPass)
 
     /// Signal the shader's buffer semaphore. Attached to the command buffer's

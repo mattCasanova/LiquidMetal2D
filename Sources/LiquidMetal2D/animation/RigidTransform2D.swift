@@ -10,8 +10,9 @@
 /// Used for bones, which only ever rotate and translate. Angles are radians,
 /// counter-clockwise positive, with y up.
 ///
-/// Not a matrix. Composing two is a rotate and an add. The 4×4 matrix a sprite
-/// is drawn with comes later, from `Mat4.makeTransform2D` / `setToTransform2D`.
+/// Not a matrix. Composing two is a rotate and an add. A sprite drawn at a
+/// bone takes its place from ``Transform2D/init(_:scale:zOrder:)``, which adds
+/// the size; the vertex shader builds the matrix.
 public struct RigidTransform2D: Equatable, Codable, Sendable {
     public var position: Vec2
     public var rotation: Float

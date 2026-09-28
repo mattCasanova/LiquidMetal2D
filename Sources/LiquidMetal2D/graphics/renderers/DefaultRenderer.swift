@@ -23,7 +23,7 @@ open class DefaultRenderer: Renderer {
     public let renderCore: RenderCore
 
     /// Built-in alpha-blend shader. Exposed so scenes can call
-    /// ``AlphaBlendShader/draw(transform:texTrans:color:textureId:)`` for
+    /// ``AlphaBlendShader/draw(_:texTrans:color:textureId:)`` for
     /// advanced manual rendering.
     public let alphaBlend: AlphaBlendShader
 
