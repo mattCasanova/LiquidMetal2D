@@ -4,9 +4,9 @@ import XCTest
 @testable import LiquidMetal2D
 
 /// Helpers for tests that run the real shaders on the simulator's Metal
-/// device. Nothing here draws: a test frame is `beginFrame`, `submit` and
-/// `signalFrameComplete`, which builds every uniform into the shader's own
-/// GPU buffer and stops before encoding.
+/// device. `submitFrame` runs one frame's CPU side (`beginFrame`, `submit`,
+/// `signalFrameComplete`) and stops before encoding; `makeRenderPass` gives
+/// tests that encode real draws a pass on a 64×64 drawable.
 @MainActor
 enum ShaderTestSupport {
 

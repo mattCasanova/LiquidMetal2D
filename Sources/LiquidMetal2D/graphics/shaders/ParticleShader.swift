@@ -40,7 +40,7 @@ public final class ParticleShader: Shader {
     let bufferProvider: BufferProvider
 
     private var worldBuffer: MTLBuffer?
-    private var worldBufferContents: UnsafeMutableRawPointer?
+    private(set) var worldBufferContents: UnsafeMutableRawPointer?
 
     /// This frame's instances and texture runs. Readable by tests.
     private(set) var instances = InstanceBatches()

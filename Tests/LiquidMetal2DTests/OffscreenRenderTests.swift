@@ -91,7 +91,83 @@ final class OffscreenRenderTests: XCTestCase {
         XCTAssertEqual(image.pixel(at: Vec2(17.5, 4.5)), Self.clear, "outside the circle")
     }
 
+    // MARK: - Two draws in one frame
+
+    func testAlphaBlendDrawsEverySubmitAcrossAFlush() throws {
+        let renderCore = try ShaderTestSupport.makeRenderCore()
+        let shader = AlphaBlendShader(renderCore: renderCore, maxObjects: 4)
+        try Self.assertDrawsAcrossAFlush(shader, renderCore: renderCore) { position in
+            let sprite = Self.makeObject(position: position, scale: Vec2(8, 8))
+            sprite.add(AlphaBlendComponent(parent: sprite, textureID: renderCore.textureManager.defaultTextureId))
+            return sprite
+        }
+    }
+
+    func testRippleDrawsEverySubmitAcrossAFlush() throws {
+        let renderCore = try ShaderTestSupport.makeRenderCore()
+        let shader = RippleShader(renderCore: renderCore, maxObjects: 4)
+        try Self.assertDrawsAcrossAFlush(shader, renderCore: renderCore) { position in
+            let sprite = Self.makeObject(position: position, scale: Vec2(8, 8))
+            sprite.add(RippleComponent(
+                parent: sprite, textureID: renderCore.textureManager.defaultTextureId, amplitude: 0))
+            return sprite
+        }
+    }
+
+    func testParticlesDrawEverySubmitAcrossAFlush() throws {
+        let renderCore = try ShaderTestSupport.makeRenderCore()
+        let shader = ParticleShader(renderCore: renderCore, maxObjects: 4)
+        try Self.assertDrawsAcrossAFlush(shader, renderCore: renderCore) { position in
+            let parent = Self.makeObject(position: position, scale: Vec2(1, 1))
+            let emitter = ParticleEmitterComponent(
+                parent: parent, maxParticles: 1, textureID: renderCore.textureManager.defaultParticleTextureId,
+                emissionRate: 0, lifetimeRange: 100...100, speedRange: 0...0, angleRange: 0...0,
+                scaleRange: 16...16)
+            parent.add(emitter)
+            emitter.spawn(count: 1)
+            return parent
+        }
+    }
+
+    /// Probes a point on each radius-6 ring (radius 3 to 6), 4.5 right of its centre.
+    func testWireframeDrawsEverySubmitAcrossAFlush() throws {
+        let renderCore = try ShaderTestSupport.makeRenderCore()
+        let shader = WireframeShader(renderCore: renderCore, maxObjects: 4)
+        try Self.assertDrawsAcrossAFlush(shader, renderCore: renderCore, probe: Vec2(4.5, 0.5)) { position in
+            let circle = Self.makeObject(position: position, scale: Vec2(1, 1))
+            circle.add(CircleCollider(parent: circle, radius: 6))
+            circle.add(WireframeComponent(parent: circle, color: Vec4(1, 1, 1, 1), thickness: 0.25))
+            return circle
+        }
+    }
+
     // MARK: - Helpers
+
+    private static let flushPoints = [Vec2(-16, 16), Vec2(16, 16), Vec2(0, -16)]
+
+    /// A pass that switches shaders flushes in between, so one shader can draw
+    /// twice in a frame. Draws A, flushes, then draws B and C, which start at
+    /// slot 1 (a non-zero buffer offset); all three must show. The first draw
+    /// reads its slot when the GPU runs, after the second submit, so a count
+    /// reset or a lost offset shows up as a missing A or C. Every object sits
+    /// at z 10: under this projection a reversed matrix multiply pushes that
+    /// out of the clip range, where z 0 would hide it.
+    private static func assertDrawsAcrossAFlush(
+        _ shader: some Shader, renderCore: RenderCore, probe: Vec2 = Vec2(0.5, 0.5),
+        file: StaticString = #filePath, line: UInt = #line, make: (Vec2) -> GameObj
+    ) throws {
+        let objects = flushPoints.map { point in
+            let obj = make(point)
+            obj.zOrder = 10
+            return obj
+        }
+
+        let image = try render(shader, submits: [[objects[0]], [objects[1], objects[2]]], renderCore: renderCore)
+
+        for (point, name) in zip(flushPoints, ["A, the first draw", "B, slot 1", "C, slot 2"]) {
+            XCTAssertGreaterThan(image.pixel(at: point + probe).x, 200, "\(name) at \(point)", file: file, line: line)
+        }
+    }
 
     private static func makeObject(position: Vec2, scale: Vec2, rotation: Float = 0) -> GameObj {
         let obj = GameObj()
@@ -138,6 +214,14 @@ final class OffscreenRenderTests: XCTestCase {
 
     /// One frame of `shader` drawing `objects` into a readable 64×64 texture.
     private static func render(_ shader: some Shader, objects: [GameObj], renderCore: RenderCore) throws -> Image {
+        try render(shader, submits: [objects], renderCore: renderCore)
+    }
+
+    /// One frame of `shader` drawing each list of `submits` in turn, rebinding
+    /// and flushing between them as a shader switch does.
+    private static func render(
+        _ shader: some Shader, submits: [[GameObj]], renderCore: RenderCore
+    ) throws -> Image {
         renderCore.resize(scale: 1, layerSize: CGSize(width: 64, height: 64))
         let descriptor = MTLTextureDescriptor.texture2DDescriptor(
             pixelFormat: renderCore.layer.pixelFormat, width: 64, height: 64, mipmapped: false)
@@ -156,16 +240,18 @@ final class OffscreenRenderTests: XCTestCase {
         let pass = try XCTUnwrap(OffscreenRenderPass(renderCore: renderCore), "the test layer gave no drawable")
         let finished = DispatchSemaphore(value: 0)
         pass.addCompletedHandler { _ in finished.signal() }
-        shader.bind(pass: pass, projectionBuffer: projectionBuffer)
-        shader.submit(objects: objects)
-        shader.flush(pass: pass)
+        for objects in submits {
+            shader.bind(pass: pass, projectionBuffer: projectionBuffer)
+            shader.submit(objects: objects)
+            shader.flush(pass: pass)
+        }
         pass.end()
         XCTAssertEqual(finished.wait(timeout: .now() + 5), .success, "the GPU never finished the pass")
         shader.signalFrameComplete()
 
         var bytes = [UInt8](repeating: 0, count: 64 * 64 * 4)
         target.getBytes(&bytes, bytesPerRow: 64 * 4, from: MTLRegionMake2D(0, 0, 64, 64), mipmapLevel: 0)
-        return withExtendedLifetime(objects) { Image(bytes: bytes) }
+        return withExtendedLifetime(submits) { Image(bytes: bytes) }
     }
 }
 

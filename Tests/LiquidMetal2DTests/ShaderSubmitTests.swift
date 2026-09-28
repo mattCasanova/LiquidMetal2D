@@ -1,8 +1,8 @@
 import XCTest
 @testable import LiquidMetal2D
 
-/// What the real shaders queue for one frame (instance slots and texture
-/// runs), checked on the simulator's Metal device without drawing.
+/// What the real shaders queue for one frame (instance slots, texture runs,
+/// the uniforms written), checked on the simulator's Metal device.
 @MainActor
 final class ShaderSubmitTests: XCTestCase {
 
@@ -90,5 +90,56 @@ final class ShaderSubmitTests: XCTestCase {
             contents.load(fromByteOffset: $0 * WireframeUniform.stride + colorOffset, as: Vec4.self)
         }
         XCTAssertEqual(colors, [red, red, red, blue, blue])
+    }
+
+    /// Each particle's slot holds its own position, scale, rotation, and the
+    /// emitter object's z. The pixel tests draw at z 0 with rotation 0, where
+    /// a dropped field would still pass.
+    func testParticleUniformsCarryEachParticlesTransform() throws {
+        let renderCore = try ShaderTestSupport.makeRenderCore()
+        let shader = ParticleShader(renderCore: renderCore, maxObjects: 50)
+        let (parent, emitter) = ShaderTestSupport.makeFullEmitter(count: 50, seed: 13)
+        parent.zOrder = 7
+
+        withExtendedLifetime(renderCore) {
+            ShaderTestSupport.submitFrame(shader, objects: [parent])
+        }
+
+        let contents = try XCTUnwrap(shader.worldBufferContents)
+        let offset = try XCTUnwrap(MemoryLayout<ParticleUniform>.offset(of: \.transform))
+        let live = emitter.particles.filter(\.isAlive)
+        XCTAssertEqual(live.count, 50)
+        XCTAssertTrue(live.contains { $0.rotation != 0 }, "the test needs rotated particles")
+        for (index, particle) in live.enumerated() {
+            let t = min(particle.age / particle.lifetime, 1)
+            let expected = Transform2D(
+                position: particle.position, scale: mix(particle.startScale, particle.endScale, t: t),
+                rotation: particle.rotation, zOrder: 7)
+            let stored = contents.load(fromByteOffset: index * ParticleUniform.stride + offset, as: Transform2D.self)
+            XCTAssertEqual(stored, expected, "particle \(index)")
+        }
+    }
+
+    /// A wireframe slot holds the object's position and z, the collider's size
+    /// as scale, and no rotation (colliders are axis-aligned).
+    func testWireframeUniformsCarryTheShapeTransform() throws {
+        let renderCore = try ShaderTestSupport.makeRenderCore()
+        let shader = WireframeShader(renderCore: renderCore, maxObjects: 4)
+        let objects = ShaderTestSupport.makeWireframes(count: 2, color: Vec4(1, 1, 1, 1))
+        objects[0].zOrder = 5
+        objects[1].zOrder = 9
+        objects[1].rotation = 0.5
+
+        withExtendedLifetime(renderCore) {
+            ShaderTestSupport.submitFrame(shader, objects: objects)
+        }
+
+        let contents = try XCTUnwrap(shader.worldBufferContents)
+        let offset = try XCTUnwrap(MemoryLayout<WireframeUniform>.offset(of: \.transform))
+        for (index, obj) in objects.enumerated() {
+            let stored = contents.load(fromByteOffset: index * WireframeUniform.stride + offset, as: Transform2D.self)
+            XCTAssertEqual(stored, Transform2D(position: obj.position, scale: Vec2(2, 2), zOrder: obj.zOrder),
+                           "wireframe \(index)")
+        }
     }
 }
