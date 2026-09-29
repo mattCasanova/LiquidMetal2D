@@ -22,9 +22,12 @@ import LiquidMetal2D
 /// - **Attachment visibility:** the "throw" event hides the sword in the hand and spawns
 ///   a flying one at the hand's exact position; walking over it shows the hand sword again.
 /// - **`flipX`:** walking left mirrors the whole figure.
+/// - **Two-bone IK:** with Reach on, the near hand follows the touch point and the
+///   elbow bends to fit (`IKConstraint` on the upper and lower near arm).
 ///
 /// It plays a loop on its own until the first touch. Then: hold the left or right half of
-/// the screen to walk, and use Jump, Throw and Slash (they work while walking).
+/// the screen to walk, and use Jump, Throw and Slash (they work while walking). Reach
+/// stops walking; drag anywhere and the near hand follows. Tap Reach again to walk.
 class SkeletonDemo: Scene {
     static var sceneType: any SceneType { SceneTypes.skeletonDemo }
 
@@ -47,9 +50,13 @@ class SkeletonDemo: Scene {
     private var walkDirection: Float = 0
     private var isAutoplay = true
     private var autoplay = AutoplayScript()
+    /// The near arm's IK chain; on the skeleton only while Reach is on.
+    private var reach: IKConstraint!
+    private var isReaching: Bool { !skeleton.ikConstraints.isEmpty }
 
     private var ui: DemoSceneUI!
     private var buttons: [UIButton] = []
+    private var reachButton: UIButton!
     private var eventFlash: UILabel!
     private var eventLog: UILabel!
     private var recentEvents: [String] = []
@@ -70,10 +77,12 @@ class SkeletonDemo: Scene {
             parentView: renderer.view, target: self,
             menuAction: #selector(onMenu))
         createEventLabels()
+        reachButton = makeButton(title: "Reach", action: #selector(onReach))
         buttons = [
             makeButton(title: "Jump", action: #selector(onJump)),
             makeButton(title: "Throw", action: #selector(onThrow)),
             makeButton(title: "Slash", action: #selector(onSlash)),
+            reachButton,
         ]
         layoutUI()
     }
@@ -99,6 +108,11 @@ class SkeletonDemo: Scene {
             case .slash: startSlash()
             case .throwSword: startThrow()
             case nil: break
+            }
+        } else if isReaching {
+            walkDirection = 0
+            if let touch = input.getWorldTouch(forZ: root.zOrder) {
+                skeleton.ikConstraints[0].target = Vec2(touch.x, touch.y)
             }
         } else {
             walkDirection = touchDirection()
@@ -218,6 +232,8 @@ class SkeletonDemo: Scene {
                 parent: root, definition: rig, defaultTextureID: renderer.defaultTextureId)
             clips = try StickFigure.makeClips(for: rig)
             swordIndex = try rig.attachmentIndex(named: StickFigure.swordAttachment)
+            // Elbow bends down and back, as an arm reaching forward does.
+            reach = try IKConstraint(upper: "upperArmNear", lower: "lowerArmNear", in: rig, bendPositive: false)
         } catch {
             fatalError("StickFigure rig or clips are invalid: \(error)")
         }
@@ -298,6 +314,19 @@ class SkeletonDemo: Scene {
     @objc func onJump() { isAutoplay = false; startJump() }
     @objc func onThrow() { isAutoplay = false; startThrow() }
     @objc func onSlash() { isAutoplay = false; startSlash() }
+
+    /// Starts reaching toward a point in front of the chest; the next touch moves it.
+    @objc func onReach() {
+        isAutoplay = false
+        if isReaching {
+            skeleton.ikConstraints = []
+        } else {
+            let facing: Float = skeleton.flipX ? -1 : 1
+            reach.target = root.position + Vec2(5 * facing, 3)
+            skeleton.ikConstraints = [reach]
+        }
+        reachButton.setTitle(isReaching ? "Reach: On" : "Reach", for: .normal)
+    }
 
     @objc func onMenu() { ui.view.isHidden = true; sceneMgr.pushScene(type: SceneTypes.pauseDemo) }
 
