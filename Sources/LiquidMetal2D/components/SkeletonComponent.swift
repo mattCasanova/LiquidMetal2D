@@ -34,12 +34,19 @@ public final class SkeletonComponent: Component {
     public var scale: Float = 1
     /// Mirrors the figure left to right about the root. Rigs face +x.
     public var flipX = false
+    /// Two-bone IK chains, applied in order on top of the animation every
+    /// ``update(dt:)``. The animator's own pose is left as the clips made it.
+    /// Move a target in place (`ikConstraints[0].target = touch`); that
+    /// doesn't allocate.
+    public var ikConstraints: [IKConstraint] = []
 
     /// World-z step between draw orders. Small enough that perspective
     /// size changes are invisible; keep a character's parts within ±0.05 of its root.
     public static let zStep: Float = 0.001
 
     private var boneWorld: [RigidTransform2D]
+    /// The animated pose with IK applied. Only used while there are constraints.
+    private var ikPose: Pose
     /// One flag per attachment. Hiding a part only stops it drawing; the bones keep animating.
     private var visible: [Bool]
 
@@ -63,6 +70,7 @@ public final class SkeletonComponent: Component {
         self.definition = definition
         self.animator = Animator(definition: definition, layerCount: layerCount)
         self.boneWorld = Array(repeating: .identity, count: definition.bones.count)
+        self.ikPose = Pose(restOf: definition)
         self.visible = Array(repeating: true, count: definition.attachments.count)
 
         self.parts = try definition.attachments.map { attachment in
@@ -84,7 +92,7 @@ public final class SkeletonComponent: Component {
         placeParts()
     }
 
-    /// Advances the animation and moves every part to match.
+    /// Advances the animation, applies ``ikConstraints``, and moves every part to match.
     public func update(dt: Float) {
         animator.update(dt: dt)
         placeParts()
@@ -126,8 +134,12 @@ public final class SkeletonComponent: Component {
     // MARK: - Placement
 
     private func placeParts() {
-        SkeletonSolver.solveWorld(
-            definition: definition, pose: animator.pose, root: .identity, into: &boneWorld)
+        if ikConstraints.isEmpty {
+            SkeletonSolver.solveWorld(
+                definition: definition, pose: animator.pose, root: .identity, into: &boneWorld)
+        } else {
+            solveWithIK()
+        }
 
         for (index, attachment) in definition.attachments.enumerated() {
             let part = parts[index]
@@ -142,6 +154,63 @@ public final class SkeletonComponent: Component {
                 zOrder: parent.zOrder + Float(attachment.drawOrder) * Self.zStep)
             part.isActive = parent.isActive && visible[index]
         }
+    }
+
+    // MARK: - IK
+
+    /// Solves the bones once per constraint, since each chain starts where the
+    /// chains before it left its parent, then once more for the parts. A
+    /// dozen bones per solve: nothing next to drawing them.
+    private func solveWithIK() {
+        ikPose.copyValues(from: animator.pose)
+        for constraint in ikConstraints {
+            SkeletonSolver.solveWorld(definition: definition, pose: ikPose, root: .identity, into: &boneWorld)
+            apply(constraint)
+        }
+        SkeletonSolver.solveWorld(definition: definition, pose: ikPose, root: .identity, into: &boneWorld)
+    }
+
+    /// Rotates the chain's two bones in ``ikPose``, working in skeleton space
+    /// (unscaled, unflipped, root at the origin) like the rest of the solve.
+    private func apply(_ constraint: IKConstraint) {
+        guard constraint.weight > 0 else { return }
+        precondition(boneWorld.indices.contains(constraint.upper) && boneWorld.indices.contains(constraint.lower),
+                     "IK constraint on bones \(constraint.upper) and \(constraint.lower); "
+                        + "this rig has \(boneWorld.count). Was it built for another rig?")
+
+        // The lower bone's joint, in the upper bone's space. It usually sits at
+        // (upper length, 0); if it sits off that axis, turn the upper bone so
+        // the joint still lands on the solved line.
+        let joint = ikPose.local[constraint.lower].position
+        let jointAngle = atan2(joint.y, joint.x)
+        let solved = TwoBoneIK.solve(
+            root: boneWorld[constraint.upper].position,
+            upperLength: simd_length(joint),
+            lowerLength: definition.bones[constraint.lower].length,
+            target: skeletonSpace(constraint.target),
+            bendPositive: constraint.bendPositive)
+        let parentRotation = definition.bones[constraint.upper].parent.map { boneWorld[$0].rotation } ?? 0
+
+        blend(bone: constraint.upper, to: solved.upper - jointAngle - parentRotation, weight: constraint.weight)
+        blend(bone: constraint.lower, to: solved.lowerLocal + jointAngle, weight: constraint.weight)
+    }
+
+    private func blend(bone: Int, to rotation: Float, weight: Float) {
+        let animated = ikPose.local[bone].rotation
+        ikPose.local[bone].rotation = weight >= 1
+            ? rotation
+            : GameMath.lerpAngle(a: animated, b: rotation, t: weight)
+    }
+
+    /// World to skeleton space, the inverse of ``placeInWorld(_:)``: undo the
+    /// root, mirror back if flipped, undo the scale.
+    private func skeletonSpace(_ world: Vec2) -> Vec2 {
+        precondition(scale != 0, "IK can't map a target onto a skeleton of scale 0")
+        var local = (world - parent.position).rotated(by: -parent.rotation)
+        if flipX {
+            local.x = -local.x
+        }
+        return local / scale
     }
 
     /// Skeleton space to world: mirror if flipped, then the root's rotation and position.

@@ -82,6 +82,11 @@ public enum SkeletonError: Error, Equatable {
     case eventOutOfRange(clip: String, event: String)
     case duplicateAttachmentName(String)
     case unknownAttachment(String)
+    /// An ``IKConstraint``'s lower bone isn't a child of its upper bone.
+    case ikBonesNotChained(upper: String, lower: String)
+    /// An ``IKConstraint`` segment is zero long: the lower bone sits on the
+    /// upper bone's origin, or the lower bone has no length.
+    case ikBoneHasNoLength(String)
 }
 
 /// A rig: bones stored parents-before-children, plus the quads drawn on them.

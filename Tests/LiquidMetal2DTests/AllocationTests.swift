@@ -174,6 +174,32 @@ final class AllocationTests: XCTestCase {
         XCTAssertEqual(count, 0)
     }
 
+    // MARK: - Skeleton
+
+    /// An IK chain whose target moves every frame: the working pose and the
+    /// bone transforms are reused, and moving the target in place allocates nothing.
+    func testSkeletonUpdateWithIKAllocatesNothing() throws {
+        try requireOptimizedBuild()
+        let rig = SkeletonDefinition(
+            bones: [Bone(name: "upper", parent: nil, length: 2, rest: RigidTransform2D()),
+                    Bone(name: "lower", parent: 0, length: 1.5, rest: RigidTransform2D(position: Vec2(2, 0)))],
+            attachments: [Attachment(name: "forearm", bone: 1, size: Vec2(1.5, 0.3), offset: Vec2(0.75, 0))])
+        let root = GameObj()
+        keepAlive.append(root)
+        let skeleton = try SkeletonComponent(parent: root, definition: rig, defaultTextureID: 0)
+        skeleton.ikConstraints = [try IKConstraint(upper: 0, lower: 1, in: rig, target: Vec2(1, 2))]
+        skeleton.update(dt: 1 / 60)
+
+        let count = AllocationCounter.count {
+            for frame in 0..<60 {
+                skeleton.ikConstraints[0].target = Vec2(1, 2).rotated(by: Float(frame) * 0.05)
+                skeleton.update(dt: 1 / 60)
+            }
+        }
+
+        XCTAssertEqual(count, 0)
+    }
+
     // MARK: - Helpers
 
     private func requireOptimizedBuild() throws {
