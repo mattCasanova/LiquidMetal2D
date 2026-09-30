@@ -5,9 +5,15 @@
 //  Created by Matt Casanova on 9/21/26.
 //
 
+import Foundation
 import LiquidMetal2D
 
-/// A white-box stick figure rig and its clips, built in code.
+/// A white-box stick figure rig and its clips.
+///
+/// The demo loads them from files, as a game would: `Animations/stickfigure.rig.json`
+/// and one `Animations/<name>.clip.json` per clip. The builders below made those files
+/// (with `AnimationFiles.data(for:)`) and stay as their reference: a Debug build
+/// checks the two still match, so change them together.
 ///
 /// Facing +x. Units are world units at `SkeletonComponent.scale == 1`:
 /// 8.4 tall, feet 4 below the hips. Far-side limbs are tinted darker
@@ -81,13 +87,37 @@ enum StickFigure {
         let throwSword: ResolvedClip
     }
 
-    static func makeClips(for rig: SkeletonDefinition) throws -> Clips {
-        Clips(
-            idle: try idle().resolved(for: rig),
-            walk: try walk().resolved(for: rig),
-            jump: try jump().resolved(for: rig),
-            slash: try slash().resolved(for: rig),
-            throwSword: try throwSword().resolved(for: rig))
+    // MARK: - Files
+
+    enum LoadError: Error {
+        case missingFile(String)
+    }
+
+    /// Reads the rig and clips from the app bundle and resolves the clips against the rig.
+    /// - Throws: ``LoadError/missingFile(_:)`` for a file not in the bundle; the engine's
+    ///   decoding and ``SkeletonError`` errors for a bad one.
+    static func load(from bundle: Bundle = .main) throws -> (rig: SkeletonDefinition, clips: Clips) {
+        func url(_ name: String) throws -> URL {
+            guard let url = bundle.url(forResource: name, withExtension: "json", subdirectory: "Animations") else {
+                throw LoadError.missingFile("Animations/\(name).json")
+            }
+            return url
+        }
+
+        let rig = try AnimationFiles.loadRig(at: url("stickfigure.rig"))
+        let files = try ["idle", "walk", "jump", "slash", "throw"].map {
+            try AnimationFiles.loadClip(at: url("\($0).clip"))
+        }
+        assert(rig == makeDefinition(), "Animations/stickfigure.rig.json no longer matches makeDefinition()")
+        assert(files == [idle(), walk(), jump(), slash(), throwSword()],
+               "An Animations/*.clip.json file no longer matches its builder")
+
+        return (rig, Clips(
+            idle: try files[0].resolved(for: rig),
+            walk: try files[1].resolved(for: rig),
+            jump: try files[2].resolved(for: rig),
+            slash: try files[3].resolved(for: rig),
+            throwSword: try files[4].resolved(for: rig)))
     }
 
     private static let degree = Float.pi / 180

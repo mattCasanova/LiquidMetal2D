@@ -1,0 +1,423 @@
+{
+  "attachments" : [
+    {
+      "bone" : 3,
+      "drawOrder" : 0,
+      "name" : "upperArmFar",
+      "offset" : [
+        0.8,
+        0
+      ],
+      "region" : [
+        1,
+        1,
+        0,
+        0
+      ],
+      "rotation" : 0,
+      "size" : [
+        1.6,
+        0.5
+      ],
+      "tint" : [
+        0.604,
+        0.647,
+        0.808,
+        1
+      ]
+    },
+    {
+      "bone" : 4,
+      "drawOrder" : 1,
+      "name" : "lowerArmFar",
+      "offset" : [
+        0.75,
+        0
+      ],
+      "region" : [
+        1,
+        1,
+        0,
+        0
+      ],
+      "rotation" : 0,
+      "size" : [
+        1.5,
+        0.5
+      ],
+      "tint" : [
+        0.604,
+        0.647,
+        0.808,
+        1
+      ]
+    },
+    {
+      "bone" : 5,
+      "drawOrder" : 2,
+      "name" : "thighFar",
+      "offset" : [
+        1,
+        0
+      ],
+      "region" : [
+        1,
+        1,
+        0,
+        0
+      ],
+      "rotation" : 0,
+      "size" : [
+        2,
+        0.5
+      ],
+      "tint" : [
+        0.604,
+        0.647,
+        0.808,
+        1
+      ]
+    },
+    {
+      "bone" : 6,
+      "drawOrder" : 3,
+      "name" : "shinFar",
+      "offset" : [
+        1,
+        0
+      ],
+      "region" : [
+        1,
+        1,
+        0,
+        0
+      ],
+      "rotation" : 0,
+      "size" : [
+        2,
+        0.5
+      ],
+      "tint" : [
+        0.604,
+        0.647,
+        0.808,
+        1
+      ]
+    },
+    {
+      "bone" : 1,
+      "drawOrder" : 5,
+      "name" : "spine",
+      "offset" : [
+        1.5,
+        0
+      ],
+      "region" : [
+        1,
+        1,
+        0,
+        0
+      ],
+      "rotation" : 0,
+      "size" : [
+        3,
+        0.5
+      ],
+      "tint" : [
+        0.753,
+        0.792,
+        0.961,
+        1
+      ]
+    },
+    {
+      "bone" : 2,
+      "drawOrder" : 6,
+      "name" : "head",
+      "offset" : [
+        0.7,
+        0
+      ],
+      "region" : [
+        1,
+        1,
+        0,
+        0
+      ],
+      "rotation" : 0,
+      "size" : [
+        1.4,
+        1.4
+      ],
+      "tint" : [
+        0.753,
+        0.792,
+        0.961,
+        1
+      ]
+    },
+    {
+      "bone" : 7,
+      "drawOrder" : 7,
+      "name" : "thighNear",
+      "offset" : [
+        1,
+        0
+      ],
+      "region" : [
+        1,
+        1,
+        0,
+        0
+      ],
+      "rotation" : 0,
+      "size" : [
+        2,
+        0.5
+      ],
+      "tint" : [
+        0.753,
+        0.792,
+        0.961,
+        1
+      ]
+    },
+    {
+      "bone" : 8,
+      "drawOrder" : 8,
+      "name" : "shinNear",
+      "offset" : [
+        1,
+        0
+      ],
+      "region" : [
+        1,
+        1,
+        0,
+        0
+      ],
+      "rotation" : 0,
+      "size" : [
+        2,
+        0.5
+      ],
+      "tint" : [
+        0.753,
+        0.792,
+        0.961,
+        1
+      ]
+    },
+    {
+      "bone" : 9,
+      "drawOrder" : 9,
+      "name" : "upperArmNear",
+      "offset" : [
+        0.8,
+        0
+      ],
+      "region" : [
+        1,
+        1,
+        0,
+        0
+      ],
+      "rotation" : 0,
+      "size" : [
+        1.6,
+        0.5
+      ],
+      "tint" : [
+        0.753,
+        0.792,
+        0.961,
+        1
+      ]
+    },
+    {
+      "bone" : 10,
+      "drawOrder" : 10,
+      "name" : "lowerArmNear",
+      "offset" : [
+        0.75,
+        0
+      ],
+      "region" : [
+        1,
+        1,
+        0,
+        0
+      ],
+      "rotation" : 0,
+      "size" : [
+        1.5,
+        0.5
+      ],
+      "tint" : [
+        0.753,
+        0.792,
+        0.961,
+        1
+      ]
+    },
+    {
+      "bone" : 10,
+      "drawOrder" : 11,
+      "name" : "sword",
+      "offset" : [
+        2.6,
+        0
+      ],
+      "region" : [
+        1,
+        1,
+        0,
+        0
+      ],
+      "rotation" : 0,
+      "size" : [
+        2.6,
+        0.18
+      ],
+      "tint" : [
+        0.165,
+        0.765,
+        0.871,
+        1
+      ]
+    }
+  ],
+  "bones" : [
+    {
+      "length" : 0,
+      "name" : "hips",
+      "rest" : {
+        "position" : [
+          0,
+          0
+        ],
+        "rotation" : 0
+      }
+    },
+    {
+      "length" : 3,
+      "name" : "spine",
+      "parent" : 0,
+      "rest" : {
+        "position" : [
+          0,
+          0
+        ],
+        "rotation" : 1.5707964
+      }
+    },
+    {
+      "length" : 1.4,
+      "name" : "head",
+      "parent" : 1,
+      "rest" : {
+        "position" : [
+          3,
+          0
+        ],
+        "rotation" : 0
+      }
+    },
+    {
+      "length" : 1.6,
+      "name" : "upperArmFar",
+      "parent" : 1,
+      "rest" : {
+        "position" : [
+          2.7,
+          0
+        ],
+        "rotation" : 3.1415927
+      }
+    },
+    {
+      "length" : 1.5,
+      "name" : "lowerArmFar",
+      "parent" : 3,
+      "rest" : {
+        "position" : [
+          1.6,
+          0
+        ],
+        "rotation" : 0
+      }
+    },
+    {
+      "length" : 2,
+      "name" : "thighFar",
+      "parent" : 0,
+      "rest" : {
+        "position" : [
+          0,
+          0
+        ],
+        "rotation" : -1.5707964
+      }
+    },
+    {
+      "length" : 2,
+      "name" : "shinFar",
+      "parent" : 5,
+      "rest" : {
+        "position" : [
+          2,
+          0
+        ],
+        "rotation" : 0
+      }
+    },
+    {
+      "length" : 2,
+      "name" : "thighNear",
+      "parent" : 0,
+      "rest" : {
+        "position" : [
+          0,
+          0
+        ],
+        "rotation" : -1.5707964
+      }
+    },
+    {
+      "length" : 2,
+      "name" : "shinNear",
+      "parent" : 7,
+      "rest" : {
+        "position" : [
+          2,
+          0
+        ],
+        "rotation" : 0
+      }
+    },
+    {
+      "length" : 1.6,
+      "name" : "upperArmNear",
+      "parent" : 1,
+      "rest" : {
+        "position" : [
+          2.7,
+          0
+        ],
+        "rotation" : 3.1415927
+      }
+    },
+    {
+      "length" : 1.5,
+      "name" : "lowerArmNear",
+      "parent" : 9,
+      "rest" : {
+        "position" : [
+          1.6,
+          0
+        ],
+        "rotation" : 0
+      }
+    }
+  ]
+}

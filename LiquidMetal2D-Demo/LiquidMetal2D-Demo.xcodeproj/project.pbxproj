@@ -15,6 +15,7 @@
 		A1B2C3D82F67A0A7003831F3 /* MoveRightBehaviorFOV.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D72F67A0A7003831F3 /* MoveRightBehaviorFOV.swift */; };
 		A1B2C3DA2F67A0A7003831F3 /* MoveRightStateFOV.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D92F67A0A7003831F3 /* MoveRightStateFOV.swift */; };
 		C4A3E7A32E80000100C42A29 /* SkeletonDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A3E7A22E80000100C42A29 /* SkeletonDemo.swift */; };
+		C4A3E7A62E80000100C42A29 /* Animations in Resources */ = {isa = PBXBuildFile; fileRef = C4A3E7A72E80000100C42A29 /* Animations */; };
 		C4A3E7A52E80000100C42A29 /* StickFigure.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A3E7A42E80000100C42A29 /* StickFigure.swift */; };
 		F5021ABD2F94D074000FC89F /* WireframeDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5021ABC2F94D074000FC89F /* WireframeDemo.swift */; };
 		F5021ABF2F957BB8000FC89F /* ParticleDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5021ABE2F957BB8000FC89F /* ParticleDemo.swift */; };
@@ -63,6 +64,7 @@
 		A1B2C3D72F67A0A7003831F3 /* MoveRightBehaviorFOV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveRightBehaviorFOV.swift; sourceTree = "<group>"; };
 		A1B2C3D92F67A0A7003831F3 /* MoveRightStateFOV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveRightStateFOV.swift; sourceTree = "<group>"; };
 		C4A3E7A22E80000100C42A29 /* SkeletonDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkeletonDemo.swift; sourceTree = "<group>"; };
+		C4A3E7A72E80000100C42A29 /* Animations */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Animations; sourceTree = "<group>"; };
 		C4A3E7A42E80000100C42A29 /* StickFigure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StickFigure.swift; sourceTree = "<group>"; };
 		F5021ABC2F94D074000FC89F /* WireframeDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WireframeDemo.swift; sourceTree = "<group>"; };
 		F5021ABE2F957BB8000FC89F /* ParticleDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParticleDemo.swift; sourceTree = "<group>"; };
@@ -169,6 +171,7 @@
 				F5021AC22F95B0A7003831F3 /* LineParticleDemo.swift */,
 				C4A3E7A22E80000100C42A29 /* SkeletonDemo.swift */,
 				C4A3E7A42E80000100C42A29 /* StickFigure.swift */,
+				C4A3E7A72E80000100C42A29 /* Animations */,
 				F5021ABC2F94D074000FC89F /* WireframeDemo.swift */,
 				F536B6AD2416925800B3566F /* SceneTypes.swift */,
 				A1B2C3D12F67B0A7003831F3 /* AsyncLoadDemo.swift */,
@@ -309,6 +312,7 @@
 				F536B6B42416926800B3566F /* playerShip1_green.png in Resources */,
 				F536B698241690A900B3566F /* Assets.xcassets in Resources */,
 				F536B6B52416926800B3566F /* playerShip1_blue.png in Resources */,
+				C4A3E7A62E80000100C42A29 /* Animations in Resources */,
 				F536B696241690A800B3566F /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

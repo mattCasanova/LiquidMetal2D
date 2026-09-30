@@ -24,6 +24,8 @@ import LiquidMetal2D
 /// - **`flipX`:** walking left mirrors the whole figure.
 /// - **Two-bone IK:** with Reach on, the near hand follows the touch point and the
 ///   elbow bends to fit (`IKConstraint` on the upper and lower near arm).
+/// - **Rig and clip files:** the figure loads from `Animations/*.json` (`AnimationFiles`),
+///   as a game would, instead of being built in code.
 ///
 /// It plays a loop on its own until the first touch. Then: hold the left or right half of
 /// the screen to walk, and use Jump, Throw and Slash (they work while walking). Reach
@@ -226,16 +228,16 @@ class SkeletonDemo: Scene {
         // Feet are 4 units below the hips at scale 1.
         root.position.set(0, groundY + 4 * figureScale)
 
-        let rig = StickFigure.makeDefinition()
         do {
+            let (rig, loadedClips) = try StickFigure.load()
             skeleton = try SkeletonComponent(
                 parent: root, definition: rig, defaultTextureID: renderer.defaultTextureId)
-            clips = try StickFigure.makeClips(for: rig)
+            clips = loadedClips
             swordIndex = try rig.attachmentIndex(named: StickFigure.swordAttachment)
             // Elbow bends down and back, as an arm reaching forward does.
             reach = try IKConstraint(upper: "upperArmNear", lower: "lowerArmNear", in: rig, bendPositive: false)
         } catch {
-            fatalError("StickFigure rig or clips are invalid: \(error)")
+            fatalError("StickFigure files are missing or invalid: \(error)")
         }
         skeleton.scale = figureScale
         skeleton.animator.onEvent = { [weak self] _, _, name in self?.handle(event: name) }
