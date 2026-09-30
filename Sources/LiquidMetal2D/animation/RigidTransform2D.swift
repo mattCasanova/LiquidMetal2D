@@ -36,3 +36,15 @@ public struct RigidTransform2D: Equatable, Codable, Sendable {
         position + point.rotated(by: rotation)
     }
 }
+
+extension RigidTransform2D {
+    private enum CodingKeys: String, CodingKey { case position, rotation }
+
+    /// A file may leave out either field; it is zero, as in code (``AnimationFiles``).
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(
+            position: try container.decodeIfPresent(Vec2.self, forKey: .position) ?? Vec2(),
+            rotation: try container.decodeIfPresent(Float.self, forKey: .rotation) ?? 0)
+    }
+}

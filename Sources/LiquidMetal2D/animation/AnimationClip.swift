@@ -22,6 +22,19 @@ public struct BoneTrack: Codable, Equatable, Sendable {
     }
 }
 
+extension BoneTrack {
+    private enum CodingKeys: String, CodingKey { case bone, rotation, position }
+
+    /// A file may leave out either channel; it has no keys (``AnimationFiles``).
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(
+            bone: try container.decode(String.self, forKey: .bone),
+            rotation: try container.decodeIfPresent([Keyframe<Float>].self, forKey: .rotation) ?? [],
+            position: try container.decodeIfPresent([Keyframe<Vec2>].self, forKey: .position) ?? [])
+    }
+}
+
 /// A named, keyframed animation, as stored in a file.
 ///
 /// Resolve it against a rig once at load time, then play the ``ResolvedClip``.
@@ -69,6 +82,21 @@ public struct AnimationClip: Codable, Equatable, Sendable {
 }
 
 /// A clip ready to play against one rig: bone names already turned into indices.
+extension AnimationClip {
+    private enum CodingKeys: String, CodingKey { case name, duration, loops, tracks, events }
+
+    /// A file may leave out `events`; the clip has none (``AnimationFiles``).
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(
+            name: try container.decode(String.self, forKey: .name),
+            duration: try container.decode(Float.self, forKey: .duration),
+            loops: try container.decode(Bool.self, forKey: .loops),
+            tracks: try container.decode([BoneTrack].self, forKey: .tracks),
+            events: try container.decodeIfPresent([AnimationEvent].self, forKey: .events) ?? [])
+    }
+}
+
 public struct ResolvedClip: Equatable, Sendable {
     struct Track: Equatable, Sendable {
         let boneIndex: Int

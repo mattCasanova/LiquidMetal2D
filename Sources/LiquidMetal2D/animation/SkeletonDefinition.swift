@@ -69,6 +69,29 @@ public struct Attachment: Codable, Equatable, Sendable {
     }
 }
 
+extension Attachment {
+    private enum CodingKeys: String, CodingKey {
+        case name, bone, size, offset, rotation, textureName, region, tint, drawOrder
+    }
+
+    /// A file may leave out everything after `offset`; each takes its default
+    /// from ``init(name:bone:size:offset:rotation:textureName:region:tint:drawOrder:)``
+    /// (``AnimationFiles``).
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(
+            name: try container.decode(String.self, forKey: .name),
+            bone: try container.decode(Int.self, forKey: .bone),
+            size: try container.decode(Vec2.self, forKey: .size),
+            offset: try container.decode(Vec2.self, forKey: .offset),
+            rotation: try container.decodeIfPresent(Float.self, forKey: .rotation) ?? 0,
+            textureName: try container.decodeIfPresent(String.self, forKey: .textureName),
+            region: try container.decodeIfPresent(Vec4.self, forKey: .region) ?? Vec4(1, 1, 0, 0),
+            tint: try container.decodeIfPresent(Vec4.self, forKey: .tint) ?? Vec4(1, 1, 1, 1),
+            drawOrder: try container.decodeIfPresent(Int.self, forKey: .drawOrder) ?? 0)
+    }
+}
+
 /// Everything that goes wrong with a rig or a clip, by name.
 public enum SkeletonError: Error, Equatable {
     case noBones

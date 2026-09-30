@@ -20,6 +20,19 @@ public struct Keyframe<Value: Codable & Equatable & Sendable>: Codable, Equatabl
     }
 }
 
+extension Keyframe {
+    private enum CodingKeys: String, CodingKey { case time, value, easing }
+
+    /// A file may leave out `easing`; it is linear, as in code (``AnimationFiles``).
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(
+            time: try container.decode(Float.self, forKey: .time),
+            value: try container.decode(Value.self, forKey: .value),
+            easing: try container.decodeIfPresent(EasingType.self, forKey: .easing) ?? .linear)
+    }
+}
+
 extension Array {
 
     /// Samples a channel of keys at time `t`, or `nil` if the channel has no keys.
