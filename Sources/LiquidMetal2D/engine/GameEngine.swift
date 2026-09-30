@@ -6,7 +6,7 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-import UIKit
+import QuartzCore
 
 /// Core protocol for the game loop. Handles timing, rendering, and input.
 ///

@@ -6,7 +6,9 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-import UIKit
+import CoreGraphics
+import ImageIO
+import Metal
 
 /// A texture loaded from the app bundle (or built from a solid color).
 ///
@@ -66,7 +68,7 @@ public class Texture {
 
     /// Loads the texture synchronously on the main thread.
     public func loadTexture(device: MTLDevice, commandQueue: MTLCommandQueue) {
-        guard let path, let image = UIImage(contentsOfFile: path)?.cgImage else { return }
+        guard let path, let image = Texture.loadCGImage(path: path) else { return }
         guard let newTexture = Texture.makeTexture(
             from: image, isMipmapped: isMipmapped, device: device, commandQueue: commandQueue) else { return }
         publish(newTexture)
@@ -88,7 +90,7 @@ public class Texture {
 
         let isMipmapped = self.isMipmapped
         Texture.loadQueue.async { [weak self] in
-            let newTexture = UIImage(contentsOfFile: path)?.cgImage.flatMap {
+            let newTexture = Texture.loadCGImage(path: path).flatMap {
                 Texture.makeTexture(from: $0, isMipmapped: isMipmapped, device: device, commandQueue: commandQueue)
             }
             let loaded = newTexture.map(SendableTexture.init)
@@ -103,6 +105,14 @@ public class Texture {
                 }
             }
         }
+    }
+
+    /// Decodes the first image in the file at `path`. Like `UIImage.cgImage`,
+    /// it ignores EXIF orientation. Pure, so the load queue can call it.
+    private nonisolated static func loadCGImage(path: String) -> CGImage? {
+        let url = URL(fileURLWithPath: path) as CFURL
+        guard let source = CGImageSourceCreateWithURL(url, nil) else { return nil }
+        return CGImageSourceCreateImageAtIndex(source, 0, nil)
     }
 
     private func publish(_ newTexture: MTLTexture) {
