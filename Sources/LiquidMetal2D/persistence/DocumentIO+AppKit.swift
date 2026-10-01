@@ -18,18 +18,16 @@ extension DocumentIO {
     ///   - data: The bytes to save.
     ///   - suggestedFilename: Filename (including extension) shown in the
     ///     panel as the default.
-    /// - Throws: ``Error/userCancelled`` on cancel;
-    ///   ``Error/noPresentingViewController`` if the presenting VC is gone
-    ///   or has no window; Cocoa errors on write failures.
+    /// - Throws: ``Error/userCancelled`` on cancel; ``Error/pickerUnavailable`` if
+    ///   the panel could not be shown; ``Error/noPresentingViewController`` if the
+    ///   presenting VC is gone or has no window; Cocoa errors on write failures.
     public func save(data: Data, suggestedFilename: String) async throws {
         let window = try presentingWindow()
         let panel = NSSavePanel()
         panel.nameFieldStringValue = suggestedFilename
         panel.canCreateDirectories = true
 
-        guard await panel.beginSheetModal(for: window) == .OK, let url = panel.url else {
-            throw Error.userCancelled
-        }
+        let url = try await present(panel, on: window)
         try data.write(to: url, options: .atomic)
     }
 
@@ -38,9 +36,9 @@ extension DocumentIO {
     ///
     /// - Parameter contentTypes: File types the panel will let the user select.
     /// - Returns: The contents of the chosen file.
-    /// - Throws: ``Error/userCancelled`` on cancel;
-    ///   ``Error/noPresentingViewController`` if the presenting VC is gone
-    ///   or has no window; Cocoa errors on read failures.
+    /// - Throws: ``Error/userCancelled`` on cancel; ``Error/pickerUnavailable`` if
+    ///   the panel could not be shown; ``Error/noPresentingViewController`` if the
+    ///   presenting VC is gone or has no window; Cocoa errors on read failures.
     public func load(contentTypes: [UTType]) async throws -> Data {
         let window = try presentingWindow()
         let panel = NSOpenPanel()
@@ -48,10 +46,23 @@ extension DocumentIO {
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
 
-        guard await panel.beginSheetModal(for: window) == .OK, let url = panel.url else {
+        let url = try await present(panel, on: window)
+        return try Data(contentsOf: url)
+    }
+
+    /// Runs the panel as a sheet and returns the chosen URL.
+    private func present(_ panel: NSSavePanel, on window: NSWindow) async throws -> URL {
+        switch await panel.beginSheetModal(for: window) {
+        case .OK:
+            guard let url = panel.url else {
+                preconditionFailure("the panel returned OK with no URL")
+            }
+            return url
+        case .abort:
+            throw Error.pickerUnavailable
+        default:
             throw Error.userCancelled
         }
-        return try Data(contentsOf: url)
     }
 
     private func presentingWindow() throws -> NSWindow {

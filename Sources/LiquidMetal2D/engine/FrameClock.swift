@@ -45,6 +45,7 @@ public final class DisplayLinkClock: FrameClock {
     }
 
     public func start(onFrame: @escaping @MainActor () -> Void) {
+        precondition(link == nil, "DisplayLinkClock.start called while running")
         self.onFrame = onFrame
         let link = makeLink()
         // `.common` keeps frames coming while a scroll view or menu tracks.

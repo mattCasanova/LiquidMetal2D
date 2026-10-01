@@ -32,6 +32,9 @@ public final class DocumentIO {
         /// The presenting view controller has been deallocated — the
         /// app is likely shutting down.
         case noPresentingViewController
+        /// The system could not show the picker at all (the Mac panels
+        /// report this as `.abort`).
+        case pickerUnavailable
     }
 
     weak var presentingVC: PlatformViewController?

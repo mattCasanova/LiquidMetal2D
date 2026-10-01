@@ -1,5 +1,6 @@
 import SwiftUI
 
+#if canImport(UIKit)
 /// SwiftUI bridge that hosts a ``LiquidViewController`` inside a SwiftUI
 /// view tree. Use this when building a SwiftUI app that wants the Metal
 /// game/preview surface as one pane in a larger layout.
@@ -22,7 +23,6 @@ import SwiftUI
 /// This wrapper centralizes the dismantle/shutdown step, which is easy to
 /// forget when writing the bridge by hand and would otherwise leak the
 /// engine and its display link.
-#if canImport(UIKit)
 @MainActor
 public struct LiquidView: UIViewControllerRepresentable {
     private let buildVC: @MainActor () -> LiquidViewController
@@ -47,6 +47,28 @@ public struct LiquidView: UIViewControllerRepresentable {
     }
 }
 #elseif canImport(AppKit)
+/// SwiftUI bridge that hosts a ``LiquidViewController`` inside a SwiftUI
+/// view tree. Use this when building a SwiftUI app that wants the Metal
+/// game/preview surface as one pane in a larger layout.
+///
+/// ```swift
+/// struct EditorScreen: View {
+///     var body: some View {
+///         HStack {
+///             LiquidView { EditorVC() }    // Metal preview
+///             ControlPanel()               // SwiftUI controls
+///         }
+///     }
+/// }
+/// ```
+///
+/// Touches (or, on the Mac, mouse drags) inside the Metal pane are handled
+/// by ``LiquidViewController`` as in any UIKit or AppKit app. Touches on SwiftUI controls are eaten by SwiftUI
+/// and never reach the view controller — the two compose without conflict.
+///
+/// This wrapper centralizes the dismantle/shutdown step, which is easy to
+/// forget when writing the bridge by hand and would otherwise leak the
+/// engine and its display link.
 @MainActor
 public struct LiquidView: NSViewControllerRepresentable {
     private let buildVC: @MainActor () -> LiquidViewController

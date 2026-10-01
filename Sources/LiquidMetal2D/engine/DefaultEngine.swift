@@ -18,6 +18,7 @@ import Foundation
 /// ```swift
 /// gameEngine = DefaultEngine(
 ///     renderer: renderer,
+///     documents: DocumentIO(presentingVC: self),
 ///     initialSceneType: MyScenes.menu,
 ///     sceneFactory: factory)
 /// gameEngine.run()
@@ -84,8 +85,10 @@ public class DefaultEngine: GameEngine, InputReader {
 
     /// Starts the game loop: the clock calls ``frame()`` every refresh.
     public func run() {
-        // The clock keeps the closure until `stop()`, so the engine lives
-        // until `shutdown()`; `unowned` then never dangles.
+        // The clock holds the closure, and the engine holds the clock, so
+        // the closure must not retain the engine (a cycle until `stop()`).
+        // An engine dropped without `shutdown()` traps on its next frame
+        // instead of running on unseen.
         clock.start { [unowned self] in self.frame() }
         lastFrameTime = clock.timestamp
     }

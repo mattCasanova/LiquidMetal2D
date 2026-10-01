@@ -63,8 +63,13 @@ public class RenderCore {
         #elseif canImport(AppKit)
         layer.contentsScale     = scale
         #endif
+        // A hand-added sublayer animates frame changes by default; during a
+        // live window resize that would leave the picture trailing the edge.
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
         layer.frame             = CGRect(x: 0, y: 0, width: layerSize.width, height: layerSize.height)
         layer.drawableSize      = CGSize(width: layerSize.width * scale, height: layerSize.height * scale)
+        CATransaction.commit()
 
         viewport = MTLViewport(
             originX: 0, originY: 0,
