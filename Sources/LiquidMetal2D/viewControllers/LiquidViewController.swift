@@ -6,16 +6,15 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-/// The view controller a game subclasses. It owns the engine's host view,
-/// forwards layout changes and pointer input to ``gameEngine``, and shuts
-/// the engine down when the view goes away. One class per platform, same
-/// name and API, so a game's subclass compiles on both.
-///
-/// On the Mac a mouse drag acts as a touch. Pointer locations reach the
-/// engine in top-left screen coordinates on both platforms.
 #if canImport(UIKit)
 import UIKit
 
+/// The view controller a game subclasses. It owns the engine's host view,
+/// forwards layout changes and touches to ``gameEngine``, and shuts the
+/// engine down when the view goes away. The AppKit build has a class of the
+/// same name and API, so a game's subclass compiles on both platforms.
+///
+/// Touch locations reach the engine in top-left screen coordinates.
 open class LiquidViewController: UIViewController {
     public var gameEngine: GameEngine!
 
@@ -58,23 +57,29 @@ open class LiquidViewController: UIViewController {
 #elseif canImport(AppKit)
 import AppKit
 
+/// The view controller a game subclasses. It owns the engine's host view
+/// (a ``LiquidNSView``), forwards layout changes and mouse input to
+/// ``gameEngine``, and shuts the engine down when the view leaves its
+/// window. The UIKit build has a class of the same name and API, so a
+/// game's subclass compiles on both platforms.
+///
+/// A mouse drag acts as a touch. Locations reach the engine in top-left
+/// screen coordinates, as on iOS.
 open class LiquidViewController: NSViewController {
     public var gameEngine: GameEngine!
 
     open override func loadView() {
         let liquidView = LiquidNSView()
         liquidView.onBackingChange = { [weak self] in self?.resizeEngine() }
+        // Not `viewWillDisappear`: AppKit sends that whenever the window is
+        // ordered out, so minimising or hiding would kill the game.
+        liquidView.onLeaveWindow = { [weak self] in self?.gameEngine?.shutdown() }
         view = liquidView
     }
 
     open override func viewDidLayout() {
         super.viewDidLayout()
         resizeEngine()
-    }
-
-    open override func viewWillDisappear() {
-        super.viewWillDisappear()
-        gameEngine?.shutdown()
     }
 
     /// Resizes the engine to the view at the window's backing scale.

@@ -13,6 +13,7 @@ final class DefaultEngineTests: XCTestCase {
         clock.advance(by: 1.0 / 30)
 
         XCTAssertEqual(RecordingScene.current.updates, [1.0 / 60, 1.0 / 30])
+        XCTAssertEqual(RecordingScene.current.draws, 2, "every updated frame is drawn")
         engine.shutdown()
     }
 
@@ -33,6 +34,7 @@ final class DefaultEngineTests: XCTestCase {
         clock.advance(by: 0)
 
         XCTAssertEqual(RecordingScene.current.updates, [])
+        XCTAssertEqual(RecordingScene.current.draws, 0)
         engine.shutdown()
     }
 
@@ -118,6 +120,7 @@ private class RecordingScene: DefaultScene {
     static var current: RecordingScene!
 
     private(set) var updates: [Float] = []
+    private(set) var draws = 0
     private(set) var isShutDown = false
 
     override class var sceneType: any SceneType { TestScenes.first }
@@ -131,7 +134,9 @@ private class RecordingScene: DefaultScene {
         updates.append(dt)
     }
 
-    override func draw() {}
+    override func draw() {
+        draws += 1
+    }
 
     override func shutdown() {
         isShutDown = true
@@ -141,5 +146,5 @@ private class RecordingScene: DefaultScene {
 
 @MainActor
 private final class SecondScene: RecordingScene {
-    override class var sceneType: any SceneType { TestScenes.second }
+    override static var sceneType: any SceneType { TestScenes.second }
 }
