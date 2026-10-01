@@ -6,11 +6,11 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-import UIKit
+import CoreGraphics
 
 @MainActor
 public protocol Renderer: AnyObject {
-    var view: UIView { get }
+    var view: PlatformView { get }
     var screenHeight: Float { get }
     var screenWidth: Float { get }
     var screenAspect: Float { get }

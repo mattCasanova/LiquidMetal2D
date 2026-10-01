@@ -6,7 +6,7 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-import UIKit
+import CoreGraphics
 import Metal
 
 /// Wraps a value so it can cross actor isolation in a completion handler
@@ -43,9 +43,9 @@ open class DefaultRenderer: Renderer {
     /// appended via `register(shader:)`.
     private var shaders: [Shader]
 
-    public var view: UIView { renderCore.view }
+    public var view: PlatformView { renderCore.view }
 
-    public init(parentView: UIView, maxObjects: Int) {
+    public init(parentView: PlatformView, maxObjects: Int) {
         renderCore = RenderCore(parentView: parentView)
         projectionBufferProvider = BufferProvider(
             device: renderCore.device, size: ProjectionUniform.stride)

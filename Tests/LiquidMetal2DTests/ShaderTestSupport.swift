@@ -1,5 +1,4 @@
 import Metal
-import UIKit
 import XCTest
 @testable import LiquidMetal2D
 
@@ -15,7 +14,7 @@ enum ShaderTestSupport {
     /// of hitting `RenderCore`'s `fatalError`, on a host with no Metal device.
     static func makeRenderCore() throws -> RenderCore {
         _ = try makeDevice()
-        return RenderCore(parentView: UIView())
+        return RenderCore(parentView: PlatformView())
     }
 
     /// The system Metal device, or a skip on a host without one.

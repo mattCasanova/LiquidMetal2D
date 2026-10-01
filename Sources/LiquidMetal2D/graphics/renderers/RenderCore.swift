@@ -6,13 +6,13 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-import UIKit
+import QuartzCore
 import Metal
 
 @MainActor
 public class RenderCore {
 
-    public let view: UIView
+    public let view: PlatformView
     public let device: MTLDevice
     public let commandQueue: MTLCommandQueue
     public let layer: CAMetalLayer
@@ -26,7 +26,7 @@ public class RenderCore {
     public let camera2D = Camera2D()
     public var clearColor: MTLClearColor = MTLClearColor()
 
-    public init(parentView: UIView) {
+    public init(parentView: PlatformView) {
         view = parentView
         guard let safeDevice = MTLCreateSystemDefaultDevice() else {
             fatalError("Unable to Create Metal Device")
@@ -43,14 +43,26 @@ public class RenderCore {
         layer.device          = device
         layer.pixelFormat     = .bgra8Unorm
         layer.framebufferOnly = true
-        layer.frame           = view.layer.frame
-        view.layer.addSublayer(layer)
+        #if canImport(UIKit)
+        let hostLayer: CALayer = view.layer
+        #elseif canImport(AppKit)
+        view.wantsLayer = true
+        guard let hostLayer = view.layer else {
+            fatalError("RenderCore: NSView has no backing layer after wantsLayer = true")
+        }
+        #endif
+        layer.frame           = hostLayer.frame
+        hostLayer.addSublayer(layer)
 
         textureManager = TextureManager(device: device, commandQueue: commandQueue)
     }
 
     public func resize(scale: CGFloat, layerSize: CGSize) {
+        #if canImport(UIKit)
         view.contentScaleFactor = scale
+        #elseif canImport(AppKit)
+        layer.contentsScale     = scale
+        #endif
         layer.frame             = CGRect(x: 0, y: 0, width: layerSize.width, height: layerSize.height)
         layer.drawableSize      = CGSize(width: layerSize.width * scale, height: layerSize.height * scale)
 
