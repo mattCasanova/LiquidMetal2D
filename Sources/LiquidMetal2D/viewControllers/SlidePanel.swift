@@ -5,9 +5,10 @@
 //  Created by Matt Casanova on 3/17/26.
 //
 
+#if canImport(UIKit)
 import UIKit
 
-/// A UIView container that slides in from a screen edge.
+/// A UIView container that slides in from a screen edge. UIKit only for now.
 ///
 /// Add your UI elements to ``contentView``, then call ``slideIn()``
 /// to animate them on screen. Call ``slideOut(completion:)`` to animate
@@ -108,3 +109,4 @@ public class SlidePanel {
         }
     }
 }
+#endif

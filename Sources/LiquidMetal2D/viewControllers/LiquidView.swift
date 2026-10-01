@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 /// SwiftUI bridge that hosts a ``LiquidViewController`` inside a SwiftUI
 /// view tree. Use this when building a SwiftUI app that wants the Metal
@@ -16,13 +15,14 @@ import UIKit
 /// }
 /// ```
 ///
-/// Touches inside the Metal pane are handled by ``LiquidViewController``
-/// as in any UIKit app. Touches on SwiftUI controls are eaten by SwiftUI
+/// Touches (or, on the Mac, mouse drags) inside the Metal pane are handled
+/// by ``LiquidViewController`` as in any UIKit or AppKit app. Touches on SwiftUI controls are eaten by SwiftUI
 /// and never reach the view controller — the two compose without conflict.
 ///
 /// This wrapper centralizes the dismantle/shutdown step, which is easy to
 /// forget when writing the bridge by hand and would otherwise leak the
 /// engine and its display link.
+#if canImport(UIKit)
 @MainActor
 public struct LiquidView: UIViewControllerRepresentable {
     private let buildVC: @MainActor () -> LiquidViewController
@@ -46,3 +46,28 @@ public struct LiquidView: UIViewControllerRepresentable {
         vc.gameEngine?.shutdown()
     }
 }
+#elseif canImport(AppKit)
+@MainActor
+public struct LiquidView: NSViewControllerRepresentable {
+    private let buildVC: @MainActor () -> LiquidViewController
+
+    /// - Parameter buildVC: Closure that produces a configured
+    ///   ``LiquidViewController`` subclass. Called once when SwiftUI
+    ///   instantiates the underlying AppKit view controller.
+    public init(buildVC: @escaping @MainActor () -> LiquidViewController) {
+        self.buildVC = buildVC
+    }
+
+    public func makeNSViewController(context: Context) -> LiquidViewController {
+        buildVC()
+    }
+
+    public func updateNSViewController(_ vc: LiquidViewController, context: Context) {}
+
+    public static func dismantleNSViewController(
+        _ vc: LiquidViewController, coordinator: ()
+    ) {
+        vc.gameEngine?.shutdown()
+    }
+}
+#endif
