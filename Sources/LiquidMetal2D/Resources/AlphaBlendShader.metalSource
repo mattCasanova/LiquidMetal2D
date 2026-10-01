@@ -71,6 +71,10 @@ vertex VertOut alphaBlend_vertex(VertIn inVert [[ stage_in ]],
 fragment half4 alphaBlend_fragment(VertOut interpolated [[ stage_in ]],
                                   texture2d<half> tex2D [[ texture(0) ]],
                                   sampler sampler2D [[ sampler(0) ]]) {
+    // The texture is premultiplied; premultiply the tint too so the output
+    // blends with a source factor of one.
     half4 texColor = tex2D.sample(sampler2D, interpolated.texCoord);
-    return texColor * half4(interpolated.color);
+    half4 tint = half4(interpolated.color);
+    tint.rgb *= tint.a;
+    return texColor * tint;
 }

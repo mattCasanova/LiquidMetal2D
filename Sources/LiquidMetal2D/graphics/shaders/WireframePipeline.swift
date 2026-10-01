@@ -44,11 +44,13 @@ enum WireframePipeline {
 
         // Alpha blending so the outline composites over the sprite behind it.
         let colorDescriptor                          = descriptor.colorAttachments[0]
+        // Premultiplied "over", like AlphaBlendPipeline: the shader's output
+        // already carries its alpha.
         colorDescriptor?.isBlendingEnabled           = true
         colorDescriptor?.rgbBlendOperation           = .add
         colorDescriptor?.alphaBlendOperation         = .add
-        colorDescriptor?.sourceRGBBlendFactor        = .sourceAlpha
-        colorDescriptor?.sourceAlphaBlendFactor      = .sourceAlpha
+        colorDescriptor?.sourceRGBBlendFactor        = .one
+        colorDescriptor?.sourceAlphaBlendFactor      = .one
         colorDescriptor?.destinationRGBBlendFactor   = .oneMinusSourceAlpha
         colorDescriptor?.destinationAlphaBlendFactor = .oneMinusSourceAlpha
 

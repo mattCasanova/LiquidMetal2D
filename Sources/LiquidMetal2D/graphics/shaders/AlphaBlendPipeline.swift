@@ -45,12 +45,16 @@ enum AlphaBlendPipeline {
         descriptor.colorAttachments[0].pixelFormat = renderCore.layer.pixelFormat
 
         let colorDescriptor                          = descriptor.colorAttachments[0]
+        // Premultiplied "over": textures load premultiplied and the fragment
+        // shader premultiplies the tint, so the source factor is one. A
+        // sourceAlpha factor here would weight the edge pixels by alpha twice
+        // and draw a dark fringe around every soft edge.
         colorDescriptor?.isBlendingEnabled           = true
         colorDescriptor?.rgbBlendOperation           = .add
         colorDescriptor?.alphaBlendOperation         = .add
 
-        colorDescriptor?.sourceRGBBlendFactor        = .sourceAlpha
-        colorDescriptor?.sourceAlphaBlendFactor      = .sourceAlpha
+        colorDescriptor?.sourceRGBBlendFactor        = .one
+        colorDescriptor?.sourceAlphaBlendFactor      = .one
 
         colorDescriptor?.destinationRGBBlendFactor   = .oneMinusSourceAlpha
         colorDescriptor?.destinationAlphaBlendFactor = .oneMinusSourceAlpha

@@ -78,6 +78,16 @@ class TextureManager {
 
     // MARK: - Access
 
+    /// Registers a texture made elsewhere (a render target, a procedural
+    /// image) and returns its ID. Its pixels must be premultiplied, like
+    /// every texture the manager loads.
+    func addTexture(_ mtlTexture: MTLTexture) -> Int {
+        let texture = Texture(solidColorWithId: Texture.nextId(), mtlTexture: mtlTexture)
+        textures.append(texture)
+        texturesMap[texture.id] = texture
+        return texture.id
+    }
+
     func getTexture(id: Int) -> MTLTexture {
         return texturesMap[id]?.texture ?? errorTexture
     }
@@ -126,9 +136,10 @@ class TextureManager {
         return Texture(solidColorWithId: Texture.nextId(), mtlTexture: mtlTexture)
     }
 
-    /// Procedural 64×64 soft-circle texture for additive particles: RGB is
-    /// pure white, alpha falls off quadratically from opaque center to
-    /// transparent corner. Tint with ``ParticleEmitterComponent/startColor``
+    /// Procedural 64×64 soft-circle texture for additive particles: white,
+    /// with alpha falling off quadratically from an opaque center to a
+    /// transparent corner. Premultiplied like every loaded texture, so RGB
+    /// equals alpha. Tint with ``ParticleEmitterComponent/startColor``
     /// / ``endColor`` to color the resulting glow.
     private static func createDefaultParticleTexture(device: MTLDevice) -> Texture {
         let size = 64
@@ -151,10 +162,10 @@ class TextureManager {
                 let t = max(0, 1 - dist)
                 let alpha = UInt8(min(255, Int(t * t * 255)))
                 let pixelIndex = (y * size + x) * 4
-                // BGRA order
-                pixels[pixelIndex]     = 255    // B
-                pixels[pixelIndex + 1] = 255    // G
-                pixels[pixelIndex + 2] = 255    // R
+                // BGRA order, premultiplied: white at this alpha
+                pixels[pixelIndex]     = alpha  // B
+                pixels[pixelIndex + 1] = alpha  // G
+                pixels[pixelIndex + 2] = alpha  // R
                 pixels[pixelIndex + 3] = alpha  // A
             }
         }

@@ -12,6 +12,8 @@ final class OffscreenRenderTests: XCTestCase {
 
     private static let white = SIMD4<UInt8>(255, 255, 255, 255)
     private static let clear = SIMD4<UInt8>(0, 0, 0, 0)
+    /// 50 % white, premultiplied.
+    private static let halfWhite = SIMD4<UInt8>(128, 128, 128, 128)
 
     /// A 16×8 sprite centred at (8, 4) covers x 0…16, y 0…8. Each check sits
     /// half a pixel inside or outside an edge.
@@ -91,6 +93,112 @@ final class OffscreenRenderTests: XCTestCase {
         XCTAssertEqual(image.pixel(at: Vec2(17.5, 4.5)), Self.clear, "outside the circle")
     }
 
+    // MARK: - Premultiplied alpha
+
+    /// Loaded textures are premultiplied and the shaders premultiply their
+    /// tint, so every pipeline blends with a source factor of one. A
+    /// half-transparent white texel over a white ground must stay white. With
+    /// a sourceAlpha factor it is weighted by alpha twice and comes out grey:
+    /// the dark fringe round every soft edge.
+    func testAlphaBlendHalfTransparentTexelOverWhiteStaysWhite() throws {
+        let renderCore = try ShaderTestSupport.makeRenderCore()
+        renderCore.setClearColor(color: Vec3(1, 1, 1))
+        let shader = AlphaBlendShader(renderCore: renderCore, maxObjects: 4)
+        let sprite = Self.makeObject(position: Vec2(8, 4), scale: Vec2(16, 8))
+        sprite.add(AlphaBlendComponent(parent: sprite, textureID: try Self.addHalfWhiteTexture(to: renderCore)))
+
+        let image = try Self.render(shader, objects: [sprite], renderCore: renderCore)
+
+        Self.assertPixel(image.pixel(at: Vec2(8.5, 3.5)), isNear: Self.white)
+    }
+
+    /// The same texel over black is half bright, not a quarter.
+    func testAlphaBlendHalfTransparentTexelOverBlackIsHalfBright() throws {
+        let renderCore = try ShaderTestSupport.makeRenderCore()
+        let shader = AlphaBlendShader(renderCore: renderCore, maxObjects: 4)
+        let sprite = Self.makeObject(position: Vec2(8, 4), scale: Vec2(16, 8))
+        sprite.add(AlphaBlendComponent(parent: sprite, textureID: try Self.addHalfWhiteTexture(to: renderCore)))
+
+        let image = try Self.render(shader, objects: [sprite], renderCore: renderCore)
+
+        Self.assertPixel(image.pixel(at: Vec2(8.5, 3.5)), isNear: Self.halfWhite)
+    }
+
+    /// A tint with alpha 0.5 on the opaque white texture is half bright over
+    /// black: the fragment shader premultiplies the tint. Without that, a
+    /// source factor of one would draw it at full brightness.
+    func testAlphaBlendHalfAlphaTintIsHalfBright() throws {
+        let renderCore = try ShaderTestSupport.makeRenderCore()
+        let shader = AlphaBlendShader(renderCore: renderCore, maxObjects: 4)
+        let sprite = Self.makeObject(position: Vec2(8, 4), scale: Vec2(16, 8))
+        sprite.add(AlphaBlendComponent(
+            parent: sprite, textureID: renderCore.textureManager.defaultTextureId, tintColor: Vec4(1, 1, 1, 0.5)))
+
+        let image = try Self.render(shader, objects: [sprite], renderCore: renderCore)
+
+        Self.assertPixel(image.pixel(at: Vec2(8.5, 3.5)), isNear: Self.halfWhite)
+    }
+
+    func testRippleHalfTransparentTexelOverWhiteStaysWhite() throws {
+        let renderCore = try ShaderTestSupport.makeRenderCore()
+        renderCore.setClearColor(color: Vec3(1, 1, 1))
+        let shader = RippleShader(renderCore: renderCore, maxObjects: 4)
+        let sprite = Self.makeObject(position: Vec2(8, 4), scale: Vec2(16, 8))
+        sprite.add(RippleComponent(
+            parent: sprite, textureID: try Self.addHalfWhiteTexture(to: renderCore), amplitude: 0))
+
+        let image = try Self.render(shader, objects: [sprite], renderCore: renderCore)
+
+        Self.assertPixel(image.pixel(at: Vec2(8.5, 3.5)), isNear: Self.white)
+    }
+
+    /// The ring of ``testWireframeCircleDrawsARing`` in a colour with alpha 0.5.
+    func testWireframeHalfAlphaColorIsHalfBright() throws {
+        let renderCore = try ShaderTestSupport.makeRenderCore()
+        let shader = WireframeShader(renderCore: renderCore, maxObjects: 4)
+        let circle = Self.makeObject(position: Vec2(8, 4), scale: Vec2(1, 1))
+        circle.add(CircleCollider(parent: circle, radius: 8))
+        circle.add(WireframeComponent(parent: circle, color: Vec4(1, 1, 1, 0.5), thickness: 0.25))
+
+        let image = try Self.render(shader, objects: [circle], renderCore: renderCore)
+
+        Self.assertPixel(image.pixel(at: Vec2(14.5, 3.5)), isNear: Self.halfWhite, "on the ring")
+    }
+
+    /// One 16-wide particle on the plain white texture, colour alpha 0.5,
+    /// "over" blend: half bright over black.
+    func testParticleAlphaModeHalfAlphaColorIsHalfBright() throws {
+        let renderCore = try ShaderTestSupport.makeRenderCore()
+        let shader = ParticleShader(renderCore: renderCore, maxObjects: 4, blendMode: .alpha)
+        let parent = Self.makeObject(position: Vec2(8, 4), scale: Vec2(1, 1))
+        let emitter = ParticleEmitterComponent(
+            parent: parent, maxParticles: 1, textureID: renderCore.textureManager.defaultTextureId,
+            emissionRate: 0, lifetimeRange: 100...100, speedRange: 0...0, angleRange: 0...0, scaleRange: 16...16,
+            startColor: Vec4(1, 1, 1, 0.5), endColor: Vec4(1, 1, 1, 0.5))
+        parent.add(emitter)
+        emitter.spawn(count: 1)
+
+        let image = try Self.render(shader, objects: [parent], renderCore: renderCore)
+
+        Self.assertPixel(image.pixel(at: Vec2(8.5, 3.5)), isNear: Self.halfWhite)
+    }
+
+    /// Additive: a half-transparent texel adds half, not a quarter.
+    func testParticleAdditiveHalfTransparentTexelAddsHalf() throws {
+        let renderCore = try ShaderTestSupport.makeRenderCore()
+        let shader = ParticleShader(renderCore: renderCore, maxObjects: 4)
+        let parent = Self.makeObject(position: Vec2(8, 4), scale: Vec2(1, 1))
+        let emitter = ParticleEmitterComponent(
+            parent: parent, maxParticles: 1, textureID: try Self.addHalfWhiteTexture(to: renderCore),
+            emissionRate: 0, lifetimeRange: 100...100, speedRange: 0...0, angleRange: 0...0, scaleRange: 16...16)
+        parent.add(emitter)
+        emitter.spawn(count: 1)
+
+        let image = try Self.render(shader, objects: [parent], renderCore: renderCore)
+
+        Self.assertPixel(image.pixel(at: Vec2(8.5, 3.5)), isNear: Self.halfWhite)
+    }
+
     // MARK: - Two draws in one frame
 
     func testAlphaBlendDrawsEverySubmitAcrossAFlush() throws {
@@ -166,6 +274,28 @@ final class OffscreenRenderTests: XCTestCase {
 
         for (point, name) in zip(flushPoints, ["A, the first draw", "B, slot 1", "C, slot 2"]) {
             XCTAssertGreaterThan(image.pixel(at: point + probe).x, 200, "\(name) at \(point)", file: file, line: line)
+        }
+    }
+
+    /// A 1×1 texture holding 50 % white, premultiplied: (128, 128, 128, 128).
+    private static func addHalfWhiteTexture(to renderCore: RenderCore) throws -> Int {
+        let descriptor = MTLTextureDescriptor.texture2DDescriptor(
+            pixelFormat: .bgra8Unorm, width: 1, height: 1, mipmapped: false)
+        let texture = try XCTUnwrap(renderCore.device.makeTexture(descriptor: descriptor))
+        var pixel: [UInt8] = [128, 128, 128, 128]
+        texture.replace(region: MTLRegionMake2D(0, 0, 1, 1), mipmapLevel: 0, withBytes: &pixel, bytesPerRow: 4)
+        return renderCore.textureManager.addTexture(texture)
+    }
+
+    /// Equal channel by channel, within one step of 8-bit rounding.
+    private static func assertPixel(
+        _ pixel: SIMD4<UInt8>, isNear expected: SIMD4<UInt8>, _ message: String = "",
+        file: StaticString = #filePath, line: UInt = #line
+    ) {
+        for channel in 0..<4 {
+            XCTAssertEqual(
+                Int(pixel[channel]), Int(expected[channel]), accuracy: 1,
+                "\(message) channel \(channel) of \(pixel), expected \(expected)", file: file, line: line)
         }
     }
 

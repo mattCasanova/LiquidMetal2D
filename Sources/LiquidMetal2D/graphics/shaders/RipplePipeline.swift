@@ -45,11 +45,13 @@ enum RipplePipeline {
         descriptor.colorAttachments[0].pixelFormat = renderCore.layer.pixelFormat
 
         let colorDescriptor                          = descriptor.colorAttachments[0]
+        // Premultiplied "over", like AlphaBlendPipeline: the shader's output
+        // already carries its alpha.
         colorDescriptor?.isBlendingEnabled           = true
         colorDescriptor?.rgbBlendOperation           = .add
         colorDescriptor?.alphaBlendOperation         = .add
-        colorDescriptor?.sourceRGBBlendFactor        = .sourceAlpha
-        colorDescriptor?.sourceAlphaBlendFactor      = .sourceAlpha
+        colorDescriptor?.sourceRGBBlendFactor        = .one
+        colorDescriptor?.sourceAlphaBlendFactor      = .one
         colorDescriptor?.destinationRGBBlendFactor   = .oneMinusSourceAlpha
         colorDescriptor?.destinationAlphaBlendFactor = .oneMinusSourceAlpha
 

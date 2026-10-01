@@ -54,17 +54,18 @@ enum ParticlePipeline {
 
         switch blendMode {
         case .additive:
-            // Output added to framebuffer, weighted by source alpha.
-            // Order-independent — overlap brightens into hotspots.
-            colorDescriptor?.sourceRGBBlendFactor        = .sourceAlpha
-            colorDescriptor?.sourceAlphaBlendFactor      = .sourceAlpha
+            // Premultiplied output added to the framebuffer (texture and tint
+            // already carry their alpha). Order-independent — overlap brightens
+            // into hotspots.
+            colorDescriptor?.sourceRGBBlendFactor        = .one
+            colorDescriptor?.sourceAlphaBlendFactor      = .one
             colorDescriptor?.destinationRGBBlendFactor   = .one
             colorDescriptor?.destinationAlphaBlendFactor = .one
         case .alpha:
-            // Classic "over" compositing. Order-dependent — caller must
+            // Premultiplied "over" compositing. Order-dependent — caller must
             // sort back-to-front before drawing.
-            colorDescriptor?.sourceRGBBlendFactor        = .sourceAlpha
-            colorDescriptor?.sourceAlphaBlendFactor      = .sourceAlpha
+            colorDescriptor?.sourceRGBBlendFactor        = .one
+            colorDescriptor?.sourceAlphaBlendFactor      = .one
             colorDescriptor?.destinationRGBBlendFactor   = .oneMinusSourceAlpha
             colorDescriptor?.destinationAlphaBlendFactor = .oneMinusSourceAlpha
         }
