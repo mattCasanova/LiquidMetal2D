@@ -1,12 +1,12 @@
 # LiquidMetal2D
 
-Swift/Metal 2D game engine library for iOS.
+Swift/Metal 2D game engine library for iOS and macOS.
 
 ## Project Overview
 
 - **Language:** Swift 6
 - **Graphics:** Apple Metal
-- **Platform:** iOS 26+ (also declares macOS 26+ for SPM tooling)
+- **Platform:** iOS 26+ and macOS 26+ (native AppKit, not Catalyst). Platform code is guarded `#if canImport(UIKit)` … `#elseif canImport(AppKit)`, UIKit first so Catalyst takes the iOS path; never `#if os(macOS)`
 - **Package Manager:** Swift Package Manager
 - **Dependencies:** SwiftLint (build plugin only — no external runtime deps)
 
@@ -46,8 +46,9 @@ Swift/Metal 2D game engine library for iOS.
 - **Scheduling** (`scheduler/`) — `Scheduler` with pause/resume, `ScheduledTask` with repeat count, chaining (`.then`), completion callbacks. Action receives `dt`
 - **Persistence** (`persistence/`) — Two-tier split by who owns the file:
   - **App-owned** — `BlobStore` protocol (key-value `Data` CRUD, throws) with `FileBlobStore` (writes to `Documents/<subdirectory>/<key>`) and `InMemoryBlobStore` (dict-backed, for tests; throws `KeyNotFoundError`). `CodableBlobStore<T>` wraps any `BlobStore` and handles JSON encode/decode for any `Codable` type. Callers construct the underlying `BlobStore` themselves so tests can substitute `InMemoryBlobStore` without a code-path change.
-  - **User-owned** — `DocumentIO` (`final class`) wraps `UIDocumentPickerViewController` in async/await. Created once at app startup with the presenting view controller (stored weakly); scenes call `save(data:suggestedFilename:)` / `load(contentTypes:)` without seeing UIKit. `DocumentIO.Error.userCancelled` surfaces picker dismissal; I/O errors propagate as their underlying Cocoa type. Picker delegate lifetime uses a self-retaining coordinator (`selfRef = self`, cleared in callback).
-- **View Controllers** (`viewControllers/`) — `LiquidViewController` (touch forwarding, resize on layout, shutdown on disappear), `SlidePanel` (animated UIView sliding in from screen edges), `SlideDirection`
+  - **User-owned** — `DocumentIO` (`final class`) wraps the system file picker in async/await: `UIDocumentPickerViewController` in `DocumentIO+UIKit.swift`, `NSSavePanel`/`NSOpenPanel` sheets in `DocumentIO+AppKit.swift`. Created once at app startup with the presenting view controller (a `PlatformViewController`, stored weakly); scenes call `save(data:suggestedFilename:)` / `load(contentTypes:)` without seeing UIKit or AppKit. `DocumentIO.Error.userCancelled` surfaces picker dismissal; I/O errors propagate as their underlying Cocoa type. The UIKit picker delegate's lifetime uses a self-retaining coordinator (`selfRef = self`, cleared in callback).
+- **View Controllers** (`viewControllers/`) — `LiquidViewController`, one class per platform with the same name and API (touch or mouse-drag forwarding in top-left screen space, resize on layout, shutdown on disappear); `LiquidNSView` (the Mac host view: first responder, backing-scale changes); `LiquidView` (SwiftUI bridge, `UIViewControllerRepresentable` / `NSViewControllerRepresentable`); `SlidePanel` (animated UIView sliding in from screen edges, UIKit only), `SlideDirection`
+- **Platform** (`platform/`) — `PlatformTypes.swift`: `PlatformView` (`UIView` / `NSView`) and `PlatformViewController` typealiases. `UIView` and `NSView` share no base class, so the engine names them through the aliases and guards only the spots whose APIs differ (`RenderCore`'s host layer and content scale, `DisplayLinkClock.makeLink`)
 - **Utilities** (`util/`) — `Debug` helpers, `SeededRandom` (SplitMix64 `RandomNumberGenerator`; pass it to `ParticleEmitterComponent(random:)` for a repeatable effect or exact tests)
 - **Resources** — `AlphaBlendShader.metalSource`, `WireframeShader.metalSource`, `RippleShader.metalSource`, `ParticleShader.metalSource` (bundled, loaded at runtime)
 
@@ -67,16 +68,21 @@ Swift/Metal 2D game engine library for iOS.
 
 ## Build & Test
 
-This is an iOS-only library. Cannot build with `swift build` on macOS (no UIKit).
+Builds and tests on the Mac host with plain SwiftPM (the fast loop: the GPU tests run on the Mac's Metal device, no simulator), and on the iOS simulator with `xcodebuild`. Both must pass before a release.
 
 ```bash
-# Build
+# Mac host
+swift build
+swift test
+swift test -c release -Xswiftc -enable-testing --filter AllocationTests   # zero-allocation claims
+
+# iOS simulator: build
 xcodebuild -scheme LiquidMetal2D -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -skipPackagePluginValidation build
 
-# Test
+# iOS simulator: test
 xcodebuild -scheme LiquidMetal2D -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -skipPackagePluginValidation test
 
-# Zero-allocation claims (skipped in Debug; only meaningful optimized)
+# iOS simulator: zero-allocation claims (skipped in Debug; only meaningful optimized)
 xcodebuild -scheme LiquidMetal2D -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -skipPackagePluginValidation \
   -configuration Release ENABLE_TESTABILITY=YES test -only-testing:LiquidMetal2DTests/AllocationTests
 ```
@@ -89,6 +95,6 @@ xcodebuild -scheme LiquidMetal2D -destination 'platform=iOS Simulator,name=iPhon
 - `GameObj` is `final` — don't subclass. Compose via `Component` conformers in the component bag
 - `@_exported import simd` in TypeAliases.swift — consumers get simd types automatically
 - **Small public helpers are `@inlinable`** (math, `Intersect`, `Easing`, simd extensions, `WorldBounds`, `GameObj` component methods). Without it, game code calls them as real functions and generics like `GameObj.get<T>` run unspecialized (verified by disassembling the Release demo). New small, hot public helpers in these files get `@inlinable` too; anything they touch that isn't public needs `@usableFromInline`. Constants are `@inlinable static var x: Float { … }`, not `static let` (a `let` is read through an accessor function across modules). Don't mark large functions inlinable
-- **Tests run the real shaders** on the simulator's Metal device: `ShaderTestSupport` builds a `RenderCore` from a bare `PlatformView` (a `UIView` or `NSView` with no window); `OffscreenRenderTests` draws through each shader into a readable 64×64 texture and checks pixels by world position (one world unit per pixel, y up); `SpriteTransformTests` compiles each `.metalSource` with a compute kernel added. Shader or uniform changes must keep these passing
+- **Tests run the real shaders** on the host's or simulator's Metal device: `ShaderTestSupport` builds a `RenderCore` from a bare `PlatformView` (a `UIView` or `NSView` with no window); `OffscreenRenderTests` draws through each shader into a readable 64×64 texture and checks pixels by world position (one world unit per pixel, y up); `SpriteTransformTests` compiles each `.metalSource` with a compute kernel added. Shader or uniform changes must keep these passing
 - **Hot plain-data fields are `@exclusivity(unchecked)`** (`GameObj`'s transform fields and `isActive`; the render components' texture, colour and effect fields). Every access to a class's stored `var` otherwise pays a run-time exclusivity check (`swift_beginAccess`); in the 2026-09-25 MassRender profile those checks cost more than all the math. Only plain values get it, never an array, dictionary or reference (`GameObj.components` keeps its check). The attribute covers accesses compiled in this module only; a game turns off its own checks with `SWIFT_ENFORCE_EXCLUSIVE_ACCESS = debug-only`. For the same reason, per-frame loops keep a class's state in locals (`InstanceBatches` in `submit`), and component `parent`s are `unowned let` (a `let` is never checked)
 - **Scene code: closures into standard-library algorithms pay an actor-isolation check per call.** A closure written in `@MainActor` code (every scene) is `@MainActor`; passed to `sort`, `filter`, `forEach`, `contains`, `removeAll` and the like, it checks the executor on every call. A 10,000-object sort in the demo's MassRender spent 1.7 ms a frame on it. In per-frame code use a `for-in` loop, a `nonisolated` named function or a `@Sendable` closure. Closures passed to engine APIs (`forEachPotentialPair`, `forEachNear`) don't pay it: the engine is a Swift 6 module
