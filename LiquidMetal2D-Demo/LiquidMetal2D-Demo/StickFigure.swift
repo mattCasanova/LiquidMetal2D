@@ -16,9 +16,17 @@ import LiquidMetal2D
 /// checks the two still match, so change them together.
 ///
 /// Facing +x. Units are world units at `SkeletonComponent.scale == 1`:
-/// 8.4 tall, feet 4 below the hips. Far-side limbs are tinted darker
+/// 8.4 tall, feet `feetBelowHips` below the hips. Far-side limbs are tinted darker
 /// than near-side ones so the depth reads.
+///
+/// Limbs are boxes with a disc at every joint and limb end, as wide as the
+/// box, so a bend shows a round knee or elbow instead of two sharp corners.
+/// The head is one disc. The discs use the `disc` texture; everything else
+/// is the engine's white texture, tinted.
 enum StickFigure {
+
+    /// Name of the texture the discs draw with; the scene maps it to a loaded texture ID.
+    static let discTexture = "disc"
 
     /// The bone the sword hangs off, and the sword's attachment name, for throwing it.
     static let swordHandBone = 10
@@ -26,6 +34,10 @@ enum StickFigure {
     /// Where the sword's centre sits along the forearm, before scale.
     static let swordOffset = Vec2(1.5 + 1.1, 0)
     static let swordSize = Vec2(2.6, 0.18)
+
+    private static let limbThickness: Float = 0.5
+    /// Sole of the foot discs below the hips at scale 1: the shins end 4 below, plus a disc radius.
+    static let feetBelowHips: Float = 4 + limbThickness / 2
 
     /// Bones in rig order. Rest rotations are local: the spine points up
     /// (+90°), arms hang down along the body (180° from the spine), legs point down (-90°).
@@ -49,30 +61,53 @@ enum StickFigure {
                  rest: RigidTransform2D(position: $0.at, rotation: $0.degrees * degree))
         }
 
-        func box(_ bone: Int, thickness: Float = 0.5, tint: Vec4, order: Int) -> Attachment {
+        var attachments: [Attachment] = []
+
+        /// A box along the bone, as long as the bone.
+        func box(_ bone: Int, tint: Vec4) {
             let length = bones[bone].length
-            return Attachment(
-                name: bones[bone].name, bone: bone, size: Vec2(length, thickness),
-                offset: Vec2(length / 2, 0), tint: tint, drawOrder: order)
+            attachments.append(Attachment(
+                name: bones[bone].name, bone: bone, size: Vec2(length, limbThickness),
+                offset: Vec2(length / 2, 0), tint: tint, drawOrder: attachments.count))
+        }
+
+        /// A disc `along` units from the bone's origin, as wide as a limb box.
+        func cap(_ name: String, _ bone: Int, along: Float, tint: Vec4) {
+            attachments.append(Attachment(
+                name: name, bone: bone, size: Vec2(limbThickness, limbThickness),
+                offset: Vec2(along, 0), textureName: discTexture, tint: tint, drawOrder: attachments.count))
+        }
+
+        /// Two boxes with discs at the root joint, the middle joint and the tip.
+        func limb(_ joints: (root: String, middle: String, tip: String), upper: Int, lower: Int, tint: Vec4) {
+            box(upper, tint: tint)
+            box(lower, tint: tint)
+            cap(joints.root, upper, along: 0, tint: tint)
+            cap(joints.middle, lower, along: 0, tint: tint)
+            cap(joints.tip, lower, along: bones[lower].length, tint: tint)
         }
 
         let far = TokyoNight.comment
         let near = TokyoNight.fg
-        let sword = Attachment(
-            name: swordAttachment, bone: swordHandBone, size: swordSize, offset: swordOffset,
-            tint: TokyoNight.cyan, drawOrder: 11)
 
-        return SkeletonDefinition(
-            bones: rigBones,
-            attachments: [
-                box(3, tint: far, order: 0), box(4, tint: far, order: 1),
-                box(5, tint: far, order: 2), box(6, tint: far, order: 3),
-                box(1, tint: near, order: 5),
-                box(2, thickness: 1.4, tint: near, order: 6),
-                box(7, tint: near, order: 7), box(8, tint: near, order: 8),
-                box(9, tint: near, order: 9), box(10, tint: near, order: 10),
-                sword,
-            ])
+        limb((root: "shoulderFar", middle: "elbowFar", tip: "handFar"), upper: 3, lower: 4, tint: far)
+        limb((root: "hipFar", middle: "kneeFar", tip: "footFar"), upper: 5, lower: 6, tint: far)
+
+        box(1, tint: near)
+        cap("hipJoint", 0, along: 0, tint: near)
+        let headSize = bones[2].length
+        attachments.append(Attachment(
+            name: bones[2].name, bone: 2, size: Vec2(headSize, headSize),
+            offset: Vec2(headSize / 2, 0), textureName: discTexture, tint: near, drawOrder: attachments.count))
+
+        limb((root: "hipNear", middle: "kneeNear", tip: "footNear"), upper: 7, lower: 8, tint: near)
+        limb((root: "shoulderNear", middle: "elbowNear", tip: "handNear"), upper: 9, lower: 10, tint: near)
+
+        attachments.append(Attachment(
+            name: swordAttachment, bone: swordHandBone, size: swordSize, offset: swordOffset,
+            tint: TokyoNight.cyan, drawOrder: attachments.count))
+
+        return SkeletonDefinition(bones: rigBones, attachments: attachments)
     }
 
     // MARK: - Clips

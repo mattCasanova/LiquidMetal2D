@@ -19,7 +19,7 @@ All source files live in `LiquidMetal2D-Demo/LiquidMetal2D-Demo/`:
 - **Constants** — `GameConstants.MAX_OBJECTS` (10,000) sets the renderer's uniform buffer size
 - **Textures** — `GameTextures.swift` holds global texture IDs loaded once at startup (blue/green/orange ships)
 - **Shared UI** — `DemoSceneUI.swift` adds a Menu button overlay; `TokyoNight.swift` provides the color palette
-- **Assets** — Ship PNGs (`playerShip1_blue/green/orange.png`) in the source directory
+- **Assets** — Ship PNGs (`playerShip1_blue/green/orange.png`) and `disc.png` (a white anti-aliased disc on a clear ground, tinted for round shapes) in the source directory. `disc.png` came from ImageMagick: `magick -size 256x256 xc:white \( -size 256x256 xc:black -fill white -draw "circle 127.5,127.5 127.5,0" \) -alpha off -compose CopyOpacity -composite PNG32:disc.png`
 
 ## Demo Scenes
 
@@ -34,7 +34,7 @@ All source files live in `LiquidMetal2D-Demo/LiquidMetal2D-Demo/`:
 | Bezier Curves | `BezierDemo.swift` | Cubic bezier path following |
 | Camera Rotation | `CameraRotationDemo.swift` | Camera rotation and shake effects |
 | Camera Pan | `CameraPanDemo.swift` | Camera x/y pan, parallax, unproject and visible bounds tracking the camera |
-| Skeletal Animation | `SkeletonDemo.swift`, `StickFigure.swift` | White-box stick figure: `SkeletonComponent`, idle/walk/jump crossfades, slash on an override layer, `flipX`, two-bone IK (Reach: the near hand follows the touch). Rig and clips load from `Animations/*.json` (`AnimationFiles`); a Debug build checks them against the `StickFigure` builders. Auto-plays until the first touch |
+| Skeletal Animation | `SkeletonDemo.swift`, `StickFigure.swift` | White-box stick figure (box limbs with `disc.png` caps at every joint and a disc head, so bends look round): `SkeletonComponent`, idle/walk/jump crossfades, slash on an override layer, `flipX`, two-bone IK (Reach: the near hand follows the touch). Rig and clips load from `Animations/*.json` (`AnimationFiles`); a Debug build checks them against the `StickFigure` builders. Auto-plays until the first touch |
 | Smoke Layers | `SmokeLayersDemo.swift` | Two alpha-blended plumes at different z: the nearer (bigger) one must draw on top; Swap exchanges their `zOrder`. Checks `ParticleShader`'s far-to-near order (0.15.0) |
 | Async Loading | `AsyncLoadDemo.swift` | Async texture loading with starfield loading screen |
 | Pause Menu | `PauseDemo.swift` | Push/pop scene stack, SlidePanel UI, scene navigation |

@@ -53,8 +53,89 @@
       ]
     },
     {
-      "bone" : 5,
+      "bone" : 3,
       "drawOrder" : 2,
+      "name" : "shoulderFar",
+      "offset" : [
+        0,
+        0
+      ],
+      "region" : [
+        1,
+        1,
+        0,
+        0
+      ],
+      "rotation" : 0,
+      "size" : [
+        0.5,
+        0.5
+      ],
+      "textureName" : "disc",
+      "tint" : [
+        0.604,
+        0.647,
+        0.808,
+        1
+      ]
+    },
+    {
+      "bone" : 4,
+      "drawOrder" : 3,
+      "name" : "elbowFar",
+      "offset" : [
+        0,
+        0
+      ],
+      "region" : [
+        1,
+        1,
+        0,
+        0
+      ],
+      "rotation" : 0,
+      "size" : [
+        0.5,
+        0.5
+      ],
+      "textureName" : "disc",
+      "tint" : [
+        0.604,
+        0.647,
+        0.808,
+        1
+      ]
+    },
+    {
+      "bone" : 4,
+      "drawOrder" : 4,
+      "name" : "handFar",
+      "offset" : [
+        1.5,
+        0
+      ],
+      "region" : [
+        1,
+        1,
+        0,
+        0
+      ],
+      "rotation" : 0,
+      "size" : [
+        0.5,
+        0.5
+      ],
+      "textureName" : "disc",
+      "tint" : [
+        0.604,
+        0.647,
+        0.808,
+        1
+      ]
+    },
+    {
+      "bone" : 5,
+      "drawOrder" : 5,
       "name" : "thighFar",
       "offset" : [
         1,
@@ -80,7 +161,7 @@
     },
     {
       "bone" : 6,
-      "drawOrder" : 3,
+      "drawOrder" : 6,
       "name" : "shinFar",
       "offset" : [
         1,
@@ -105,8 +186,89 @@
       ]
     },
     {
+      "bone" : 5,
+      "drawOrder" : 7,
+      "name" : "hipFar",
+      "offset" : [
+        0,
+        0
+      ],
+      "region" : [
+        1,
+        1,
+        0,
+        0
+      ],
+      "rotation" : 0,
+      "size" : [
+        0.5,
+        0.5
+      ],
+      "textureName" : "disc",
+      "tint" : [
+        0.604,
+        0.647,
+        0.808,
+        1
+      ]
+    },
+    {
+      "bone" : 6,
+      "drawOrder" : 8,
+      "name" : "kneeFar",
+      "offset" : [
+        0,
+        0
+      ],
+      "region" : [
+        1,
+        1,
+        0,
+        0
+      ],
+      "rotation" : 0,
+      "size" : [
+        0.5,
+        0.5
+      ],
+      "textureName" : "disc",
+      "tint" : [
+        0.604,
+        0.647,
+        0.808,
+        1
+      ]
+    },
+    {
+      "bone" : 6,
+      "drawOrder" : 9,
+      "name" : "footFar",
+      "offset" : [
+        2,
+        0
+      ],
+      "region" : [
+        1,
+        1,
+        0,
+        0
+      ],
+      "rotation" : 0,
+      "size" : [
+        0.5,
+        0.5
+      ],
+      "textureName" : "disc",
+      "tint" : [
+        0.604,
+        0.647,
+        0.808,
+        1
+      ]
+    },
+    {
       "bone" : 1,
-      "drawOrder" : 5,
+      "drawOrder" : 10,
       "name" : "spine",
       "offset" : [
         1.5,
@@ -131,8 +293,35 @@
       ]
     },
     {
+      "bone" : 0,
+      "drawOrder" : 11,
+      "name" : "hipJoint",
+      "offset" : [
+        0,
+        0
+      ],
+      "region" : [
+        1,
+        1,
+        0,
+        0
+      ],
+      "rotation" : 0,
+      "size" : [
+        0.5,
+        0.5
+      ],
+      "textureName" : "disc",
+      "tint" : [
+        0.753,
+        0.792,
+        0.961,
+        1
+      ]
+    },
+    {
       "bone" : 2,
-      "drawOrder" : 6,
+      "drawOrder" : 12,
       "name" : "head",
       "offset" : [
         0.7,
@@ -149,6 +338,7 @@
         1.4,
         1.4
       ],
+      "textureName" : "disc",
       "tint" : [
         0.753,
         0.792,
@@ -158,7 +348,7 @@
     },
     {
       "bone" : 7,
-      "drawOrder" : 7,
+      "drawOrder" : 13,
       "name" : "thighNear",
       "offset" : [
         1,
@@ -184,7 +374,7 @@
     },
     {
       "bone" : 8,
-      "drawOrder" : 8,
+      "drawOrder" : 14,
       "name" : "shinNear",
       "offset" : [
         1,
@@ -209,8 +399,89 @@
       ]
     },
     {
+      "bone" : 7,
+      "drawOrder" : 15,
+      "name" : "hipNear",
+      "offset" : [
+        0,
+        0
+      ],
+      "region" : [
+        1,
+        1,
+        0,
+        0
+      ],
+      "rotation" : 0,
+      "size" : [
+        0.5,
+        0.5
+      ],
+      "textureName" : "disc",
+      "tint" : [
+        0.753,
+        0.792,
+        0.961,
+        1
+      ]
+    },
+    {
+      "bone" : 8,
+      "drawOrder" : 16,
+      "name" : "kneeNear",
+      "offset" : [
+        0,
+        0
+      ],
+      "region" : [
+        1,
+        1,
+        0,
+        0
+      ],
+      "rotation" : 0,
+      "size" : [
+        0.5,
+        0.5
+      ],
+      "textureName" : "disc",
+      "tint" : [
+        0.753,
+        0.792,
+        0.961,
+        1
+      ]
+    },
+    {
+      "bone" : 8,
+      "drawOrder" : 17,
+      "name" : "footNear",
+      "offset" : [
+        2,
+        0
+      ],
+      "region" : [
+        1,
+        1,
+        0,
+        0
+      ],
+      "rotation" : 0,
+      "size" : [
+        0.5,
+        0.5
+      ],
+      "textureName" : "disc",
+      "tint" : [
+        0.753,
+        0.792,
+        0.961,
+        1
+      ]
+    },
+    {
       "bone" : 9,
-      "drawOrder" : 9,
+      "drawOrder" : 18,
       "name" : "upperArmNear",
       "offset" : [
         0.8,
@@ -236,7 +507,7 @@
     },
     {
       "bone" : 10,
-      "drawOrder" : 10,
+      "drawOrder" : 19,
       "name" : "lowerArmNear",
       "offset" : [
         0.75,
@@ -261,8 +532,89 @@
       ]
     },
     {
+      "bone" : 9,
+      "drawOrder" : 20,
+      "name" : "shoulderNear",
+      "offset" : [
+        0,
+        0
+      ],
+      "region" : [
+        1,
+        1,
+        0,
+        0
+      ],
+      "rotation" : 0,
+      "size" : [
+        0.5,
+        0.5
+      ],
+      "textureName" : "disc",
+      "tint" : [
+        0.753,
+        0.792,
+        0.961,
+        1
+      ]
+    },
+    {
       "bone" : 10,
-      "drawOrder" : 11,
+      "drawOrder" : 21,
+      "name" : "elbowNear",
+      "offset" : [
+        0,
+        0
+      ],
+      "region" : [
+        1,
+        1,
+        0,
+        0
+      ],
+      "rotation" : 0,
+      "size" : [
+        0.5,
+        0.5
+      ],
+      "textureName" : "disc",
+      "tint" : [
+        0.753,
+        0.792,
+        0.961,
+        1
+      ]
+    },
+    {
+      "bone" : 10,
+      "drawOrder" : 22,
+      "name" : "handNear",
+      "offset" : [
+        1.5,
+        0
+      ],
+      "region" : [
+        1,
+        1,
+        0,
+        0
+      ],
+      "rotation" : 0,
+      "size" : [
+        0.5,
+        0.5
+      ],
+      "textureName" : "disc",
+      "tint" : [
+        0.753,
+        0.792,
+        0.961,
+        1
+      ]
+    },
+    {
+      "bone" : 10,
+      "drawOrder" : 23,
       "name" : "sword",
       "offset" : [
         2.6,

@@ -225,13 +225,13 @@ class SkeletonDemo: Scene {
 
     private func createObjects() {
         root = GameObj()
-        // Feet are 4 units below the hips at scale 1.
-        root.position.set(0, groundY + 4 * figureScale)
+        root.position.set(0, groundY + StickFigure.feetBelowHips * figureScale)
 
         do {
             let (rig, loadedClips) = try StickFigure.load()
             skeleton = try SkeletonComponent(
-                parent: root, definition: rig, defaultTextureID: renderer.defaultTextureId)
+                parent: root, definition: rig, defaultTextureID: renderer.defaultTextureId,
+                textureIDs: [StickFigure.discTexture: GameTextures.disc])
             clips = loadedClips
             swordIndex = try rig.attachmentIndex(named: StickFigure.swordAttachment)
             // Elbow bends down and back, as an arm reaching forward does.

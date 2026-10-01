@@ -23,7 +23,9 @@ struct GameTextures {
     nonisolated(unsafe) static var blue: Int = 0
     nonisolated(unsafe) static var green: Int = 0
     nonisolated(unsafe) static var orange: Int = 0
+    /// White anti-aliased disc on a clear ground; tint it for round shapes (the stick figure's joints and head).
+    nonisolated(unsafe) static var disc: Int = 0
 
-    /// All texture IDs as an array, convenient for random selection.
+    /// The ship textures as an array, convenient for random selection.
     static var all: [Int] { [blue, green, orange] }
 }
