@@ -1,0 +1,595 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 54;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A1B2C3CE2F67D0A7003831F3 /* GameTextures.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3CD2F67D0A7003831F3 /* GameTextures.swift */; };
+		A1B2C3D02F67C0A7003831F3 /* TokyoNight.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3CF2F67C0A7003831F3 /* TokyoNight.swift */; };
+		A1B2C3D22F67B0A7003831F3 /* AsyncLoadDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D12F67B0A7003831F3 /* AsyncLoadDemo.swift */; };
+		A1B2C3D42F6780A7003831F3 /* BezierDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D32F6780A7003831F3 /* BezierDemo.swift */; };
+		A1B2C3D62F6790A7003831F3 /* CameraRotationDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D52F6790A7003831F3 /* CameraRotationDemo.swift */; };
+		A1B2C3D82F67A0A7003831F3 /* MoveRightBehaviorFOV.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D72F67A0A7003831F3 /* MoveRightBehaviorFOV.swift */; };
+		A1B2C3DA2F67A0A7003831F3 /* MoveRightStateFOV.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D92F67A0A7003831F3 /* MoveRightStateFOV.swift */; };
+		C4A3E7A32E80000100C42A29 /* SkeletonDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A3E7A22E80000100C42A29 /* SkeletonDemo.swift */; };
+		C4A3E7A62E80000100C42A29 /* Animations in Resources */ = {isa = PBXBuildFile; fileRef = C4A3E7A72E80000100C42A29 /* Animations */; };
+		C4A3E7A52E80000100C42A29 /* StickFigure.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A3E7A42E80000100C42A29 /* StickFigure.swift */; };
+		F5021ABD2F94D074000FC89F /* WireframeDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5021ABC2F94D074000FC89F /* WireframeDemo.swift */; };
+		F5021ABF2F957BB8000FC89F /* ParticleDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5021ABE2F957BB8000FC89F /* ParticleDemo.swift */; };
+		F5021AC12F958340000FC89F /* RocketTrailDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5021AC02F958340000FC89F /* RocketTrailDemo.swift */; };
+		F5021AC32F95B0A7003831F3 /* LineParticleDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5021AC22F95B0A7003831F3 /* LineParticleDemo.swift */; };
+		F536B68F241690A800B3566F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F536B68E241690A800B3566F /* AppDelegate.swift */; };
+		F536B691241690A800B3566F /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F536B690241690A800B3566F /* SceneDelegate.swift */; };
+		F536B693241690A800B3566F /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F536B692241690A800B3566F /* ViewController.swift */; };
+		F536B696241690A800B3566F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F536B694241690A800B3566F /* Main.storyboard */; };
+		F536B698241690A900B3566F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F536B697241690A900B3566F /* Assets.xcassets */; };
+		F536B69B241690A900B3566F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F536B699241690A900B3566F /* LaunchScreen.storyboard */; };
+		F536B6A5241691DB00B3566F /* LiquidMetal2D in Frameworks */ = {isa = PBXBuildFile; productRef = F536B6A4241691DB00B3566F /* LiquidMetal2D */; };
+		F536B6AB2416922F00B3566F /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = F536B6AA2416922E00B3566F /* Constants.swift */; };
+		F536B6AE2416925800B3566F /* MassRenderDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F536B6AC2416925800B3566F /* MassRenderDemo.swift */; };
+		F536B6AF2416925800B3566F /* SceneTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = F536B6AD2416925800B3566F /* SceneTypes.swift */; };
+		F536B6B32416926800B3566F /* playerShip1_orange.png in Resources */ = {isa = PBXBuildFile; fileRef = F536B6B02416926800B3566F /* playerShip1_orange.png */; };
+		F536B6B42416926800B3566F /* playerShip1_green.png in Resources */ = {isa = PBXBuildFile; fileRef = F536B6B12416926800B3566F /* playerShip1_green.png */; };
+		F536B6B52416926800B3566F /* playerShip1_blue.png in Resources */ = {isa = PBXBuildFile; fileRef = F536B6B22416926800B3566F /* playerShip1_blue.png */; };
+		C4D15C0B2F8A1B2C00D15C0A /* disc.png in Resources */ = {isa = PBXBuildFile; fileRef = C4D15C0A2F8A1B2C00D15C0A /* disc.png */; };
+		F53AAB0F2F6770A7003831F3 /* InstanceDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53AAB072F6770A7003831F3 /* InstanceDemo.swift */; };
+		F53AAB102F6770A7003831F3 /* FindAndGoBehavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53AAB082F6770A7003831F3 /* FindAndGoBehavior.swift */; };
+		F53AAB112F6770A7003831F3 /* FindAndGoStates.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53AAB092F6770A7003831F3 /* FindAndGoStates.swift */; };
+		F53AAB122F6770A7003831F3 /* SchedulerDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53AAB0D2F6770A7003831F3 /* SchedulerDemo.swift */; };
+		F53AAB132F6770A7003831F3 /* DemoSceneUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53AAB062F6770A7003831F3 /* DemoSceneUI.swift */; };
+		F53AAB142F6770A7003831F3 /* PauseDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53AAB0A2F6770A7003831F3 /* PauseDemo.swift */; };
+		F53AAB152F6770A7003831F3 /* PlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53AAB0B2F6770A7003831F3 /* PlayerState.swift */; };
+		F53AAB162F6770A7003831F3 /* PlayerStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53AAB0C2F6770A7003831F3 /* PlayerStateMachine.swift */; };
+		F53AAB172F6770A7003831F3 /* SpawnDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53AAB0E2F6770A7003831F3 /* SpawnDemo.swift */; };
+		F53AAB182F6770A7003831F3 /* CollisionDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53AAB042F6770A7003831F3 /* CollisionDemo.swift */; };
+		F5593FB32F717F1D005C0470 /* CollisionStressDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5593FB22F717F1D005C0470 /* CollisionStressDemo.swift */; };
+		F57FE9702426D808005D5A59 /* RandomAngleBehavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = F57FE96F2426D808005D5A59 /* RandomAngleBehavior.swift */; };
+		F57FE9732426D8E4005D5A59 /* RandomAngleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F57FE9722426D8E4005D5A59 /* RandomAngleState.swift */; };
+		F57FE9762427C72F005D5A59 /* MoveRightBehavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = F57FE9752427C72F005D5A59 /* MoveRightBehavior.swift */; };
+		F57FE9782427CEF3005D5A59 /* MoveRightState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F57FE9772427CEF3005D5A59 /* MoveRightState.swift */; };
+		C4A3E7A12E80000100C42A29 /* CameraPanDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A3E7A02E80000100C42A29 /* CameraPanDemo.swift */; };
+		C4A3E7A12E80000100C42A30 /* SmokeLayersDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A3E7A02E80000100C42A30 /* SmokeLayersDemo.swift */; };
+		F5EDA0B42416952400C42A29 /* TouchZoomDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5EDA0B32416952400C42A29 /* TouchZoomDemo.swift */; };
+		F5ZOMBIE012F67A0A7003831F3 /* ZombieDemoComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5ZOMBIE002F67A0A7003831F3 /* ZombieDemoComponent.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A1B2C3CD2F67D0A7003831F3 /* GameTextures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameTextures.swift; sourceTree = "<group>"; };
+		A1B2C3CF2F67C0A7003831F3 /* TokyoNight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokyoNight.swift; sourceTree = "<group>"; };
+		A1B2C3D12F67B0A7003831F3 /* AsyncLoadDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncLoadDemo.swift; sourceTree = "<group>"; };
+		A1B2C3D32F6780A7003831F3 /* BezierDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BezierDemo.swift; sourceTree = "<group>"; };
+		A1B2C3D52F6790A7003831F3 /* CameraRotationDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraRotationDemo.swift; sourceTree = "<group>"; };
+		A1B2C3D72F67A0A7003831F3 /* MoveRightBehaviorFOV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveRightBehaviorFOV.swift; sourceTree = "<group>"; };
+		A1B2C3D92F67A0A7003831F3 /* MoveRightStateFOV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveRightStateFOV.swift; sourceTree = "<group>"; };
+		C4A3E7A22E80000100C42A29 /* SkeletonDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkeletonDemo.swift; sourceTree = "<group>"; };
+		C4A3E7A72E80000100C42A29 /* Animations */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Animations; sourceTree = "<group>"; };
+		C4A3E7A42E80000100C42A29 /* StickFigure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StickFigure.swift; sourceTree = "<group>"; };
+		F5021ABC2F94D074000FC89F /* WireframeDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WireframeDemo.swift; sourceTree = "<group>"; };
+		F5021ABE2F957BB8000FC89F /* ParticleDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParticleDemo.swift; sourceTree = "<group>"; };
+		F5021AC02F958340000FC89F /* RocketTrailDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RocketTrailDemo.swift; sourceTree = "<group>"; };
+		F5021AC22F95B0A7003831F3 /* LineParticleDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineParticleDemo.swift; sourceTree = "<group>"; };
+		F536B68B241690A800B3566F /* LiquidMetal2D-Demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "LiquidMetal2D-Demo.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F536B68E241690A800B3566F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		F536B690241690A800B3566F /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		F536B692241690A800B3566F /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		F536B695241690A800B3566F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		F536B697241690A900B3566F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F536B69A241690A900B3566F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		F536B69C241690A900B3566F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F536B6AA2416922E00B3566F /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		F536B6AC2416925800B3566F /* MassRenderDemo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MassRenderDemo.swift; sourceTree = "<group>"; };
+		F536B6AD2416925800B3566F /* SceneTypes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SceneTypes.swift; sourceTree = "<group>"; };
+		F536B6B02416926800B3566F /* playerShip1_orange.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = playerShip1_orange.png; sourceTree = "<group>"; };
+		F536B6B12416926800B3566F /* playerShip1_green.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = playerShip1_green.png; sourceTree = "<group>"; };
+		F536B6B22416926800B3566F /* playerShip1_blue.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = playerShip1_blue.png; sourceTree = "<group>"; };
+		C4D15C0A2F8A1B2C00D15C0A /* disc.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = disc.png; sourceTree = "<group>"; };
+		F53AAB042F6770A7003831F3 /* CollisionDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollisionDemo.swift; sourceTree = "<group>"; };
+		F53AAB062F6770A7003831F3 /* DemoSceneUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoSceneUI.swift; sourceTree = "<group>"; };
+		F53AAB072F6770A7003831F3 /* InstanceDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstanceDemo.swift; sourceTree = "<group>"; };
+		F53AAB082F6770A7003831F3 /* FindAndGoBehavior.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindAndGoBehavior.swift; sourceTree = "<group>"; };
+		F53AAB092F6770A7003831F3 /* FindAndGoStates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindAndGoStates.swift; sourceTree = "<group>"; };
+		F53AAB0A2F6770A7003831F3 /* PauseDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PauseDemo.swift; sourceTree = "<group>"; };
+		F53AAB0B2F6770A7003831F3 /* PlayerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerState.swift; sourceTree = "<group>"; };
+		F53AAB0C2F6770A7003831F3 /* PlayerStateMachine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerStateMachine.swift; sourceTree = "<group>"; };
+		F53AAB0D2F6770A7003831F3 /* SchedulerDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchedulerDemo.swift; sourceTree = "<group>"; };
+		F53AAB0E2F6770A7003831F3 /* SpawnDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpawnDemo.swift; sourceTree = "<group>"; };
+		F5593FB22F717F1D005C0470 /* CollisionStressDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollisionStressDemo.swift; sourceTree = "<group>"; };
+		F57FE96F2426D808005D5A59 /* RandomAngleBehavior.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomAngleBehavior.swift; sourceTree = "<group>"; };
+		F57FE9722426D8E4005D5A59 /* RandomAngleState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomAngleState.swift; sourceTree = "<group>"; };
+		F57FE9752427C72F005D5A59 /* MoveRightBehavior.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveRightBehavior.swift; sourceTree = "<group>"; };
+		F57FE9772427CEF3005D5A59 /* MoveRightState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveRightState.swift; sourceTree = "<group>"; };
+		C4A3E7A02E80000100C42A29 /* CameraPanDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPanDemo.swift; sourceTree = "<group>"; };
+		C4A3E7A02E80000100C42A30 /* SmokeLayersDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeLayersDemo.swift; sourceTree = "<group>"; };
+		F5EDA0B32416952400C42A29 /* TouchZoomDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchZoomDemo.swift; sourceTree = "<group>"; };
+		F5ZOMBIE002F67A0A7003831F3 /* ZombieDemoComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZombieDemoComponent.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		F536B688241690A800B3566F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F536B6A5241691DB00B3566F /* LiquidMetal2D in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		F536B682241690A800B3566F = {
+			isa = PBXGroup;
+			children = (
+				F536B68D241690A800B3566F /* LiquidMetal2D-Demo */,
+				F536B68C241690A800B3566F /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		F536B68C241690A800B3566F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F536B68B241690A800B3566F /* LiquidMetal2D-Demo.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		F536B68D241690A800B3566F /* LiquidMetal2D-Demo */ = {
+			isa = PBXGroup;
+			children = (
+				F57FE96E2426D486005D5A59 /* behaviors */,
+				F57FE96B2426D3B9005D5A59 /* components */,
+				F536B6B72416939700B3566F /* textures */,
+				F536B6B62416928500B3566F /* scenes */,
+				F536B6AA2416922E00B3566F /* Constants.swift */,
+				A1B2C3CD2F67D0A7003831F3 /* GameTextures.swift */,
+				A1B2C3CF2F67C0A7003831F3 /* TokyoNight.swift */,
+				F536B6A2241690FB00B3566F /* appleDefaults */,
+				F536B692241690A800B3566F /* ViewController.swift */,
+				F536B697241690A900B3566F /* Assets.xcassets */,
+			);
+			path = "LiquidMetal2D-Demo";
+			sourceTree = "<group>";
+		};
+		F536B6A2241690FB00B3566F /* appleDefaults */ = {
+			isa = PBXGroup;
+			children = (
+				F536B68E241690A800B3566F /* AppDelegate.swift */,
+				F536B690241690A800B3566F /* SceneDelegate.swift */,
+				F536B694241690A800B3566F /* Main.storyboard */,
+				F536B699241690A900B3566F /* LaunchScreen.storyboard */,
+				F536B69C241690A900B3566F /* Info.plist */,
+			);
+			name = appleDefaults;
+			sourceTree = "<group>";
+		};
+		F536B6B62416928500B3566F /* scenes */ = {
+			isa = PBXGroup;
+			children = (
+				F5021AC02F958340000FC89F /* RocketTrailDemo.swift */,
+				C4A3E7A02E80000100C42A30 /* SmokeLayersDemo.swift */,
+				F5021ABE2F957BB8000FC89F /* ParticleDemo.swift */,
+				F5021AC22F95B0A7003831F3 /* LineParticleDemo.swift */,
+				C4A3E7A22E80000100C42A29 /* SkeletonDemo.swift */,
+				C4A3E7A42E80000100C42A29 /* StickFigure.swift */,
+				C4A3E7A72E80000100C42A29 /* Animations */,
+				F5021ABC2F94D074000FC89F /* WireframeDemo.swift */,
+				F536B6AD2416925800B3566F /* SceneTypes.swift */,
+				A1B2C3D12F67B0A7003831F3 /* AsyncLoadDemo.swift */,
+				F536B6AC2416925800B3566F /* MassRenderDemo.swift */,
+				F5593FB22F717F1D005C0470 /* CollisionStressDemo.swift */,
+				C4A3E7A02E80000100C42A29 /* CameraPanDemo.swift */,
+				F5EDA0B32416952400C42A29 /* TouchZoomDemo.swift */,
+				A1B2C3D32F6780A7003831F3 /* BezierDemo.swift */,
+				F53AAB042F6770A7003831F3 /* CollisionDemo.swift */,
+				A1B2C3D52F6790A7003831F3 /* CameraRotationDemo.swift */,
+				F53AAB072F6770A7003831F3 /* InstanceDemo.swift */,
+				F53AAB0A2F6770A7003831F3 /* PauseDemo.swift */,
+				F53AAB0D2F6770A7003831F3 /* SchedulerDemo.swift */,
+				F53AAB0E2F6770A7003831F3 /* SpawnDemo.swift */,
+				F53AAB062F6770A7003831F3 /* DemoSceneUI.swift */,
+			);
+			name = scenes;
+			sourceTree = "<group>";
+		};
+		F536B6B72416939700B3566F /* textures */ = {
+			isa = PBXGroup;
+			children = (
+				F536B6B22416926800B3566F /* playerShip1_blue.png */,
+				F536B6B12416926800B3566F /* playerShip1_green.png */,
+				F536B6B02416926800B3566F /* playerShip1_orange.png */,
+				C4D15C0A2F8A1B2C00D15C0A /* disc.png */,
+			);
+			name = textures;
+			sourceTree = "<group>";
+		};
+		F57FE96B2426D3B9005D5A59 /* components */ = {
+			isa = PBXGroup;
+			children = (
+				F5ZOMBIE002F67A0A7003831F3 /* ZombieDemoComponent.swift */,
+			);
+			name = components;
+			sourceTree = "<group>";
+		};
+		F57FE96E2426D486005D5A59 /* behaviors */ = {
+			isa = PBXGroup;
+			children = (
+				F57FE9742427C6B8005D5A59 /* MoveRight */,
+				F57FE9712426D8C5005D5A59 /* RandomAngle */,
+				F53AAB082F6770A7003831F3 /* FindAndGoBehavior.swift */,
+				F53AAB092F6770A7003831F3 /* FindAndGoStates.swift */,
+				F53AAB0B2F6770A7003831F3 /* PlayerState.swift */,
+				F53AAB0C2F6770A7003831F3 /* PlayerStateMachine.swift */,
+			);
+			name = behaviors;
+			sourceTree = "<group>";
+		};
+		F57FE9712426D8C5005D5A59 /* RandomAngle */ = {
+			isa = PBXGroup;
+			children = (
+				F57FE96F2426D808005D5A59 /* RandomAngleBehavior.swift */,
+				F57FE9722426D8E4005D5A59 /* RandomAngleState.swift */,
+			);
+			name = RandomAngle;
+			sourceTree = "<group>";
+		};
+		F57FE9742427C6B8005D5A59 /* MoveRight */ = {
+			isa = PBXGroup;
+			children = (
+				F57FE9752427C72F005D5A59 /* MoveRightBehavior.swift */,
+				A1B2C3D72F67A0A7003831F3 /* MoveRightBehaviorFOV.swift */,
+				F57FE9772427CEF3005D5A59 /* MoveRightState.swift */,
+				A1B2C3D92F67A0A7003831F3 /* MoveRightStateFOV.swift */,
+			);
+			name = MoveRight;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		F536B68A241690A800B3566F /* LiquidMetal2D-Demo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F536B69F241690A900B3566F /* Build configuration list for PBXNativeTarget "LiquidMetal2D-Demo" */;
+			buildPhases = (
+				F536B687241690A800B3566F /* Sources */,
+				F536B688241690A800B3566F /* Frameworks */,
+				F536B689241690A800B3566F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "LiquidMetal2D-Demo";
+			packageProductDependencies = (
+				F536B6A4241691DB00B3566F /* LiquidMetal2D */,
+			);
+			productName = "LiquidMetal2D-Demo";
+			productReference = F536B68B241690A800B3566F /* LiquidMetal2D-Demo.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		F536B683241690A800B3566F /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastSwiftUpdateCheck = 1130;
+				LastUpgradeCheck = 2600;
+				ORGANIZATIONNAME = "Matt Casanova";
+				TargetAttributes = {
+					F536B68A241690A800B3566F = {
+						CreatedOnToolsVersion = 11.3.1;
+					};
+				};
+			};
+			buildConfigurationList = F536B686241690A800B3566F /* Build configuration list for PBXProject "LiquidMetal2D-Demo" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = F536B682241690A800B3566F;
+			packageReferences = (
+				F536B6A3241691DB00B3566F /* XCRemoteSwiftPackageReference "LiquidMetal2D" */,
+			);
+			productRefGroup = F536B68C241690A800B3566F /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				F536B68A241690A800B3566F /* LiquidMetal2D-Demo */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F536B689241690A800B3566F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F536B6B32416926800B3566F /* playerShip1_orange.png in Resources */,
+				F536B69B241690A900B3566F /* LaunchScreen.storyboard in Resources */,
+				F536B6B42416926800B3566F /* playerShip1_green.png in Resources */,
+				F536B698241690A900B3566F /* Assets.xcassets in Resources */,
+				F536B6B52416926800B3566F /* playerShip1_blue.png in Resources */,
+				C4D15C0B2F8A1B2C00D15C0A /* disc.png in Resources */,
+				C4A3E7A62E80000100C42A29 /* Animations in Resources */,
+				F536B696241690A800B3566F /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		F536B687241690A800B3566F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1B2C3D22F67B0A7003831F3 /* AsyncLoadDemo.swift in Sources */,
+				A1B2C3D42F6780A7003831F3 /* BezierDemo.swift in Sources */,
+				C4A3E7A32E80000100C42A29 /* SkeletonDemo.swift in Sources */,
+				C4A3E7A52E80000100C42A29 /* StickFigure.swift in Sources */,
+				F5021ABD2F94D074000FC89F /* WireframeDemo.swift in Sources */,
+				A1B2C3D62F6790A7003831F3 /* CameraRotationDemo.swift in Sources */,
+				F57FE9732426D8E4005D5A59 /* RandomAngleState.swift in Sources */,
+				F53AAB0F2F6770A7003831F3 /* InstanceDemo.swift in Sources */,
+				F5021ABF2F957BB8000FC89F /* ParticleDemo.swift in Sources */,
+				F5021AC32F95B0A7003831F3 /* LineParticleDemo.swift in Sources */,
+				F53AAB102F6770A7003831F3 /* FindAndGoBehavior.swift in Sources */,
+				F53AAB112F6770A7003831F3 /* FindAndGoStates.swift in Sources */,
+				F53AAB122F6770A7003831F3 /* SchedulerDemo.swift in Sources */,
+				F53AAB132F6770A7003831F3 /* DemoSceneUI.swift in Sources */,
+				F53AAB142F6770A7003831F3 /* PauseDemo.swift in Sources */,
+				F53AAB152F6770A7003831F3 /* PlayerState.swift in Sources */,
+				F53AAB162F6770A7003831F3 /* PlayerStateMachine.swift in Sources */,
+				F53AAB172F6770A7003831F3 /* SpawnDemo.swift in Sources */,
+				F53AAB182F6770A7003831F3 /* CollisionDemo.swift in Sources */,
+				F5ZOMBIE012F67A0A7003831F3 /* ZombieDemoComponent.swift in Sources */,
+				F5021AC12F958340000FC89F /* RocketTrailDemo.swift in Sources */,
+				C4A3E7A12E80000100C42A30 /* SmokeLayersDemo.swift in Sources */,
+				F536B6AE2416925800B3566F /* MassRenderDemo.swift in Sources */,
+				F536B693241690A800B3566F /* ViewController.swift in Sources */,
+				F536B6AF2416925800B3566F /* SceneTypes.swift in Sources */,
+				F536B68F241690A800B3566F /* AppDelegate.swift in Sources */,
+				F5593FB32F717F1D005C0470 /* CollisionStressDemo.swift in Sources */,
+				F536B691241690A800B3566F /* SceneDelegate.swift in Sources */,
+				C4A3E7A12E80000100C42A29 /* CameraPanDemo.swift in Sources */,
+				F5EDA0B42416952400C42A29 /* TouchZoomDemo.swift in Sources */,
+				F57FE9762427C72F005D5A59 /* MoveRightBehavior.swift in Sources */,
+				A1B2C3D82F67A0A7003831F3 /* MoveRightBehaviorFOV.swift in Sources */,
+				A1B2C3DA2F67A0A7003831F3 /* MoveRightStateFOV.swift in Sources */,
+				F57FE9782427CEF3005D5A59 /* MoveRightState.swift in Sources */,
+				A1B2C3CE2F67D0A7003831F3 /* GameTextures.swift in Sources */,
+				A1B2C3D02F67C0A7003831F3 /* TokyoNight.swift in Sources */,
+				F536B6AB2416922F00B3566F /* Constants.swift in Sources */,
+				F57FE9702426D808005D5A59 /* RandomAngleBehavior.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		F536B694241690A800B3566F /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				F536B695241690A800B3566F /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		F536B699241690A900B3566F /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				F536B69A241690A900B3566F /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		F536B69D241690A900B3566F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 9GQFJY4Z92;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		F536B69E241690A900B3566F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 9GQFJY4Z92;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		F536B6A0241690A900B3566F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = "LiquidMetal2D-Demo/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.mattcasanova.LiquidMetal2D-Demo";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ENFORCE_EXCLUSIVE_ACCESS = "debug-only";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		F536B6A1241690A900B3566F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = "LiquidMetal2D-Demo/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.mattcasanova.LiquidMetal2D-Demo";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ENFORCE_EXCLUSIVE_ACCESS = "debug-only";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		F536B686241690A800B3566F /* Build configuration list for PBXProject "LiquidMetal2D-Demo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F536B69D241690A900B3566F /* Debug */,
+				F536B69E241690A900B3566F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F536B69F241690A900B3566F /* Build configuration list for PBXNativeTarget "LiquidMetal2D-Demo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F536B6A0241690A900B3566F /* Debug */,
+				F536B6A1241690A900B3566F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		F536B6A3241691DB00B3566F /* XCRemoteSwiftPackageReference "LiquidMetal2D" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mattCasanova/LiquidMetal2D.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.18.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F536B6A4241691DB00B3566F /* LiquidMetal2D */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F536B6A3241691DB00B3566F /* XCRemoteSwiftPackageReference "LiquidMetal2D" */;
+			productName = LiquidMetal2D;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = F536B683241690A800B3566F /* Project object */;
+}
