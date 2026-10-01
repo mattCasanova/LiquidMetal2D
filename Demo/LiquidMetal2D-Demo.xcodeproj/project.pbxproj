@@ -294,7 +294,7 @@
 			);
 			mainGroup = F536B682241690A800B3566F;
 			packageReferences = (
-				F536B6A3241691DB00B3566F /* XCRemoteSwiftPackageReference "LiquidMetal2D" */,
+				F536B6A3241691DB00B3566F /* XCLocalSwiftPackageReference ".." */,
 			);
 			productRefGroup = F536B68C241690A800B3566F /* Products */;
 			projectDirPath = "";
@@ -572,21 +572,17 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		F536B6A3241691DB00B3566F /* XCRemoteSwiftPackageReference "LiquidMetal2D" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/mattCasanova/LiquidMetal2D.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.18.0;
-			};
+/* Begin XCLocalSwiftPackageReference section */
+		F536B6A3241691DB00B3566F /* XCLocalSwiftPackageReference ".." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ..;
 		};
-/* End XCRemoteSwiftPackageReference section */
+/* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		F536B6A4241691DB00B3566F /* LiquidMetal2D */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = F536B6A3241691DB00B3566F /* XCRemoteSwiftPackageReference "LiquidMetal2D" */;
+			package = F536B6A3241691DB00B3566F /* XCLocalSwiftPackageReference ".." */;
 			productName = LiquidMetal2D;
 		};
 /* End XCSwiftPackageProductDependency section */

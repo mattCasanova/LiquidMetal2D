@@ -1,5 +1,5 @@
 {
-  "originHash" : "0e188217058b98a1a355322924e7a12e4539f69a34c72fdbd95d9913b444466b",
+  "originHash" : "4d325afb984b78f32fe3b12b47fbf349d077321a9e51957fd3db46eabad001d5",
   "pins" : [
     {
       "identity" : "collectionconcurrencykit",
@@ -20,21 +20,12 @@
       }
     },
     {
-      "identity" : "liquidmetal2d",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/mattCasanova/LiquidMetal2D.git",
-      "state" : {
-        "revision" : "15faa4da00ecb75beaf72dba9c43b98274e346d0",
-        "version" : "0.18.0"
-      }
-    },
-    {
       "identity" : "sourcekitten",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/jpsim/SourceKitten.git",
       "state" : {
-        "revision" : "6529c17fe80dd94843a3df7ed3e6a239790d5c91",
-        "version" : "0.37.3"
+        "revision" : "1cde6e9fb78e64f9b9d38c4992cac4f071d7eb63",
+        "version" : "0.39.0"
       }
     },
     {
@@ -60,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swiftlang/swift-syntax.git",
       "state" : {
-        "revision" : "51c8c237beea1baa9cac64ef83cec68c6790506c",
-        "version" : "604.0.0-prerelease-2026-04-21"
+        "revision" : "a8b1c535647243d603b6772e7e8306c993a0c188",
+        "version" : "605.0.0-prerelease-2026-06-26"
       }
     },
     {
@@ -69,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/realm/SwiftLint",
       "state" : {
-        "revision" : "70a5f3225d940d4573d3d2ffcf85b07ab2a6c5de",
-        "version" : "0.63.3"
+        "revision" : "6aba03e3d8302b33f106e0f922210f35ca4b52cf",
+        "version" : "0.65.1"
       }
     },
     {
@@ -96,8 +87,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/jpsim/Yams.git",
       "state" : {
-        "revision" : "deaf82e867fa2cbd3cd865978b079bfcf384ac28",
-        "version" : "6.2.1"
+        "revision" : "a27b21e0c81c5bf42049b897a62aaf387e80f279",
+        "version" : "6.2.2"
       }
     }
   ],
