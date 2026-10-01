@@ -84,5 +84,8 @@ fragment half4 wireframe_fragment(VertOut interp [[ stage_in ]]) {
         }
     }
 
-    return half4(interp.color);
+    // Premultiplied output, like the textured shaders.
+    half4 color = half4(interp.color);
+    color.rgb *= color.a;
+    return color;
 }

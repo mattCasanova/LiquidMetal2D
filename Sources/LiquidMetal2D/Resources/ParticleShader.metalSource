@@ -54,12 +54,14 @@ vertex VertOut particle_vertex(VertIn inVert [[ stage_in ]],
     return out;
 }
 
-// Same fragment math as AlphaBlend — the difference is the pipeline's blend
-// state (additive). Texture's alpha controls contribution; transparent areas
-// add nothing, opaque areas add tinted color. Overlap brightens.
+// Same fragment math as AlphaBlend (premultiplied texture times premultiplied
+// tint) — the difference is the pipeline's blend state (additive). Transparent
+// areas add nothing, opaque areas add tinted color. Overlap brightens.
 fragment half4 particle_fragment(VertOut interp [[ stage_in ]],
                                  texture2d<half> tex2D [[ texture(0) ]],
                                  sampler sampler2D [[ sampler(0) ]]) {
     half4 texColor = tex2D.sample(sampler2D, interp.texCoord);
-    return texColor * half4(interp.color);
+    half4 tint = half4(interp.color);
+    tint.rgb *= tint.a;
+    return texColor * tint;
 }

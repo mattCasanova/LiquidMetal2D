@@ -79,5 +79,7 @@ fragment half4 ripple_fragment(VertOut interp [[ stage_in ]],
     uv.y += cos(t + uv.x * freq) * amp;
 
     half4 texColor = tex2D.sample(sampler2D, uv);
-    return texColor * half4(interp.color);
+    half4 tint = half4(interp.color);
+    tint.rgb *= tint.a;
+    return texColor * tint;
 }
