@@ -7,12 +7,12 @@ Demo app showcasing LiquidMetal2D engine features. Each scene demonstrates a dif
 - **Language:** Swift 6
 - **Platform:** iOS 26+
 - **Build System:** Xcode project (not SPM — uses `.xcodeproj`)
-- **Dependency:** [LiquidMetal2D](https://github.com/mattCasanova/LiquidMetal2D) via SPM (local or remote)
+- **Dependency:** LiquidMetal2D as the local package `..` (the engine in this repo); an engine change shows up on the next build, no tag or version bump
 - **Theme:** Tokyo Night color palette (`TokyoNight.swift`)
 
 ## Structure
 
-All source files live in `LiquidMetal2D-Demo/LiquidMetal2D-Demo/`:
+All source files live in `Demo/LiquidMetal2D-Demo/` (paths below are relative to the engine root):
 
 - **Entry point** — `ViewController.swift` subclasses `LiquidViewController`, registers all scenes with `SceneFactory`, creates `DefaultRenderer`, and starts the engine
 - **Scene registry** — `SceneTypes.swift` enum conforming to `SceneType` with navigable list and next/prev helpers
@@ -50,15 +50,17 @@ All source files live in `LiquidMetal2D-Demo/LiquidMetal2D-Demo/`:
 ## Build
 
 ```bash
-xcodebuild -project LiquidMetal2D-Demo/LiquidMetal2D-Demo.xcodeproj \
+# from the engine root
+xcodebuild -project Demo/LiquidMetal2D-Demo.xcodeproj \
   -scheme LiquidMetal2D-Demo \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro Max' \
   -skipPackagePluginValidation build
 ```
 
 ## Notes
 
 - No tests in this project — it's a visual demo app
+- Lives in the engine repo: an engine change and its demo change land on the same branch. Open `../LiquidMetal2D.xcworkspace` to get both
 - Textures are loaded globally once in `AsyncLoadDemo` (the initial scene), not per-scene
 - `nonisolated(unsafe)` is used on `GameTextures` static vars since they're written once at startup
 - Each demo scene creates its own `DemoSceneUI` for the Menu button and removes it on shutdown

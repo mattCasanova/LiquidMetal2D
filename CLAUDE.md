@@ -9,6 +9,7 @@ Swift/Metal 2D game engine library for iOS and macOS.
 - **Platform:** iOS 26+ and macOS 26+ (native AppKit, not Catalyst). Platform code is guarded `#if canImport(UIKit)` … `#elseif canImport(AppKit)`, UIKit first so Catalyst takes the iOS path; never `#if os(macOS)`
 - **Package Manager:** Swift Package Manager
 - **Dependencies:** SwiftLint (build plugin only — no external runtime deps)
+- **Demo:** the demo app lives in `Demo/` (`Demo/LiquidMetal2D-Demo.xcodeproj`, sources in `Demo/LiquidMetal2D-Demo/`, its own `CLAUDE.md`) and builds against this checkout through a local package reference. An engine change and its demo change land on the same branch: no tag, no version bump. `LiquidMetal2D.xcworkspace` at the root opens the package and the demo together. `swift build` / `swift test` ignore `Demo/`
 
 ## Architecture
 
@@ -86,6 +87,10 @@ xcodebuild -scheme LiquidMetal2D -destination 'platform=iOS Simulator,name=iPhon
 # iOS simulator: zero-allocation claims (skipped in Debug; only meaningful optimized)
 xcodebuild -scheme LiquidMetal2D -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -skipPackagePluginValidation \
   -configuration Release ENABLE_TESTABILITY=YES test -only-testing:LiquidMetal2DTests/AllocationTests
+
+# Demo app (builds against the local engine; a gate for any engine change)
+xcodebuild -project Demo/LiquidMetal2D-Demo.xcodeproj -scheme LiquidMetal2D-Demo \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro Max' -skipPackagePluginValidation build
 ```
 
 ## Notes
