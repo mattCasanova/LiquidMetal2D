@@ -6,13 +6,14 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-import UIKit
+import Foundation
 
-/// Default game engine implementation. Runs the main game loop via
-/// CADisplayLink and delegates scene management to a ``SceneManager``.
+/// Default game engine implementation. Runs the main game loop from a
+/// ``FrameClock`` and delegates scene management to a ``SceneManager``.
 ///
 /// Conforms to ``GameEngine`` (loop + rendering) and ``InputReader``
-/// (touch input). Create one in your `UIViewController.viewDidLoad()`:
+/// (touch input). Create one in your `LiquidViewController` subclass's
+/// `viewDidLoad()`:
 ///
 /// ```swift
 /// gameEngine = DefaultEngine(
@@ -29,8 +30,8 @@ public class DefaultEngine: GameEngine, InputReader {
 
     private var touchLocation: Vec2?
 
-    public var timer: CADisplayLink!
-    public var lastFrameTime: Double = 0.0
+    private let clock: FrameClock
+    private var lastFrameTime: Double = 0.0
 
     public let renderer: Renderer
     public let sceneManager: SceneManager
@@ -47,14 +48,18 @@ public class DefaultEngine: GameEngine, InputReader {
     ///     primitives in a custom ``SceneServices`` (typically an app-defined
     ///     `GameServices` carrying typed stores). Defaults to
     ///     ``DefaultSceneServices``.
+    ///   - clock: What paces the loop. Defaults to the display link of the
+    ///     renderer's view; tests pass a fake and step frames by hand.
     public init(
         renderer: Renderer,
         documents: DocumentIO,
         initialSceneType: some SceneType,
         sceneFactory: SceneFactory,
-        buildServices: ((Renderer, InputReader, SceneManager, DocumentIO) -> SceneServices)? = nil
+        buildServices: ((Renderer, InputReader, SceneManager, DocumentIO) -> SceneServices)? = nil,
+        clock: FrameClock? = nil
     ) {
         self.renderer = renderer
+        self.clock = clock ?? DisplayLinkClock(view: renderer.view)
         self.sceneManager = SceneManager(
             initialSceneType: initialSceneType,
             sceneFactory: sceneFactory)
@@ -72,24 +77,24 @@ public class DefaultEngine: GameEngine, InputReader {
     /// Shuts down the engine: stops the game loop, shuts down all scenes,
     /// and releases renderer resources.
     public func shutdown() {
-        timer?.invalidate()
-        timer = nil
+        clock.stop()
         sceneManager.shutdown()
         renderer.shutdown()
     }
 
-    /// Starts the game loop by attaching a CADisplayLink to the main run loop.
+    /// Starts the game loop: the clock calls ``frame()`` every refresh.
     public func run() {
-        timer = CADisplayLink(target: self, selector: #selector(gameLoop(displayLink:)))
-        lastFrameTime = timer.timestamp
-        timer.add(to: RunLoop.main, forMode: .default)
+        // The clock keeps the closure until `stop()`, so the engine lives
+        // until `shutdown()`; `unowned` then never dangles.
+        clock.start { [unowned self] in self.frame() }
+        lastFrameTime = clock.timestamp
     }
 
-    /// Called every frame by the display link. Skips frames with excessive
-    /// delta time, performs pending scene transitions, then updates and draws.
-    @objc public func gameLoop(displayLink: CADisplayLink) {
-        let rawDt: Float = Float(displayLink.timestamp - lastFrameTime)
-        lastFrameTime = displayLink.timestamp
+    /// One frame. Skips frames with no elapsed time, clamps long ones,
+    /// performs a pending scene transition, otherwise updates and draws.
+    private func frame() {
+        let rawDt: Float = Float(clock.timestamp - lastFrameTime)
+        lastFrameTime = clock.timestamp
 
         if rawDt <= 0 { return }
         let dt = min(rawDt, DefaultEngine.maxFrameTime)

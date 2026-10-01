@@ -6,7 +6,7 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-import QuartzCore
+import CoreGraphics
 
 /// Core protocol for the game loop. Handles timing, rendering, and input.
 ///
@@ -15,28 +15,18 @@ import QuartzCore
 /// ``DefaultEngine``.
 @MainActor
 public protocol GameEngine: InputWriter {
-    /// The display link driving the game loop.
-    var timer: CADisplayLink! { get set }
-
-    /// Timestamp of the previous frame, used to compute delta time.
-    var lastFrameTime: Double { get set }
-
     /// The renderer used for all drawing operations.
     var renderer: Renderer { get }
 
     /// The scene manager that owns the current scene and handles transitions.
     var sceneManager: SceneManager { get }
 
-    /// Starts the game loop by attaching a CADisplayLink to the main run loop.
+    /// Starts the game loop on the engine's ``FrameClock``.
     func run()
 
     /// Shuts down the engine: stops the game loop, shuts down all scenes,
     /// and releases renderer resources.
     func shutdown()
-
-    /// Called every frame by the display link. Computes delta time,
-    /// checks for scene transitions, then updates and draws the current scene.
-    func gameLoop(displayLink: CADisplayLink)
 }
 
 public extension GameEngine {
