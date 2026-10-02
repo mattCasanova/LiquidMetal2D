@@ -6,7 +6,7 @@ package reference, so an engine change shows up here on the next build. No tag o
 ## Run
 
 1. Open `../LiquidMetal2D.xcworkspace` (engine and demo together) or `LiquidMetal2D-Demo.xcodeproj`.
-2. Pick the `LiquidMetal2D-Demo` scheme and a simulator or device.
+2. Pick the `LiquidMetal2D-Demo` scheme and a simulator, a device or My Mac.
 3. Run. If Xcode asks, trust and enable the SwiftLint build plugin.
 
 Or from the engine root:

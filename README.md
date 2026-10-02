@@ -9,7 +9,7 @@ shows up in the demo on the next build.
 
 1. Open `LiquidMetal2D.xcworkspace` (the engine package and the demo project together) or
    `Demo/LiquidMetal2D-Demo.xcodeproj` on its own.
-2. Pick the `LiquidMetal2D-Demo` scheme and a simulator or device.
+2. Pick the `LiquidMetal2D-Demo` scheme and a simulator, a device or My Mac.
 3. Run. If Xcode asks, trust and enable the SwiftLint build plugin.
 
 The demo is a menu of scenes, one per engine feature: instanced rendering, collision, camera,
