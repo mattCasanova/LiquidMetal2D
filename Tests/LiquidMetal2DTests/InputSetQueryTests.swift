@@ -140,6 +140,44 @@ final class InputSetQueryTests: XCTestCase {
         XCTAssertFalse(input.isComboTriggered([.command, .b]), "B is up again")
     }
 
+    // MARK: - Combos: exact modifiers
+
+    func testAnExtraModifierBlocksTheShorterCombo() {
+        let input = makeInput()
+        frame(input, .down(.leftCommand))
+        frame(input, .down(.leftShift))
+        frame(input, .down(.z))
+
+        XCTAssertFalse(input.isComboTriggered([.command, .z]), "undo stays quiet inside redo")
+        XCTAssertTrue(input.isComboTriggered([.command, .shift, .z]))
+    }
+
+    func testOtherHeldKeysAndButtonsDoNotBlockACombo() {
+        let input = makeInput()
+        frame(input, .down(.w), .down(.pointerPrimary))
+        frame(input, .down(.leftCommand))
+        frame(input, .down(.z))
+
+        XCTAssertTrue(input.isComboTriggered([.command, .z]), "only modifiers must match")
+    }
+
+    func testNamingOneSideNamesTheModifier() {
+        let input = makeInput()
+        frame(input, .down(.leftShift))
+        frame(input, .down(.a))
+
+        XCTAssertTrue(input.isComboTriggered([.leftShift, .a]), "the held .shift is named through its side")
+    }
+
+    func testAComboWithNoKeySkipsTheModifierCheck() {
+        let input = InputSystem(devices: [.pointer], unproject: { $0 })
+        frame(input, .down(.pointerPrimary))
+        frame(input, .down(.pointerSecondary))
+
+        XCTAssertTrue(input.isComboTriggered([.pointerPrimary, .pointerSecondary]),
+                      "no keyboard: asking about Shift would trap")
+    }
+
     func testSetQueriesTakeAnyCollection() {
         let input = makeInput()
         frame(input, .down(.space))

@@ -58,22 +58,42 @@ public extension InputReader {
     /// fires once, on B's frame. A code tapped down and up inside this frame
     /// counts as held, so a very fast press is not lost.
     ///
+    /// Modifiers must match exactly, as in system shortcuts: a modifier the
+    /// combo does not name must be up, so Command-Z does not fire inside
+    /// Command-Shift-Z. Naming one side (`.leftShift`) names that modifier.
+    /// Other held keys and buttons don't matter, and a combo with no key in
+    /// it skips the modifier check.
+    ///
     /// ```swift
-    /// input.isComboTriggered([.command, .b])
-    /// input.isComboTriggered([.shift, .a])   // either Shift
+    /// input.isComboTriggered([.command, .z])          // undo
+    /// input.isComboTriggered([.command, .shift, .z])  // redo; undo stays quiet
     /// ```
     @inlinable
     func isComboTriggered(_ codes: some Collection<InputCode>) -> Bool {
         requireCodes(codes)
         var anyTriggered = false
+        var hasKey = false
         for code in codes {
             let triggered = isTriggered(code)
             if !triggered && !isPressed(code) {
                 return false
             }
             anyTriggered = anyTriggered || triggered
+            hasKey = hasKey || code.device == .keyboard
         }
-        return anyTriggered
+        guard anyTriggered else { return false }
+        // Without a key the keyboard may be off, and asking about it traps.
+        return !hasKey || (modifierAllowed(.shift, by: codes) && modifierAllowed(.control, by: codes)
+            && modifierAllowed(.option, by: codes) && modifierAllowed(.command, by: codes))
+    }
+
+    /// The combo names this modifier (or one of its sides), or it is up.
+    @inlinable
+    internal func modifierAllowed(_ modifier: InputCode, by codes: some Collection<InputCode>) -> Bool {
+        for code in codes where code == modifier || code.eitherSideModifier == modifier {
+            return true
+        }
+        return !isPressed(modifier)
     }
 
     @inlinable
