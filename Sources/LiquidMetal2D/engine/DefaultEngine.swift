@@ -9,33 +9,36 @@
 import Foundation
 
 /// Default game engine implementation. Runs the main game loop from a
-/// ``FrameClock`` and delegates scene management to a ``SceneManager``.
+/// ``FrameClock``, owns the ``InputSystem`` and delegates scene management
+/// to a ``SceneManager``.
 ///
-/// Conforms to ``GameEngine`` (loop + rendering) and ``InputReader``
-/// (touch input). Create one in your `LiquidViewController` subclass's
-/// `viewDidLoad()`:
+/// Conforms to ``GameEngine`` (loop, rendering, and ``InputWriter`` for the
+/// platform layer's events). Create one in your `LiquidViewController`
+/// subclass's `viewDidLoad()`:
 ///
 /// ```swift
 /// gameEngine = DefaultEngine(
 ///     renderer: renderer,
 ///     documents: DocumentIO(presentingVC: self),
+///     inputDevices: [.pointer, .keyboard],
 ///     initialSceneType: MyScenes.menu,
 ///     sceneFactory: factory)
 /// gameEngine.run()
 /// ```
 @MainActor
-public class DefaultEngine: GameEngine, InputReader {
+public class DefaultEngine: GameEngine {
     /// Maximum delta time per frame (~15 FPS). Larger deltas are clamped
     /// to this value to prevent physics explosions after backgrounding.
     private static let maxFrameTime: Float = 1.0 / 15.0
-
-    private var touchLocation: Vec2?
 
     private let clock: FrameClock
     private var lastFrameTime: Double = 0.0
 
     public let renderer: Renderer
     public let sceneManager: SceneManager
+    /// The input state scenes poll; the platform layer feeds it through
+    /// this engine's ``InputWriter`` methods.
+    public let input: InputSystem
 
     /// Creates the engine, builds the initial scene, and prepares for the game loop.
     ///
@@ -43,6 +46,9 @@ public class DefaultEngine: GameEngine, InputReader {
     ///   - renderer: The renderer to use for all drawing.
     ///   - documents: User-facing file picker, built by the caller from its
     ///     presenting view controller.
+    ///   - inputDevices: The devices to accept and allow queries on. The
+    ///     default, `[.pointer]`, is the one-touch behaviour the engine
+    ///     always had.
     ///   - initialSceneType: The first scene to display.
     ///   - sceneFactory: Registry mapping scene types to builders.
     ///   - buildServices: Optional closure that wraps the engine-built
@@ -54,6 +60,7 @@ public class DefaultEngine: GameEngine, InputReader {
     public init(
         renderer: Renderer,
         documents: DocumentIO,
+        inputDevices: InputDevices = [.pointer],
         initialSceneType: some SceneType,
         sceneFactory: SceneFactory,
         buildServices: ((Renderer, InputReader, SceneManager, DocumentIO) -> SceneServices)? = nil,
@@ -61,14 +68,17 @@ public class DefaultEngine: GameEngine, InputReader {
     ) {
         self.renderer = renderer
         self.clock = clock ?? DisplayLinkClock(view: renderer.view)
+        self.input = InputSystem(
+            devices: inputDevices,
+            unproject: { [unowned renderer] in renderer.unproject(screenWithWorldZ: $0) })
         self.sceneManager = SceneManager(
             initialSceneType: initialSceneType,
             sceneFactory: sceneFactory)
 
-        let services = buildServices?(renderer, self, sceneManager, documents)
+        let services = buildServices?(renderer, input, sceneManager, documents)
             ?? DefaultSceneServices(
                 renderer: renderer,
-                input: self,
+                input: input,
                 sceneMgr: sceneManager,
                 documents: documents)
 
@@ -94,13 +104,17 @@ public class DefaultEngine: GameEngine, InputReader {
     }
 
     /// One frame. Skips frames with no elapsed time, clamps long ones,
-    /// performs a pending scene transition, otherwise updates and draws.
+    /// drains the input queue, performs a pending scene transition (that
+    /// frame's input events are dropped on purpose: the click that opens a
+    /// menu must not also press a button in it), otherwise updates and draws.
     private func frame() {
         let rawDt: Float = Float(clock.timestamp - lastFrameTime)
         lastFrameTime = clock.timestamp
 
         if rawDt <= 0 { return }
         let dt = min(rawDt, DefaultEngine.maxFrameTime)
+
+        input.beginFrame()
 
         if sceneManager.needsTransition {
             sceneManager.performTransition()
@@ -113,21 +127,13 @@ public class DefaultEngine: GameEngine, InputReader {
         }
     }
 
-    // MARK: - InputReader, InputWriter
+    // MARK: - InputWriter
 
-    /// Returns the touch location unprojected to world coordinates at the given z depth.
-    public func getWorldTouch(forZ z: Float) -> Vec3? {
-        guard let touch = touchLocation else { return nil }
-        return renderer.unproject(screenWithWorldZ: touch.to3D(z))
+    public func enqueue(_ event: RawInputEvent) {
+        input.enqueue(event)
     }
 
-    /// Returns the raw screen-space touch location, or nil if no touch is active.
-    public func getScreenTouch() -> Vec2? {
-        return touchLocation
-    }
-
-    /// Sets the current touch location. Pass nil to clear.
     public func setTouch(location: Vec2?) {
-        touchLocation = location
+        input.setTouch(location: location)
     }
 }
