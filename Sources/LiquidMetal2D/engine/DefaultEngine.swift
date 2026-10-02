@@ -42,6 +42,9 @@ public class DefaultEngine: GameEngine {
 
     public var inputDevices: InputDevices { input.devices }
 
+    private let keyboardSource: KeyboardSource?
+    private let focusSource: FocusSource
+
     /// Creates the engine, builds the initial scene, and prepares for the game loop.
     ///
     /// - Parameters:
@@ -70,9 +73,16 @@ public class DefaultEngine: GameEngine {
     ) {
         self.renderer = renderer
         self.clock = clock ?? DisplayLinkClock(view: renderer.view)
-        self.input = InputSystem(
+        let input = InputSystem(
             devices: inputDevices,
             unproject: { [unowned renderer] in renderer.unproject(screenWithWorldZ: $0) })
+        self.input = input
+        // The sources hold the input system unowned: the engine owns both and
+        // stops the sources in shutdown().
+        keyboardSource = inputDevices.contains(.keyboard)
+            ? KeyboardSource(enqueue: { [unowned input] in input.enqueue($0) })
+            : nil
+        focusSource = FocusSource(view: renderer.view, enqueue: { [unowned input] in input.enqueue($0) })
         self.sceneManager = SceneManager(
             initialSceneType: initialSceneType,
             sceneFactory: sceneFactory)
@@ -91,6 +101,8 @@ public class DefaultEngine: GameEngine {
     /// and releases renderer resources.
     public func shutdown() {
         clock.stop()
+        keyboardSource?.stop()
+        focusSource.stop()
         sceneManager.shutdown()
         renderer.shutdown()
     }

@@ -24,6 +24,13 @@ public final class LiquidNSView: NSView {
         didSet { updateTrackingAreas() }
     }
 
+    /// Whether key events stop here. Set by the controller when the engine
+    /// has the keyboard device: the keys reach the engine through
+    /// `GCKeyboard`, and letting them fall through the responder chain
+    /// would make the system beep on every press. Menu shortcuts are
+    /// handled before `keyDown`, so they keep working.
+    var swallowsKeyEvents = false
+
     public override var acceptsFirstResponder: Bool { true }
 
     public override func viewDidChangeBackingProperties() {
@@ -38,6 +45,14 @@ public final class LiquidNSView: NSView {
         if newWindow == nil {
             onLeaveWindow?()
         }
+    }
+
+    public override func keyDown(with event: NSEvent) {
+        if !swallowsKeyEvents { super.keyDown(with: event) }
+    }
+
+    public override func keyUp(with event: NSEvent) {
+        if !swallowsKeyEvents { super.keyUp(with: event) }
     }
 
     public override func updateTrackingAreas() {

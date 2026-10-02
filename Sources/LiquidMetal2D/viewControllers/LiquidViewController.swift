@@ -153,7 +153,14 @@ open class LiquidViewController: NSViewController {
         gameEngine?.resize(scale: scale, layerSize: view.bounds.size)
     }
 
-    // MARK: - Pointer source
+    open override func viewDidAppear() {
+        super.viewDidAppear()
+        // Keyboard focus, so the window's key events reach this view (and
+        // stop here when the engine swallows them).
+        view.window?.makeFirstResponder(view)
+    }
+
+    // MARK: - Input sources
 
     private var hasPointer: Bool {
         // No engine yet means nothing to feed; the subclass's viewDidLoad makes it.
@@ -161,8 +168,9 @@ open class LiquidViewController: NSViewController {
     }
 
     private func installInputSources() {
-        guard hasPointer, let liquidView = view as? LiquidNSView else { return }
-        liquidView.tracksPointer = true
+        guard let liquidView = view as? LiquidNSView else { return }
+        liquidView.tracksPointer = hasPointer
+        liquidView.swallowsKeyEvents = gameEngine?.inputDevices.contains(.keyboard) ?? false
     }
 
     open override func mouseEntered(with event: NSEvent) { movePointer(event) }
