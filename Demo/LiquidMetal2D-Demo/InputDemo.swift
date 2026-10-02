@@ -20,6 +20,9 @@ import LiquidMetal2D
 /// **Engine features demonstrated:**
 /// - Polling: `input.pointer`, `input.pointerWorld(forZ:)`, `isPressed`,
 ///   `isTriggered`, `isAnyTriggered`; the Mach 5 vocabulary.
+/// - Combos: `isComboTriggered` with the either-side `.shift` and `.command`;
+///   Shift-A and Command-B log a line. The combos are stored arrays, so the
+///   per-frame check allocates nothing.
 /// - Observers: `inputObservers.add(pointer:)` / `add(keyboard:)` on a
 ///   `DefaultScene`; only the current scene hears events, so push Pause and
 ///   the log stops.
@@ -37,6 +40,8 @@ class InputDemo: DefaultScene, PointerObserver, KeyboardObserver {
     private var scrollTotal = Vec2()
 
     private static let keyboardCodes = InputCode.allCases.filter { $0.device == .keyboard }
+    private static let shiftA: [InputCode] = [.shift, .a]
+    private static let commandB: [InputCode] = [.command, .b]
 
     override func initialize(services: SceneServices) {
         super.initialize(services: services)
@@ -89,6 +94,12 @@ class InputDemo: DefaultScene, PointerObserver, KeyboardObserver {
         if input.isAnyTriggered, let code = InputDemo.keyboardCodes.first(where: input.isTriggered)
             ?? [InputCode.pointerPrimary, .pointerSecondary, .pointerMiddle].first(where: input.isTriggered) {
             controls.flash(code)
+        }
+        if input.isComboTriggered(InputDemo.shiftA) {
+            controls.log("combo shift+a")
+        }
+        if input.isComboTriggered(InputDemo.commandB) {
+            controls.log("combo command+b")
         }
     }
 
