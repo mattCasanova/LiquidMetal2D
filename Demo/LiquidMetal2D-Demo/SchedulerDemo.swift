@@ -48,25 +48,16 @@ class SchedulerDemo: DefaultScene {
     var distance: Float = 40
     let objectCount = 100
 
-    private var ui: DemoSceneUI!
-
     override func initialize(services: SceneServices) {
         super.initialize(services: services)
 
         createObjects()
 
-        ui = DemoSceneUI(
-            parentView: renderer.view, target: self,
-            menuAction: #selector(onMenu))
-
         buildDemoChain()
     }
 
-    override func resume() { ui.view.isHidden = false }
-
     override func resize() {
         super.resize()
-        ui.layout()
     }
 
     override func update(dt: Float) {
@@ -116,7 +107,6 @@ class SchedulerDemo: DefaultScene {
     override func shutdown() {
         super.shutdown()
         renderer.setCameraRotation(angle: 0)
-        ui.removeFromSuperview()
     }
 
     /// Builds the three-phase task chain and adds it to the scheduler.
@@ -194,11 +184,6 @@ class SchedulerDemo: DefaultScene {
         obj.rotation = Float.random(in: 0...GameMath.twoPi)
         obj.velocity.set(angle: obj.rotation)
         obj.velocity *= Float.random(in: 1...10)
-    }
-
-    @objc func onMenu() {
-        ui.view.isHidden = true
-        sceneMgr.pushScene(type: SceneTypes.pauseDemo)
     }
 
 }

@@ -59,7 +59,6 @@ class SkeletonDemo: Scene {
     private var reach: IKConstraint!
     private var isReaching: Bool { !skeleton.ikConstraints.isEmpty }
 
-    private var ui: DemoSceneUI!
     #if canImport(UIKit)
     private var buttons: [UIButton] = []
     private var reachButton: UIButton!
@@ -80,16 +79,12 @@ class SkeletonDemo: Scene {
 
         createObjects()
 
-        ui = DemoSceneUI(
-            parentView: renderer.view, target: self,
-            menuAction: #selector(onMenu))
         setupUI()
     }
 
-    func resume() { ui.view.isHidden = false }
+    func resume() {}
 
     func resize() {
-        ui.layout()
         layoutUI()
         renderer.setDefaultPerspective()
     }
@@ -130,7 +125,6 @@ class SkeletonDemo: Scene {
     }
 
     func shutdown() {
-        ui.removeFromSuperview()
     }
 
     // MARK: - Movement and actions
@@ -272,14 +266,14 @@ class SkeletonDemo: Scene {
         eventFlash.textColor = TokyoNight.uiBlue
         eventFlash.textAlignment = .center
         eventFlash.alpha = 0
-        ui.view.addSubview(eventFlash)
+        renderer.view.addSubview(eventFlash)
 
         eventLog = UILabel()
         eventLog.font = UIFont.monospacedSystemFont(ofSize: 14, weight: .regular)
         eventLog.textColor = TokyoNight.uiComment
         eventLog.textAlignment = .right
         eventLog.numberOfLines = 0
-        ui.view.addSubview(eventLog)
+        renderer.view.addSubview(eventLog)
     }
 
     /// Flashes the newest event big, and keeps the last few in a list, newest first.
@@ -304,12 +298,12 @@ class SkeletonDemo: Scene {
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
         button.layer.cornerRadius = 8
         button.addTarget(self, action: action, for: .touchUpInside)
-        ui.view.addSubview(button)
+        renderer.view.addSubview(button)
         return button
     }
 
     private func layoutUI() {
-        let size = ui.view.bounds.size
+        let size = renderer.view.bounds.size
         let gap: CGFloat = 12
         let width = (size.width - gap * CGFloat(buttons.count + 1)) / CGFloat(buttons.count)
         let height: CGFloat = 48
@@ -347,8 +341,6 @@ class SkeletonDemo: Scene {
         reachButton.setTitle(isReaching ? "Reach: On" : "Reach", for: .normal)
         #endif
     }
-
-    @objc func onMenu() { ui.view.isHidden = true; sceneMgr.pushScene(type: SceneTypes.pauseDemo) }
 
     static func build() -> Scene { return SkeletonDemo() }
 }

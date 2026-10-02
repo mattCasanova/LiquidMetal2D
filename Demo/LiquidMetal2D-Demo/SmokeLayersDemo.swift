@@ -35,7 +35,6 @@ class SmokeLayersDemo: DefaultScene {
     private var smokeShader: ParticleShader!
     private var warmPlume: GameObj!
     private var coolPlume: GameObj!
-    private var ui: DemoSceneUI!
     #if canImport(UIKit)
     private var swapButton: UIButton!
     private var statusLabel: UILabel!
@@ -68,10 +67,7 @@ class SmokeLayersDemo: DefaultScene {
         setupUI()
     }
 
-    override func resume() { ui.view.isHidden = false }
-
     override func layoutUI() {
-        ui.layout()
         layoutControls()
     }
 
@@ -93,7 +89,6 @@ class SmokeLayersDemo: DefaultScene {
     override func shutdown() {
         super.shutdown()
         renderer.unregister(shader: smokeShader)
-        ui.removeFromSuperview()
         tearDownUI()
     }
 
@@ -139,10 +134,6 @@ class SmokeLayersDemo: DefaultScene {
     // MARK: - UI
 
     private func setupUI() {
-        ui = DemoSceneUI(
-            parentView: renderer.view, target: self,
-            menuAction: #selector(onMenu))
-
         swapButton = UIButton(frame: .zero)
         swapButton.backgroundColor = TokyoNight.uiDarker
         swapButton.setTitle("Swap", for: .normal)
@@ -182,15 +173,9 @@ class SmokeLayersDemo: DefaultScene {
     }
     #else
     // Mac scaffolding until the SwiftUI rewrite reaches this scene's controls.
-    private func setupUI() {
-        ui = DemoSceneUI(parentView: renderer.view, target: self, menuAction: #selector(onMenu))
-    }
+    private func setupUI() {}
     private func layoutControls() {}
     private func tearDownUI() {}
     #endif
 
-    @objc func onMenu() {
-        ui.view.isHidden = true
-        sceneMgr.pushScene(type: SceneTypes.pauseDemo)
-    }
 }

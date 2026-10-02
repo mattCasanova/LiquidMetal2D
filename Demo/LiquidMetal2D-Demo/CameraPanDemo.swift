@@ -53,8 +53,6 @@ class CameraPanDemo: Scene {
     private var touchShip: GameObj!
     private var isTouching = false
 
-    private var ui: DemoSceneUI!
-
     func initialize(services: SceneServices) {
         self.sceneMgr = services.sceneMgr
         self.renderer = services.renderer
@@ -66,16 +64,11 @@ class CameraPanDemo: Scene {
         renderer.setClearColor(color: TokyoNight.clearColor)
 
         createObjects()
-
-        ui = DemoSceneUI(
-            parentView: renderer.view, target: self,
-            menuAction: #selector(onMenu))
     }
 
-    func resume() { ui.view.isHidden = false }
+    func resume() {}
 
     func resize() {
-        ui.layout()
         renderer.setDefaultPerspective()
     }
 
@@ -113,7 +106,6 @@ class CameraPanDemo: Scene {
     }
 
     func shutdown() {
-        ui.removeFromSuperview()
     }
 
     // MARK: - Markers
@@ -187,8 +179,6 @@ class CameraPanDemo: Scene {
         marker.add(AlphaBlendComponent(parent: marker, textureID: renderer.defaultTextureId, tintColor: tint))
         return marker
     }
-
-    @objc func onMenu() { ui.view.isHidden = true; sceneMgr.pushScene(type: SceneTypes.pauseDemo) }
 
     static func build() -> Scene { return CameraPanDemo() }
 }

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D3A0A0082F9B0001000000A1 /* DemoServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A0A0072F9B0001000000A1 /* DemoServices.swift */; };
 		A1B2C3CE2F67D0A7003831F3 /* GameTextures.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3CD2F67D0A7003831F3 /* GameTextures.swift */; };
 		A1B2C3D02F67C0A7003831F3 /* TokyoNight.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3CF2F67C0A7003831F3 /* TokyoNight.swift */; };
 		A1B2C3D22F67B0A7003831F3 /* AsyncLoadDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D12F67B0A7003831F3 /* AsyncLoadDemo.swift */; };
@@ -40,7 +41,6 @@
 		F53AAB102F6770A7003831F3 /* FindAndGoBehavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53AAB082F6770A7003831F3 /* FindAndGoBehavior.swift */; };
 		F53AAB112F6770A7003831F3 /* FindAndGoStates.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53AAB092F6770A7003831F3 /* FindAndGoStates.swift */; };
 		F53AAB122F6770A7003831F3 /* SchedulerDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53AAB0D2F6770A7003831F3 /* SchedulerDemo.swift */; };
-		F53AAB132F6770A7003831F3 /* DemoSceneUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53AAB062F6770A7003831F3 /* DemoSceneUI.swift */; };
 		F53AAB142F6770A7003831F3 /* PauseDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53AAB0A2F6770A7003831F3 /* PauseDemo.swift */; };
 		F53AAB152F6770A7003831F3 /* PlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53AAB0B2F6770A7003831F3 /* PlayerState.swift */; };
 		F53AAB162F6770A7003831F3 /* PlayerStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53AAB0C2F6770A7003831F3 /* PlayerStateMachine.swift */; };
@@ -56,6 +56,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		D3A0A0072F9B0001000000A1 /* DemoServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoServices.swift; sourceTree = "<group>"; };
 		A1B2C3CD2F67D0A7003831F3 /* GameTextures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameTextures.swift; sourceTree = "<group>"; };
 		A1B2C3CF2F67C0A7003831F3 /* TokyoNight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokyoNight.swift; sourceTree = "<group>"; };
 		A1B2C3D12F67B0A7003831F3 /* AsyncLoadDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncLoadDemo.swift; sourceTree = "<group>"; };
@@ -87,7 +88,6 @@
 		F536B6B12416926800B3566F /* playerShip1_green.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = playerShip1_green.png; sourceTree = "<group>"; };
 		F536B6B22416926800B3566F /* playerShip1_blue.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = playerShip1_blue.png; sourceTree = "<group>"; };
 		F53AAB042F6770A7003831F3 /* CollisionDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollisionDemo.swift; sourceTree = "<group>"; };
-		F53AAB062F6770A7003831F3 /* DemoSceneUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoSceneUI.swift; sourceTree = "<group>"; };
 		F53AAB072F6770A7003831F3 /* InstanceDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstanceDemo.swift; sourceTree = "<group>"; };
 		F53AAB082F6770A7003831F3 /* FindAndGoBehavior.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindAndGoBehavior.swift; sourceTree = "<group>"; };
 		F53AAB092F6770A7003831F3 /* FindAndGoStates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindAndGoStates.swift; sourceTree = "<group>"; };
@@ -145,6 +145,7 @@
 				A1B2C3CF2F67C0A7003831F3 /* TokyoNight.swift */,
 				F536B6A2241690FB00B3566F /* appleDefaults */,
 				D3A0A0032F9B0001000000A1 /* DemoUI.swift */,
+				D3A0A0072F9B0001000000A1 /* DemoServices.swift */,
 				D3A0A0052F9B0001000000A1 /* SceneMenu.swift */,
 				F536B692241690A800B3566F /* ViewController.swift */,
 				F536B697241690A900B3566F /* Assets.xcassets */,
@@ -185,7 +186,6 @@
 				F53AAB0A2F6770A7003831F3 /* PauseDemo.swift */,
 				F53AAB0D2F6770A7003831F3 /* SchedulerDemo.swift */,
 				F53AAB0E2F6770A7003831F3 /* SpawnDemo.swift */,
-				F53AAB062F6770A7003831F3 /* DemoSceneUI.swift */,
 			);
 			name = scenes;
 			sourceTree = "<group>";
@@ -325,6 +325,7 @@
 			files = (
 				D3A0A0022F9B0001000000A1 /* DemoApp.swift in Sources */,
 				D3A0A0042F9B0001000000A1 /* DemoUI.swift in Sources */,
+				D3A0A0082F9B0001000000A1 /* DemoServices.swift in Sources */,
 				D3A0A0062F9B0001000000A1 /* SceneMenu.swift in Sources */,
 				A1B2C3D22F67B0A7003831F3 /* AsyncLoadDemo.swift in Sources */,
 				A1B2C3D42F6780A7003831F3 /* BezierDemo.swift in Sources */,
@@ -339,7 +340,6 @@
 				F53AAB102F6770A7003831F3 /* FindAndGoBehavior.swift in Sources */,
 				F53AAB112F6770A7003831F3 /* FindAndGoStates.swift in Sources */,
 				F53AAB122F6770A7003831F3 /* SchedulerDemo.swift in Sources */,
-				F53AAB132F6770A7003831F3 /* DemoSceneUI.swift in Sources */,
 				F53AAB142F6770A7003831F3 /* PauseDemo.swift in Sources */,
 				F53AAB152F6770A7003831F3 /* PlayerState.swift in Sources */,
 				F53AAB162F6770A7003831F3 /* PlayerStateMachine.swift in Sources */,

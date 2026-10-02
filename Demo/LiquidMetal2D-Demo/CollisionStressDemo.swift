@@ -32,7 +32,6 @@ class CollisionStressDemo: Scene {
     private let fpsSmoothing: Float = 0.05
 
     // UI
-    private var ui: DemoSceneUI!
     #if canImport(UIKit)
     private var statsLabel: UILabel!
     private var toggleButton: UIButton!
@@ -55,11 +54,10 @@ class CollisionStressDemo: Scene {
         setupUI()
     }
 
-    func resume() { ui.view.isHidden = false }
+    func resume() {}
 
     func resize() {
         renderer.setDefaultPerspective()
-        ui.layout()
         layoutUI()
     }
 
@@ -99,7 +97,6 @@ class CollisionStressDemo: Scene {
         colliders.removeAll()
         colliderMap.removeAll()
         tearDownUI()
-        ui.removeFromSuperview()
     }
 
     // MARK: - Collision
@@ -179,10 +176,6 @@ class CollisionStressDemo: Scene {
 
     #if canImport(UIKit)
     private func setupUI() {
-        ui = DemoSceneUI(
-            parentView: renderer.view, target: self,
-            menuAction: #selector(onMenu))
-
         statsLabel = UILabel()
         statsLabel.textColor = TokyoNight.uiFg
         statsLabel.backgroundColor = TokyoNight.uiBg.withAlphaComponent(0.85)
@@ -248,18 +241,11 @@ class CollisionStressDemo: Scene {
     }
     #else
     // Mac scaffolding until the SwiftUI rewrite reaches this scene's controls.
-    private func setupUI() {
-        ui = DemoSceneUI(parentView: renderer.view, target: self, menuAction: #selector(onMenu))
-    }
+    private func setupUI() {}
     private func layoutUI() {}
     private func updateStats() {}
     private func tearDownUI() {}
     #endif
-
-    @objc func onMenu() {
-        ui.view.isHidden = true
-        sceneMgr.pushScene(type: SceneTypes.pauseDemo)
-    }
 
     static func build() -> Scene { return CollisionStressDemo() }
 }

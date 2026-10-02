@@ -51,7 +51,6 @@ class RandomAngleState: State {
 
     /// Called when transitioning away. Nothing to clean up for this state.
     func exit() {
-
     }
 
     /// Called every frame. Moves the ship and checks if it has left the visible area.

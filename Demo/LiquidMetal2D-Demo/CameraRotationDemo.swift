@@ -46,7 +46,6 @@ class CameraRotationDemo: Scene {
     private let spawnSpeed: Float = 30
     private let spawnZ: Float = 0
 
-    private var ui: DemoSceneUI!
     #if canImport(UIKit)
     private var rotationLabel: UILabel!
     private var spawnButton: UIButton!
@@ -65,10 +64,9 @@ class CameraRotationDemo: Scene {
         setupUI()
     }
 
-    func resume() { ui.view.isHidden = false }
+    func resume() {}
 
     func resize() {
-        ui.layout()
         renderer.setDefaultPerspective()
         layoutUI()
     }
@@ -94,7 +92,6 @@ class CameraRotationDemo: Scene {
         scheduler.clear()
         renderer.setCameraRotation(angle: 0)
         tearDownUI()
-        ui.removeFromSuperview()
     }
 
     // MARK: - Oscillation
@@ -196,10 +193,6 @@ class CameraRotationDemo: Scene {
 
     #if canImport(UIKit)
     private func setupUI() {
-        ui = DemoSceneUI(
-            parentView: renderer.view, target: self,
-            menuAction: #selector(onMenu))
-
         rotationLabel = UILabel()
         rotationLabel.textColor = TokyoNight.uiFg
         rotationLabel.textAlignment = .center
@@ -258,9 +251,7 @@ class CameraRotationDemo: Scene {
     }
     #else
     // Mac scaffolding until the SwiftUI rewrite reaches this scene's controls.
-    private func setupUI() {
-        ui = DemoSceneUI(parentView: renderer.view, target: self, menuAction: #selector(onMenu))
-    }
+    private func setupUI() {}
     private func layoutUI() {}
     private func updateLabel(_ rotation: Float) {}
     private func tearDownUI() {}
@@ -293,11 +284,6 @@ class CameraRotationDemo: Scene {
                 objects.append(obj)
             }
         }
-    }
-
-    @objc func onMenu() {
-        ui.view.isHidden = true
-        sceneMgr.pushScene(type: SceneTypes.pauseDemo)
     }
 
     static func build() -> Scene { return CameraRotationDemo() }

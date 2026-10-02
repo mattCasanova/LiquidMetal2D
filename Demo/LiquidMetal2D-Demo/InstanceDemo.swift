@@ -32,23 +32,14 @@ class InstanceDemo: DefaultScene {
     var startColor = Vec3(0.102, 0.106, 0.149)
     var endColor = Vec3(0.337, 0.373, 0.537)
 
-    private var ui: DemoSceneUI!
-
     override func initialize(services: SceneServices) {
         super.initialize(services: services)
 
         createObjects()
-
-        ui = DemoSceneUI(
-            parentView: renderer.view, target: self,
-            menuAction: #selector(onMenu))
     }
-
-    override func resume() { ui.view.isHidden = false }
 
     override func resize() {
         super.resize()
-        ui.layout()
     }
 
     override func update(dt: Float) {
@@ -84,7 +75,6 @@ class InstanceDemo: DefaultScene {
 
     override func shutdown() {
         super.shutdown()
-        ui.removeFromSuperview()
     }
 
     private func createObjects() {
@@ -110,11 +100,6 @@ class InstanceDemo: DefaultScene {
         obj.rotation = Float.random(in: 0...GameMath.twoPi)
         obj.velocity.set(angle: obj.rotation)
         obj.velocity *= Float.random(in: 1...10)
-    }
-
-    @objc func onMenu() {
-        ui.view.isHidden = true
-        sceneMgr.pushScene(type: SceneTypes.pauseDemo)
     }
 
 }

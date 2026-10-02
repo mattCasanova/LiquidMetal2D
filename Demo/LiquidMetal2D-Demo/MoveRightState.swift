@@ -44,7 +44,6 @@ class MoveRightState: State {
 
     /// Nothing to clean up when exiting this state.
     func exit() {
-
     }
 
     /// Called every frame. Moves the ship right and checks if it has left the visible area.

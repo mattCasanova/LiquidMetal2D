@@ -60,8 +60,6 @@ class TouchZoomDemo: Scene {
     private var centerShip: GameObj!
     private var cornerShips = [GameObj]()
 
-    private var ui: DemoSceneUI!
-
     /// Scene protocol: called once when the scene is first created.
     /// Set up textures, camera, projection, and create all game objects here.
     func initialize(services: SceneServices) {
@@ -80,19 +78,14 @@ class TouchZoomDemo: Scene {
         renderer.setClearColor(color: TokyoNight.clearColor)
 
         createObjects()
-
-        ui = DemoSceneUI(
-            parentView: renderer.view, target: self,
-            menuAction: #selector(onMenu))
     }
 
     /// Scene protocol: called when this scene becomes active again after a pushed scene pops.
     /// Re-show the menu button that was hidden before pushing PauseDemo.
-    func resume() { ui.view.isHidden = false }
+    func resume() {}
 
     /// Scene protocol: called on device rotation or window resize.
     func resize() {
-        ui.layout()
         renderer.setDefaultPerspective()
         // Reposition corners since screen aspect may have changed
         positionCornerShips()
@@ -146,7 +139,6 @@ class TouchZoomDemo: Scene {
     /// Scene protocol: called when this scene is removed from the scene stack.
     /// Clean up UI overlays and release GPU resources (textures).
     func shutdown() {
-        ui.removeFromSuperview()
     }
 
     private func createObjects() {
@@ -195,7 +187,6 @@ class TouchZoomDemo: Scene {
 
     /// Push the pause/menu scene on top of this scene. Hide the menu button first so it
     /// does not appear on top of the pause overlay.
-    @objc func onMenu() { ui.view.isHidden = true; sceneMgr.pushScene(type: SceneTypes.pauseDemo) }
 
     /// Every Scene must provide a static build() method. The SceneFactory uses this
     /// (via TSceneBuilder<T>) to create new instances when transitioning between scenes.

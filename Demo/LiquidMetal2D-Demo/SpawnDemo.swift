@@ -43,8 +43,6 @@ class SpawnDemo: Scene {
     /// Duration of the easeOutBack scale animation in seconds
     private let spawnEaseDuration: Float = 0.3
 
-    private var ui: DemoSceneUI!
-
     /// Scene protocol: called once when the scene is created.
     func initialize(services: SceneServices) {
         self.sceneMgr = services.sceneMgr
@@ -57,18 +55,12 @@ class SpawnDemo: Scene {
         renderer.setClearColor(color: TokyoNight.clearColor)
 
         createObjects()
-
-        ui = DemoSceneUI(
-            parentView: renderer.view, target: self,
-            menuAction: #selector(onMenu))
     }
 
-    /// Scene protocol: re-show the menu button when returning from PauseDemo.
-    func resume() { ui.view.isHidden = false }
+    func resume() {}
 
     /// Scene protocol: called on device rotation. Recalculate perspective projection.
     func resize() {
-        ui.layout()
         renderer.setDefaultPerspective()
     }
 
@@ -142,7 +134,6 @@ class SpawnDemo: Scene {
     func shutdown() {
         objects.removeAll()
         spawnAge.removeAll()
-        ui.removeFromSuperview()
     }
 
     private func createObjects() {
@@ -170,9 +161,6 @@ class SpawnDemo: Scene {
             spawnAge.append(spawnEaseDuration)
         }
     }
-
-    /// Push PauseDemo on top. Hide menu button first so it does not overlap the overlay.
-    @objc func onMenu() { ui.view.isHidden = true; sceneMgr.pushScene(type: SceneTypes.pauseDemo) }
 
     /// Required factory method for TSceneBuilder.
     static func build() -> Scene { return SpawnDemo() }

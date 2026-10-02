@@ -66,12 +66,8 @@ class ViewController: LiquidViewController {
             SmokeDemo.self,
             SmokeLayersDemo.self,
             SkeletonDemo.self,
+            PauseDemo.self,
         ])
-        #if canImport(UIKit)
-        // UIKit top to bottom; the SwiftUI rewrite replaces it. Only the UIKit Menu
-        // button pushes it, so the Mac never asks for it.
-        sceneFactory.addScenes([PauseDemo.self])
-        #endif
 
         // Step 2: Create the Metal renderer.
         let renderer = DefaultRenderer(
@@ -82,12 +78,17 @@ class ViewController: LiquidViewController {
         // the lifetime of the app; scenes reach it via `services.documents`.
         let documents = DocumentIO(presentingVC: self)
 
-        // Step 4: Create the engine and start the game loop.
+        // Step 4: Create the engine and start the game loop. `buildServices` wraps the
+        // engine's services in the demo's own bag, which adds the SwiftUI bridge.
+        let ui = self.ui
         let engine = DefaultEngine(
             renderer: renderer,
             documents: documents,
             initialSceneType: SceneTypes.asyncLoadDemo,
-            sceneFactory: sceneFactory)
+            sceneFactory: sceneFactory,
+            buildServices: { renderer, input, sceneMgr, documents in
+                DemoServices(renderer: renderer, input: input, sceneMgr: sceneMgr, documents: documents, ui: ui)
+            })
         gameEngine = engine
         ui.sceneMgr = engine.sceneManager
 

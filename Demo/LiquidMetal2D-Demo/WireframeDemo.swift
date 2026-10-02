@@ -44,7 +44,6 @@ class MultiShaderDemo: DefaultScene {
     private var wireframe: WireframeShader!
     private var ripple: RippleShader!
     private var grid: SpatialGrid!
-    private var ui: DemoSceneUI!
     #if canImport(UIKit)
     private var spawnButton: UIButton!
     private var wireToggle: UIButton!
@@ -77,10 +76,7 @@ class MultiShaderDemo: DefaultScene {
         spawnPair()
     }
 
-    override func resume() { ui.view.isHidden = false }
-
     override func layoutUI() {
-        ui.layout()
         layoutButtons()
     }
 
@@ -144,7 +140,6 @@ class MultiShaderDemo: DefaultScene {
         super.shutdown()
         renderer.unregister(shader: wireframe)
         renderer.unregister(shader: ripple)
-        ui.removeFromSuperview()
         tearDownUI()
     }
 
@@ -212,19 +207,10 @@ class MultiShaderDemo: DefaultScene {
         return obj.get(CircleCollider.self) ?? obj.get(AABBCollider.self)
     }
 
-    @objc func onMenu() {
-        ui.view.isHidden = true
-        sceneMgr.pushScene(type: SceneTypes.pauseDemo)
-    }
-
     // MARK: - UI
 
     #if canImport(UIKit)
     private func setupUI() {
-        ui = DemoSceneUI(
-            parentView: renderer.view, target: self,
-            menuAction: #selector(onMenu))
-
         spawnButton = makeButton(title: "Spawn", action: #selector(onSpawn))
         wireToggle = makeButton(title: "Wire: On", action: #selector(onToggleWireframe))
         rippleToggle = makeButton(title: "Ripple: Off", action: #selector(onToggleRipple))
@@ -275,9 +261,7 @@ class MultiShaderDemo: DefaultScene {
     }
     #else
     // Mac scaffolding until the SwiftUI rewrite reaches this scene's controls.
-    private func setupUI() {
-        ui = DemoSceneUI(parentView: renderer.view, target: self, menuAction: #selector(onMenu))
-    }
+    private func setupUI() {}
     private func layoutButtons() {}
     private func tearDownUI() {}
     #endif

@@ -27,7 +27,6 @@ class SmokeDemo: DefaultScene {
 
     private var smokeShader: ParticleShader!
     private var emitterObj: GameObj!
-    private var ui: DemoSceneUI!
     #if canImport(UIKit)
     private var burstButton: UIButton!
     private var colorButton: UIButton!
@@ -93,10 +92,7 @@ class SmokeDemo: DefaultScene {
         setupUI()
     }
 
-    override func resume() { ui.view.isHidden = false }
-
     override func layoutUI() {
-        ui.layout()
         layoutControls()
     }
 
@@ -120,7 +116,6 @@ class SmokeDemo: DefaultScene {
     override func shutdown() {
         super.shutdown()
         renderer.unregister(shader: smokeShader)
-        ui.removeFromSuperview()
         tearDownUI()
     }
 
@@ -236,19 +231,10 @@ class SmokeDemo: DefaultScene {
 
     #endif
 
-    @objc func onMenu() {
-        ui.view.isHidden = true
-        sceneMgr.pushScene(type: SceneTypes.pauseDemo)
-    }
-
     // MARK: - UI
 
     #if canImport(UIKit)
     private func setupUI() {
-        ui = DemoSceneUI(
-            parentView: renderer.view, target: self,
-            menuAction: #selector(onMenu))
-
         burstButton = makeButton(title: "Burst", action: #selector(onBurst))
         colorButton = makeButton(title: "Neon", action: #selector(onColorToggle))
         renderer.view.addSubview(burstButton)
@@ -408,9 +394,7 @@ class SmokeDemo: DefaultScene {
     }
     #else
     // Mac scaffolding until the SwiftUI rewrite reaches this scene's controls.
-    private func setupUI() {
-        ui = DemoSceneUI(parentView: renderer.view, target: self, menuAction: #selector(onMenu))
-    }
+    private func setupUI() {}
     private func layoutControls() {}
     private func tearDownUI() {}
     #endif

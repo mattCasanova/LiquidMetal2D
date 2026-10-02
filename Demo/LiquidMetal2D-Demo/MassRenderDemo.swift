@@ -38,8 +38,6 @@ class MassRenderDemo: DefaultScene {
     var startColor = Vec3(0.102, 0.106, 0.149)
     var endColor = Vec3(0.255, 0.282, 0.408)
 
-    private var ui: DemoSceneUI!
-
     override func initialize(services: SceneServices) {
         super.initialize(services: services)
 
@@ -54,16 +52,9 @@ class MassRenderDemo: DefaultScene {
         }))
 
         createObjects()
-
-        ui = DemoSceneUI(
-            parentView: renderer.view, target: self,
-            menuAction: #selector(onMenu))
     }
 
-    override func resume() { ui.view.isHidden = false }
-
     override func layoutUI() {
-        ui.layout()
     }
 
     override func update(dt: Float) {
@@ -93,7 +84,6 @@ class MassRenderDemo: DefaultScene {
 
     override func shutdown() {
         super.shutdown()
-        ui.removeFromSuperview()
     }
 
     private func createObjects() {
@@ -109,8 +99,4 @@ class MassRenderDemo: DefaultScene {
         }
     }
 
-    @objc func onMenu() {
-        ui.view.isHidden = true
-        sceneMgr.pushScene(type: SceneTypes.pauseDemo)
-    }
 }

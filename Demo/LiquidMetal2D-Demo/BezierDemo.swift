@@ -62,8 +62,6 @@ class BezierDemo: Scene {
     /// Whether a touch was active on the previous frame (for detecting new touches vs. drags)
     private var wasTouching = false
 
-    private var ui: DemoSceneUI!
-
     /// Scene protocol: called once when the scene is created.
     func initialize(services: SceneServices) {
         self.sceneMgr = services.sceneMgr
@@ -76,18 +74,12 @@ class BezierDemo: Scene {
         renderer.setClearColor(color: TokyoNight.clearColor)
 
         createObjects()
-
-        ui = DemoSceneUI(
-            parentView: renderer.view, target: self,
-            menuAction: #selector(onMenu))
     }
 
-    /// Scene protocol: re-show the menu button when returning from PauseDemo.
-    func resume() { ui.view.isHidden = false }
+    func resume() {}
 
     /// Scene protocol: called on device rotation. Recalculate perspective projection.
     func resize() {
-        ui.layout()
         renderer.setDefaultPerspective()
     }
 
@@ -127,7 +119,6 @@ class BezierDemo: Scene {
 
     /// Scene protocol: clean up UI and GPU resources.
     func shutdown() {
-        ui.removeFromSuperview()
     }
 
     // MARK: - Private
@@ -213,9 +204,6 @@ class BezierDemo: Scene {
             controlPointShips.append(cp)
         }
     }
-
-    /// Push PauseDemo on top of this scene.
-    @objc func onMenu() { ui.view.isHidden = true; sceneMgr.pushScene(type: SceneTypes.pauseDemo) }
 
     /// Required factory method for TSceneBuilder.
     static func build() -> Scene { return BezierDemo() }

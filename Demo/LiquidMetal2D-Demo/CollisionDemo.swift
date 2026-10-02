@@ -45,8 +45,6 @@ class CollisionDemo: Scene {
     private let scheduler = Scheduler()
     private var grid: SpatialGrid!
 
-    private var ui: DemoSceneUI!
-
     /// Scene protocol: called once when the scene is created.
     func initialize(services: SceneServices) {
         self.sceneMgr = services.sceneMgr
@@ -67,24 +65,18 @@ class CollisionDemo: Scene {
         // Spawn 20 ships immediately so the scene starts populated
         for _ in 0..<20 { spawnShip() }
 
-        ui = DemoSceneUI(
-            parentView: renderer.view, target: self,
-            menuAction: #selector(onMenu))
-
         // Spawn one ship per second using a repeating scheduled task
         scheduler.add(task: ScheduledTask(time: 1, action: { [unowned self] _ in
             self.spawnShip()
         }))
     }
 
-    /// Scene protocol: re-show the menu button when returning from PauseDemo.
-    func resume() { ui.view.isHidden = false }
+    func resume() {}
 
     /// Scene protocol: called on device rotation. Recalculate projection and recreate objects
     /// because the visible world bounds have changed.
     func resize() {
         renderer.setDefaultPerspective()
-        ui.layout()
     }
 
     private let maxAge: Float = 30.0
@@ -134,7 +126,6 @@ class CollisionDemo: Scene {
     func shutdown() {
         objects.removeAll()
         scheduler.clear()
-        ui.removeFromSuperview()
     }
 
     /// Pre-allocate the full pool of GameObjs. They start inactive (isActive = false)
@@ -285,9 +276,6 @@ class CollisionDemo: Scene {
             }
         }
     }
-
-    /// Push PauseDemo on top of this scene.
-    @objc func onMenu() { ui.view.isHidden = true; sceneMgr.pushScene(type: SceneTypes.pauseDemo) }
 
     /// Required factory method for TSceneBuilder.
     static func build() -> Scene { return CollisionDemo() }
