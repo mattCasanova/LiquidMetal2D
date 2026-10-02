@@ -29,6 +29,11 @@ import LiquidMetal2D
 /// - Devices: `ViewController` creates the engine with
 ///   `inputDevices: [.pointer, .keyboard]`; without `.keyboard` the key
 ///   queries here would trap.
+/// - Actions: `DemoAction` (jump, move left, move right) through
+///   `InputBindings`. Jump logs a line, the move axis reads -1, 0 or 1.
+///   Rebind Jump captures the next key or button with `firstTriggeredCode()`;
+///   Reset Jump puts the defaults back. Jump's defaults name `.gamepadA`,
+///   which is skipped because the demo has no gamepad device.
 class InputDemo: DefaultScene, PointerObserver, KeyboardObserver {
     override class var sceneType: any SceneType { SceneTypes.inputDemo }
 
@@ -43,6 +48,12 @@ class InputDemo: DefaultScene, PointerObserver, KeyboardObserver {
     private static let shiftA: [InputCode] = [.shift, .a]
     private static let commandB: [InputCode] = [.command, .b]
 
+    private var bindings = InputBindings<DemoAction>(defaults: [
+        .jump: [.space, .w, .gamepadA],
+        .moveLeft: [.a, .arrowLeft],
+        .moveRight: [.d, .arrowRight]
+    ])
+
     override func initialize(services: SceneServices) {
         super.initialize(services: services)
         renderer.setClearColor(color: TokyoNight.clearColor)
@@ -56,6 +67,13 @@ class InputDemo: DefaultScene, PointerObserver, KeyboardObserver {
         inputObservers.add(keyboard: self)
 
         ui = services.demoUI
+        controls.onRebindJump = { [unowned self] in controls.isCapturing = true }
+        controls.onResetJump = { [unowned self] in
+            controls.isCapturing = false
+            bindings.reset(.jump)
+            showJumpBinding()
+        }
+        showJumpBinding()
         showOverlay()
     }
 
@@ -101,6 +119,29 @@ class InputDemo: DefaultScene, PointerObserver, KeyboardObserver {
         if input.isComboTriggered(InputDemo.commandB) {
             controls.log("combo command+b")
         }
+        updateActions()
+    }
+
+    // MARK: - Actions
+
+    private func updateActions() {
+        if controls.isCapturing {
+            // The captured press binds; it does not also jump.
+            if let code = input.firstTriggeredCode() {
+                bindings.set([code], for: .jump)
+                controls.isCapturing = false
+                controls.log("jump bound to \(code.name)")
+                showJumpBinding()
+            }
+        } else if input.isTriggered(.jump, in: bindings) {
+            controls.log("action jump")
+        }
+        let move = input.axis(negative: .moveLeft, positive: .moveRight, in: bindings)
+        controls.moveText = String(format: "move     %+.0f", move)
+    }
+
+    private func showJumpBinding() {
+        controls.jumpText = "jump     " + bindings.codes(for: .jump).map(\.name).joined(separator: " ")
     }
 
     override func shutdown() {
@@ -169,6 +210,11 @@ final class InputControls {
     var touchesText = "touches  0"
     var scrollText = "scroll   total (0, 0)"
     var keysText = "keys     none"
+    var jumpText = ""
+    var moveText = "move     +0"
+    var isCapturing = false
+    var onRebindJump: () -> Void = {}
+    var onResetJump: () -> Void = {}
     private(set) var flashText = ""
     private(set) var flashOpacity = 0.0
     private(set) var logLines: [String] = []
@@ -197,6 +243,8 @@ struct InputPanel: View {
                 Text(controls.touchesText)
                 Text(controls.scrollText)
                 Text(controls.keysText)
+                Text(controls.isCapturing ? "jump     press a key or button…" : controls.jumpText)
+                Text(controls.moveText)
             }
             .font(.system(size: 13, design: .monospaced))
             .foregroundStyle(TokyoNight.color(TokyoNight.fg))
@@ -222,6 +270,16 @@ struct InputPanel: View {
             .frame(maxWidth: .infinity, alignment: .trailing)
             .padding(.trailing, 8)
             .padding(.top, 56)
+
+            BottomBar {
+                Button(controls.isCapturing ? "Waiting…" : "Rebind Jump", action: controls.onRebindJump)
+                Button("Reset Jump", action: controls.onResetJump)
+            }
         }
     }
+}
+
+/// The demo's actions: what the scene asks about instead of keys.
+enum DemoAction: String, InputAction {
+    case jump, moveLeft, moveRight
 }
