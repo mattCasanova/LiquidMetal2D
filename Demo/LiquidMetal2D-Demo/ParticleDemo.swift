@@ -5,11 +5,8 @@
 //  Created by Matt Casanova on 4/19/26.
 //
 
-import Foundation
+import SwiftUI
 import LiquidMetal2D
-#if canImport(UIKit)
-import UIKit
-#endif
 
 /// Showcases `ParticleShader` — a fourth engine shader doing additive-blended,
 /// texture-sampled particles with order-independent compositing.
@@ -17,8 +14,9 @@ import UIKit
 /// **What the user sees:** a campfire-like emitter shoots orange/red glowy
 /// particles upward. Touch and drag anywhere on the Metal view to move the
 /// emitter; particles already in flight continue on their existing path
-/// (they don't follow the emitter after birth). Two buttons: `Burst` spawns
-/// 60 particles at once, `Pause` toggles continuous emission.
+/// (they don't follow the emitter after birth). Buttons: `Burst` spawns
+/// 60 particles at once, `Pause` toggles continuous emission, `Neon` swaps
+/// the palette. Sliders on the right tune the emitter live.
 ///
 /// **Engine features demonstrated:**
 /// - `ParticleEmitterComponent` — pre-allocated particle pool, per-frame
@@ -34,48 +32,20 @@ class ParticleDemo: DefaultScene {
 
     private var particleShader: ParticleShader!
     private var emitterObj: GameObj!
-    #if canImport(UIKit)
-    private var burstButton: UIButton!
-    private var pauseButton: UIButton!
-    private var colorButton: UIButton!
-
-    // Sliders set the midpoint of the relevant range. Actual min/max is
-    // ±`rangeSpread` around it, so randomness is preserved. Tweak the
-    // spread fraction to make particles more/less uniform.
-    private let rangeSpread: Float = 0.3
-    private var emissionSlider: UISlider!
-    private var speedSlider: UISlider!
-    private var scaleSlider: UISlider!
-    private var lifetimeSlider: UISlider!
-    private var spreadSlider: UISlider!
-    private var gravitySlider: UISlider!
-    private var emissionLabel: UILabel!
-    private var speedLabel: UILabel!
-    private var scaleLabel: UILabel!
-    private var lifetimeLabel: UILabel!
-    private var spreadLabel: UILabel!
-    private var gravityLabel: UILabel!
-
-    // "Correlated color variation" switch at the top of the slider column.
-    private var correlatedSwitch: UISwitch!
-    private var correlatedLabel: UILabel!
-    #endif
+    private var emitter: ParticleEmitterComponent!
+    private let controls = FireControls()
+    private var ui: DemoUI!
 
     // Color palette with matched start-color + variation endpoints and
     // end-color + variation endpoints. Each particle picks a random t
     // between the start pair (and, correlated, the end pair), so overlap
     // brightens in a range of warm hues instead of a single color.
-    private let fireStartColor = Vec4(1.0, 0.55, 0.15, 0.7)
-    private let fireStartVar   = Vec4(1.0, 0.85, 0.20, 0.7)  // warm yellow
-    private let fireEndColor   = Vec4(0.9, 0.10, 0.00, 0.0)
-    private let fireEndVar     = Vec4(0.5, 0.00, 0.00, 0.0)  // deep red
-
-    private let neonStartColor = Vec4(1.0, 0.30, 0.75, 0.7)  // pink
-    private let neonStartVar   = Vec4(0.75, 0.30, 1.0, 0.7)  // purple
-    private let neonEndColor   = Vec4(0.5, 0.00, 0.55, 0.0)
-    private let neonEndVar     = Vec4(0.3, 0.00, 0.70, 0.0)
-
-    private var isNeon: Bool = false
+    private let fire = FirePalette(
+        startColor: Vec4(1.0, 0.55, 0.15, 0.7), startVariation: Vec4(1.0, 0.85, 0.20, 0.7),   // warm yellow
+        endColor: Vec4(0.9, 0.10, 0.00, 0.0), endVariation: Vec4(0.5, 0.00, 0.00, 0.0))        // deep red
+    private let neon = FirePalette(
+        startColor: Vec4(1.0, 0.30, 0.75, 0.7), startVariation: Vec4(0.75, 0.30, 1.0, 0.7),   // pink → purple
+        endColor: Vec4(0.5, 0.00, 0.55, 0.0), endVariation: Vec4(0.3, 0.00, 0.70, 0.0))
 
     override func initialize(services: SceneServices) {
         super.initialize(services: services)
@@ -93,21 +63,24 @@ class ParticleDemo: DefaultScene {
         renderer.register(shader: particleShader)
 
         createEmitter()
-        setupUI()
+
+        ui = services.demoUI
+        controls.onBurst = { [unowned self] in emitter.spawn(count: 60) }
+        controls.altPaletteName = "Neon"
+        showOverlay()
     }
 
-    override func layoutUI() {
-        layoutButtons()
-    }
+    override func resume() { showOverlay() }
 
     override func update(dt: Float) {
-        // Drag to reposition the emitter. Taps on the UIButton overlays are
-        // handled by UIKit and never reach the input reader, so the buttons
-        // don't accidentally teleport the emitter.
+        // Drag to reposition the emitter. Touches on the SwiftUI controls are
+        // eaten by SwiftUI and never reach the input reader, so the panel
+        // doesn't accidentally teleport the emitter.
         if let touch = input.getWorldTouch(forZ: 0) {
             emitterObj.position.set(touch.x, touch.y)
         }
-        emitterObj.get(ParticleEmitterComponent.self)?.update(dt: dt)
+        controls.apply(to: emitter, palette: controls.isAltPalette ? neon : fire)
+        emitter.update(dt: dt)
     }
 
     override func draw() {
@@ -124,7 +97,7 @@ class ParticleDemo: DefaultScene {
     override func shutdown() {
         super.shutdown()
         renderer.unregister(shader: particleShader)
-        tearDownUI()
+        ui.overlay = nil
     }
 
     // MARK: - Emitter
@@ -133,7 +106,7 @@ class ParticleDemo: DefaultScene {
         let obj = GameObj()
         obj.position.set(0, -6)  // slightly below center so upward particles fill the screen
 
-        obj.add(ParticleEmitterComponent(
+        emitter = ParticleEmitterComponent(
             parent: obj,
             maxParticles: 400,
             textureID: renderer.defaultParticleTextureId,
@@ -147,267 +120,99 @@ class ParticleDemo: DefaultScene {
             angularVelocityRange: -1...1,
             // Warm palette — each particle picks a random lerp between the
             // orange/yellow endpoints and dies somewhere between red/dark-red.
-            startColor: fireStartColor,
-            startColorVariation: fireStartVar,
-            endColor: fireEndColor,
-            endColorVariation: fireEndVar,
+            startColor: fire.startColor,
+            startColorVariation: fire.startVariation,
+            endColor: fire.endColor,
+            endColorVariation: fire.endVariation,
             correlatedColorVariation: true,
             gravity: Vec2(0, 1)   // slight buoyancy — particles accelerate upward
-        ))
+        )
+        obj.add(emitter)
 
         objects.append(obj)
         emitterObj = obj
     }
 
-    // MARK: - Actions
-
-    #if canImport(UIKit)
-    @objc private func onBurst() {
-        emitterObj.get(ParticleEmitterComponent.self)?.spawn(count: 60)
-    }
-
-    @objc private func onPause() {
-        guard let emitter = emitterObj.get(ParticleEmitterComponent.self) else { return }
-        emitter.isEmitting.toggle()
-        pauseButton.setTitle(emitter.isEmitting ? "Pause" : "Resume", for: .normal)
-    }
-
-    // MARK: - Slider handlers
-
-    @objc private func onEmissionChanged() {
-        guard let emitter = emitterObj.get(ParticleEmitterComponent.self) else { return }
-        let value = emissionSlider.value
-        emitter.emissionRate = value
-        emissionLabel.text = String(format: "Emission: %.0f/s", value)
-    }
-
-    @objc private func onSpeedChanged() {
-        guard let emitter = emitterObj.get(ParticleEmitterComponent.self) else { return }
-        let center = speedSlider.value
-        emitter.speedRange = (center * (1 - rangeSpread))...(center * (1 + rangeSpread))
-        speedLabel.text = String(format: "Speed: %.1f", center)
-    }
-
-    @objc private func onScaleChanged() {
-        guard let emitter = emitterObj.get(ParticleEmitterComponent.self) else { return }
-        let center = scaleSlider.value
-        emitter.scaleRange = (center * (1 - rangeSpread))...(center * (1 + rangeSpread))
-        scaleLabel.text = String(format: "Scale: %.1f", center)
-    }
-
-    @objc private func onLifetimeChanged() {
-        guard let emitter = emitterObj.get(ParticleEmitterComponent.self) else { return }
-        let center = lifetimeSlider.value
-        emitter.lifetimeRange = (center * (1 - rangeSpread))...(center * (1 + rangeSpread))
-        lifetimeLabel.text = String(format: "Lifetime: %.2fs", center)
-    }
-
-    @objc private func onSpreadChanged() {
-        guard let emitter = emitterObj.get(ParticleEmitterComponent.self) else { return }
-        let halfSpread = spreadSlider.value
-        // Emit direction stays pointed up (pi/2); spread widens the cone.
-        emitter.angleRange = (.pi / 2 - halfSpread)...(.pi / 2 + halfSpread)
-        spreadLabel.text = String(format: "Spread: %.2f rad", halfSpread)
-    }
-
-    @objc private func onGravityChanged() {
-        guard let emitter = emitterObj.get(ParticleEmitterComponent.self) else { return }
-        let g = gravitySlider.value
-        emitter.gravity = Vec2(0, g)
-        gravityLabel.text = String(format: "Gravity Y: %+.1f", g)
-    }
-
-    @objc private func onColorToggle() {
-        isNeon.toggle()
-        guard let emitter = emitterObj.get(ParticleEmitterComponent.self) else { return }
-        if isNeon {
-            emitter.startColor = neonStartColor
-            emitter.startColorVariation = neonStartVar
-            emitter.endColor = neonEndColor
-            emitter.endColorVariation = neonEndVar
-        } else {
-            emitter.startColor = fireStartColor
-            emitter.startColorVariation = fireStartVar
-            emitter.endColor = fireEndColor
-            emitter.endColorVariation = fireEndVar
-        }
-        colorButton.setTitle(isNeon ? "Fire" : "Neon", for: .normal)
-    }
-
-    @objc private func onCorrelatedChanged() {
-        emitterObj.get(ParticleEmitterComponent.self)?.correlatedColorVariation
-            = correlatedSwitch.isOn
-    }
-
-    #endif
-
     // MARK: - UI
 
-    #if canImport(UIKit)
-    private func setupUI() {
-        burstButton = makeButton(title: "Burst", action: #selector(onBurst))
-        pauseButton = makeButton(title: "Pause", action: #selector(onPause))
-        colorButton = makeButton(title: "Neon", action: #selector(onColorToggle))
-        renderer.view.addSubview(burstButton)
-        renderer.view.addSubview(pauseButton)
-        renderer.view.addSubview(colorButton)
+    private func showOverlay() {
+        ui.overlay = AnyView(FirePanel(controls: controls))
+    }
+}
 
-        // Slider defaults match the initial emitter config.
-        emissionLabel = makeSliderLabel()
-        speedLabel = makeSliderLabel()
-        scaleLabel = makeSliderLabel()
-        lifetimeLabel = makeSliderLabel()
-        spreadLabel = makeSliderLabel()
-        gravityLabel = makeSliderLabel()
+/// A particle colour scheme: start and end colours with their variation endpoints.
+struct FirePalette {
+    let startColor: Vec4
+    let startVariation: Vec4
+    let endColor: Vec4
+    let endVariation: Vec4
+}
 
-        emissionSlider = makeSlider(min: 10,   max: 400,  value: 140,
-                                    action: #selector(onEmissionChanged))
-        speedSlider    = makeSlider(min: 2,    max: 24,   value: 10,
-                                    action: #selector(onSpeedChanged))
-        scaleSlider    = makeSlider(min: 1,    max: 12,   value: 6,
-                                    action: #selector(onScaleChanged))
-        lifetimeSlider = makeSlider(min: 0.2,  max: 3.0,  value: 1.2,
-                                    action: #selector(onLifetimeChanged))
-        spreadSlider   = makeSlider(min: 0.01, max: .pi,  value: 0.25,
-                                    action: #selector(onSpreadChanged))
-        gravitySlider  = makeSlider(min: -20,  max: 20,   value: 1,
-                                    action: #selector(onGravityChanged))
+/// The tunables of a point or line fire emitter. Sliders set the midpoint of each range;
+/// the scene applies them to the emitter every frame (`apply(to:palette:)`).
+@MainActor
+@Observable
+final class FireControls {
+    var emission: Float = 140
+    var speed: Float = 10
+    var scale: Float = 6
+    var lifetime: Float = 1.2
+    var spread: Float = 0.25
+    var gravity: Float = 1
+    var isCorrelated = true
+    var isEmitting = true
+    var isAltPalette = false
+    var altPaletteName = "Neon"
+    var onBurst: () -> Void = {}
 
-        [emissionLabel, speedLabel, scaleLabel,
-         lifetimeLabel, spreadLabel, gravityLabel,
-         emissionSlider, speedSlider, scaleSlider,
-         lifetimeSlider, spreadSlider, gravitySlider].forEach { renderer.view.addSubview($0) }
+    /// Actual min/max is ±`rangeSpread` around each slider's midpoint, so randomness is
+    /// preserved. Tweak the spread fraction to make particles more/less uniform.
+    private let rangeSpread: Float = 0.3
 
-        // "Correlated" toggle at the top of the slider column.
-        correlatedLabel = makeSliderLabel()
-        correlatedLabel.text = "Correlated"
-        correlatedSwitch = UISwitch(frame: .zero)
-        correlatedSwitch.isOn = true
-        correlatedSwitch.onTintColor = TokyoNight.uiBlue
-        correlatedSwitch.addTarget(
-            self, action: #selector(onCorrelatedChanged), for: .valueChanged)
-        renderer.view.addSubview(correlatedLabel)
-        renderer.view.addSubview(correlatedSwitch)
-
-        // Prime the labels with initial values.
-        onEmissionChanged()
-        onSpeedChanged()
-        onScaleChanged()
-        onLifetimeChanged()
-        onSpreadChanged()
-        onGravityChanged()
-
-        layoutButtons()
+    func apply(to emitter: ParticleEmitterComponent, palette: FirePalette) {
+        emitter.emissionRate = emission
+        emitter.speedRange = around(speed)
+        emitter.scaleRange = around(scale)
+        emitter.lifetimeRange = around(lifetime)
+        // Emit direction stays pointed up (pi/2); spread widens the cone.
+        emitter.angleRange = (.pi / 2 - spread)...(.pi / 2 + spread)
+        emitter.gravity = Vec2(0, gravity)
+        emitter.correlatedColorVariation = isCorrelated
+        emitter.isEmitting = isEmitting
+        emitter.startColor = palette.startColor
+        emitter.startColorVariation = palette.startVariation
+        emitter.endColor = palette.endColor
+        emitter.endColorVariation = palette.endVariation
     }
 
-    private func makeButton(title: String, action: Selector) -> UIButton {
-        let button = UIButton(frame: .zero)
-        button.backgroundColor = TokyoNight.uiDarker
-        button.setTitle(title, for: .normal)
-        button.setTitleColor(TokyoNight.uiBlue, for: .normal)
-        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 15)
-        button.layer.cornerRadius = 6
-        button.addTarget(self, action: action, for: .touchUpInside)
-        return button
+    private func around(_ center: Float) -> ClosedRange<Float> {
+        (center * (1 - rangeSpread))...(center * (1 + rangeSpread))
     }
+}
 
-    private func makeSlider(min: Float, max: Float, value: Float, action: Selector) -> UISlider {
-        let slider = UISlider(frame: .zero)
-        slider.minimumValue = min
-        slider.maximumValue = max
-        slider.value = value
-        slider.minimumTrackTintColor = TokyoNight.uiBlue
-        slider.addTarget(self, action: action, for: .valueChanged)
-        return slider
-    }
+/// The fire emitter's slider column and button row.
+struct FirePanel: View {
+    @Bindable var controls: FireControls
 
-    private func makeSliderLabel() -> UILabel {
-        let label = UILabel(frame: .zero)
-        label.textColor = TokyoNight.uiFg
-        label.font = UIFont.monospacedDigitSystemFont(ofSize: 13, weight: .medium)
-        return label
-    }
-
-    private func layoutButtons() {
-        let safeTop = renderer.view.safeAreaInsets.top
-        let safeBottom = renderer.view.safeAreaInsets.bottom
-        let safeRight = renderer.view.safeAreaInsets.right
-        let viewWidth = renderer.view.bounds.width
-        let viewHeight = renderer.view.bounds.height
-
-        // Bottom-center button row (3 buttons).
-        let buttonWidth: CGFloat = 110
-        let buttonHeight: CGFloat = 44
-        let gap: CGFloat = 10
-        let bottomY = viewHeight - safeBottom - buttonHeight - 16
-        let totalWidth = buttonWidth * 3 + gap * 2
-        let leftX = (viewWidth - totalWidth) / 2
-
-        burstButton.frame = CGRect(
-            x: leftX, y: bottomY, width: buttonWidth, height: buttonHeight)
-        pauseButton.frame = CGRect(
-            x: leftX + (buttonWidth + gap), y: bottomY,
-            width: buttonWidth, height: buttonHeight)
-        colorButton.frame = CGRect(
-            x: leftX + (buttonWidth + gap) * 2, y: bottomY,
-            width: buttonWidth, height: buttonHeight)
-
-        // Right-side slider stack (6 rows, compact to fit landscape).
-        let sliderColumnWidth: CGFloat = 200
-        let rowHeight: CGFloat = 26
-        let labelHeight: CGFloat = 16
-        let rowSpacing: CGFloat = 6
-        let rightEdge = viewWidth - safeRight - 12
-        let columnX = rightEdge - sliderColumnWidth
-        var cursorY = safeTop + 12
-
-        // "Correlated" switch row — label on the left, UISwitch on the right.
-        let switchRowHeight: CGFloat = 32
-        if correlatedSwitch != nil, correlatedLabel != nil {
-            correlatedLabel.frame = CGRect(x: columnX, y: cursorY,
-                                           width: sliderColumnWidth - 60,
-                                           height: switchRowHeight)
-            correlatedSwitch.sizeToFit()
-            let switchSize = correlatedSwitch.frame.size
-            correlatedSwitch.frame = CGRect(
-                x: columnX + sliderColumnWidth - switchSize.width,
-                y: cursorY + (switchRowHeight - switchSize.height) / 2,
-                width: switchSize.width, height: switchSize.height)
-            cursorY += switchRowHeight + rowSpacing
-        }
-
-        let rows: [(UILabel, UISlider)] = [
-            (emissionLabel, emissionSlider),
-            (speedLabel,    speedSlider),
-            (scaleLabel,    scaleSlider),
-            (lifetimeLabel, lifetimeSlider),
-            (spreadLabel,   spreadSlider),
-            (gravityLabel,  gravitySlider)
-        ]
-        for (label, slider) in rows {
-            label.frame = CGRect(x: columnX, y: cursorY,
-                                 width: sliderColumnWidth, height: labelHeight)
-            slider.frame = CGRect(x: columnX, y: cursorY + labelHeight,
-                                  width: sliderColumnWidth, height: rowHeight)
-            cursorY += labelHeight + rowHeight + rowSpacing
+    var body: some View {
+        ZStack {
+            ControlColumn {
+                Toggle("Correlated", isOn: $controls.isCorrelated)
+                    .font(.system(size: 13, weight: .medium, design: .monospaced))
+                    .foregroundStyle(TokyoNight.color(TokyoNight.fg))
+                    .tint(TokyoNight.color(TokyoNight.blue))
+                LabeledSlider(title: "Emission", value: $controls.emission, range: 10...400, format: "%.0f/s")
+                LabeledSlider(title: "Speed", value: $controls.speed, range: 2...24)
+                LabeledSlider(title: "Scale", value: $controls.scale, range: 1...12)
+                LabeledSlider(title: "Lifetime", value: $controls.lifetime, range: 0.2...3.0, format: "%.2fs")
+                LabeledSlider(title: "Spread", value: $controls.spread, range: 0.01...(.pi), format: "%.2f rad")
+                LabeledSlider(title: "Gravity Y", value: $controls.gravity, range: -20...20, format: "%+.1f")
+            }
+            BottomBar {
+                Button("Burst", action: controls.onBurst)
+                Button(controls.isEmitting ? "Pause" : "Resume") { controls.isEmitting.toggle() }
+                Button(controls.isAltPalette ? "Fire" : controls.altPaletteName) { controls.isAltPalette.toggle() }
+            }
         }
     }
-
-    private func tearDownUI() {
-        burstButton.removeFromSuperview()
-        pauseButton.removeFromSuperview()
-        colorButton.removeFromSuperview()
-        correlatedSwitch?.removeFromSuperview()
-        correlatedLabel?.removeFromSuperview()
-        [emissionSlider, speedSlider, scaleSlider,
-         lifetimeSlider, spreadSlider, gravitySlider,
-         emissionLabel, speedLabel, scaleLabel,
-         lifetimeLabel, spreadLabel, gravityLabel].forEach { $0?.removeFromSuperview() }
-    }
-    #else
-    // Mac scaffolding until the SwiftUI rewrite reaches this scene's controls.
-    private func setupUI() {}
-    private func layoutButtons() {}
-    private func tearDownUI() {}
-    #endif
 }

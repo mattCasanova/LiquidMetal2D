@@ -56,3 +56,36 @@ struct ReadoutText: View {
             .multilineTextAlignment(.center)
     }
 }
+
+/// One tunable: a slider over a range, with the value in its label.
+struct LabeledSlider: View {
+    let title: String
+    @Binding var value: Float
+    let range: ClosedRange<Float>
+    var format: String = "%.1f"
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(String(format: "\(title): \(format)", value))
+                .font(.system(size: 13, weight: .medium, design: .monospaced))
+                .foregroundStyle(TokyoNight.color(TokyoNight.fg))
+            Slider(value: $value, in: range)
+                .tint(TokyoNight.color(TokyoNight.blue))
+        }
+    }
+}
+
+/// A column of controls docked to the right edge; scrolls when the window is short.
+struct ControlColumn<Content: View>: View {
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 8) { content }
+                .frame(width: 200)
+                .padding(12)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+        .padding(.top, 48)
+    }
+}
