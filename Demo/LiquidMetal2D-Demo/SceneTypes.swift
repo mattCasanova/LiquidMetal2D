@@ -43,6 +43,7 @@ enum SceneTypes: SceneType {
     case smokeDemo
     case smokeLayersDemo
     case skeletonDemo
+    case inputDemo
     case pauseDemo
 
     /// Human-readable display name for each scene, used in the PauseDemo menu table view.
@@ -65,6 +66,7 @@ enum SceneTypes: SceneType {
         case .smokeDemo: return "Particles - Alpha Smoke"
         case .smokeLayersDemo: return "Particles - Smoke Layers (Draw Order)"
         case .skeletonDemo: return "Skeletal Animation - Stick Figure"
+        case .inputDemo: return "Input - Pointer, Touches & Keys"
         case .pauseDemo: return "Paused"
         }
     }
@@ -74,7 +76,7 @@ enum SceneTypes: SceneType {
         .massRenderDemo, .touchZoomDemo, .instanceDemo,
         .schedulerDemo, .spawnDemo, .collisionDemo, .collisionStressDemo,
         .bezierDemo, .cameraRotationDemo, .cameraPanDemo, .multiShaderDemo,
-        .particleDemo, .lineParticleDemo, .smokeDemo, .smokeLayersDemo, .skeletonDemo
+        .particleDemo, .lineParticleDemo, .smokeDemo, .smokeLayersDemo, .skeletonDemo, .inputDemo
     ]
 
     /// Returns the next scene in the navigable list, or nil if this is the last one.

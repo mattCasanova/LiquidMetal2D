@@ -66,6 +66,7 @@ class ViewController: LiquidViewController {
             SmokeDemo.self,
             SmokeLayersDemo.self,
             SkeletonDemo.self,
+            InputDemo.self,
             PauseDemo.self,
         ])
 
@@ -84,6 +85,7 @@ class ViewController: LiquidViewController {
         let engine = DefaultEngine(
             renderer: renderer,
             documents: documents,
+            inputDevices: [.pointer, .keyboard],
             initialSceneType: SceneTypes.asyncLoadDemo,
             sceneFactory: sceneFactory,
             buildServices: { renderer, input, sceneMgr, documents in
