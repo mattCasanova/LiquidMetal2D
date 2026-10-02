@@ -41,6 +41,61 @@ final class AllocationTests: XCTestCase {
         XCTAssertGreaterThan(found, 0)
     }
 
+    // MARK: - Input
+
+    func testInputFrameAllocatesNothing() throws {
+        try requireOptimizedBuild()
+        let input = InputSystem(devices: [.pointer, .keyboard], unproject: { $0 })
+        let feed = {
+            input.enqueue(.down(.leftShift))
+            input.enqueue(.down(.a))
+            input.enqueue(.pointerMoved(Vec2(10, 20)))
+            input.enqueue(.scroll(Vec2(0, 1)))
+            input.enqueue(.touchBegan(id: 1, Vec2(5, 5)))
+            input.enqueue(.touchBegan(id: 2, Vec2(9, 9)))
+            input.enqueue(.touchMoved(id: 2, Vec2(8, 8)))
+            _ = input.beginFrame()
+            input.enqueue(.up(.a))
+            input.enqueue(.up(.leftShift))
+            input.enqueue(.touchEnded(id: 1))
+            input.enqueue(.touchEnded(id: 2))
+            input.enqueue(.focusLost)
+            _ = input.beginFrame()
+        }
+        feed()
+
+        let count = AllocationCounter.count(feed)
+
+        XCTAssertEqual(count, 0)
+    }
+
+    func testInputSetQueriesAllocateNothing() throws {
+        try requireOptimizedBuild()
+        let system = InputSystem(devices: [.pointer, .keyboard], unproject: { $0 })
+        let input: InputReader = system   // scenes hold the existential
+        let jump: [InputCode] = [.space, .w, .gamepadA, .pointerPrimary]
+        let undo: [InputCode] = [.command, .z]
+        system.enqueue(.down(.leftCommand))
+        system.beginFrame()
+        system.enqueue(.down(.z))
+        system.beginFrame()
+        var hits = 0
+        let query = {
+            if input.isTriggered(anyOf: jump) { hits += 1 }
+            if input.isPressed(anyOf: jump) { hits += 1 }
+            if input.isPressed(allOf: undo) { hits += 1 }
+            if input.isReleased(anyOf: jump) { hits += 1 }
+            if input.isComboTriggered(undo) { hits += 1 }
+        }
+        query()
+
+        hits = 0
+        let count = AllocationCounter.count(query)
+
+        XCTAssertEqual(hits, 2, "allOf and the combo")
+        XCTAssertEqual(count, 0)
+    }
+
     // MARK: - Spatial grid
 
     func testForEachPotentialPairAllocatesNothing() throws {
