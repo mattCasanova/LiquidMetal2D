@@ -1,8 +1,5 @@
-import Foundation
+import SwiftUI
 import LiquidMetal2D
-#if canImport(UIKit)
-import UIKit
-#endif
 
 /// Collision stress test comparing brute force vs SpatialGrid broadphase.
 ///
@@ -10,12 +7,13 @@ import UIKit
 /// switches between O(n²) brute force and SpatialGrid broadphase.
 /// Stats show object count, pairs checked, and frame time so you can
 /// see the performance difference directly.
-class CollisionStressDemo: Scene {
+class CollisionStressDemo: LiquidMetal2D.Scene {
     static var sceneType: any SceneType { SceneTypes.collisionStressDemo }
 
     private var sceneMgr: SceneManager!
     private var renderer: Renderer!
     private var input: InputReader!
+    private var ui: DemoUI!
 
     private let objectCount = 7000
     private var objects = [GameObj]()
@@ -31,16 +29,13 @@ class CollisionStressDemo: Scene {
     private var smoothedFPS: Float = 60
     private let fpsSmoothing: Float = 0.05
 
-    // UI
-    #if canImport(UIKit)
-    private var statsLabel: UILabel!
-    private var toggleButton: UIButton!
-    #endif
+    private let controls = CollisionStressControls()
 
     func initialize(services: SceneServices) {
         self.sceneMgr = services.sceneMgr
         self.renderer = services.renderer
         self.input = services.input
+        self.ui = services.demoUI
 
         renderer.setCamera()
         renderer.setCameraRotation(angle: 0)
@@ -51,14 +46,15 @@ class CollisionStressDemo: Scene {
         grid = SpatialGrid(bounds: bounds, cellWidth: 3, cellHeight: 3)
 
         createObjects(bounds: bounds)
-        setupUI()
+
+        controls.onToggle = { [unowned self] in useBroadphase.toggle() }
+        showOverlay()
     }
 
-    func resume() {}
+    func resume() { showOverlay() }
 
     func resize() {
         renderer.setDefaultPerspective()
-        layoutUI()
     }
 
     func update(dt: Float) {
@@ -96,7 +92,7 @@ class CollisionStressDemo: Scene {
         objects.removeAll()
         colliders.removeAll()
         colliderMap.removeAll()
-        tearDownUI()
+        ui.overlay = nil
     }
 
     // MARK: - Collision
@@ -174,78 +170,44 @@ class CollisionStressDemo: Scene {
 
     // MARK: - UI
 
-    #if canImport(UIKit)
-    private func setupUI() {
-        statsLabel = UILabel()
-        statsLabel.textColor = TokyoNight.uiFg
-        statsLabel.backgroundColor = TokyoNight.uiBg.withAlphaComponent(0.85)
-        statsLabel.textAlignment = .center
-        statsLabel.font = UIFont.monospacedDigitSystemFont(ofSize: 14, weight: .bold)
-        statsLabel.numberOfLines = 0
-        statsLabel.layer.cornerRadius = 6
-        statsLabel.clipsToBounds = true
-        renderer.view.addSubview(statsLabel)
-
-        toggleButton = UIButton(frame: .zero)
-        toggleButton.backgroundColor = TokyoNight.uiDarker
-        toggleButton.setTitleColor(TokyoNight.uiBlue, for: .normal)
-        toggleButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
-        toggleButton.layer.cornerRadius = 6
-        toggleButton.addTarget(self, action: #selector(onToggle), for: .touchUpInside)
-        renderer.view.addSubview(toggleButton)
-
-        updateToggleLabel()
-        layoutUI()
-    }
-
-    private func layoutUI() {
-        let safeTop = renderer.view.safeAreaInsets.top
-        let safeBottom = renderer.view.safeAreaInsets.bottom
-        let viewWidth = renderer.view.bounds.width
-        let viewHeight = renderer.view.bounds.height
-
-        statsLabel.frame = CGRect(
-            x: 0, y: safeTop + 8,
-            width: viewWidth, height: 50)
-
-        let buttonWidth: CGFloat = 180
-        let buttonHeight: CGFloat = 44
-        toggleButton.frame = CGRect(
-            x: (viewWidth - buttonWidth) / 2,
-            y: viewHeight - safeBottom - buttonHeight - 16,
-            width: buttonWidth, height: buttonHeight)
+    private func showOverlay() {
+        ui.overlay = AnyView(CollisionStressPanel(controls: controls))
     }
 
     private func updateStats() {
         let fps = Int(smoothedFPS)
         let mode = useBroadphase ? "Spatial Grid" : "Brute Force"
         let bruteForceCount = objectCount * (objectCount - 1) / 2
-        statsLabel.text = """
+        controls.stats = """
         \(mode) | \(objectCount) objects | \(fps) FPS
         Pairs: \(pairsChecked.formatted()) (\(collisionsFound) hits) | Brute force: \(bruteForceCount.formatted())
         """
     }
 
-    private func updateToggleLabel() {
-        toggleButton.setTitle("Switch Mode", for: .normal)
-    }
+    static func build() -> LiquidMetal2D.Scene { return CollisionStressDemo() }
+}
 
-    @objc private func onToggle() {
-        useBroadphase.toggle()
-        updateToggleLabel()
-    }
+/// The stats readout and the mode switch.
+@MainActor
+@Observable
+final class CollisionStressControls {
+    var stats = ""
+    var onToggle: () -> Void = {}
+}
 
-    private func tearDownUI() {
-        statsLabel.removeFromSuperview()
-        toggleButton.removeFromSuperview()
-    }
-    #else
-    // Mac scaffolding until the SwiftUI rewrite reaches this scene's controls.
-    private func setupUI() {}
-    private func layoutUI() {}
-    private func updateStats() {}
-    private func tearDownUI() {}
-    #endif
+struct CollisionStressPanel: View {
+    let controls: CollisionStressControls
 
-    static func build() -> Scene { return CollisionStressDemo() }
+    var body: some View {
+        ZStack(alignment: .top) {
+            ReadoutText(controls.stats, size: 14)
+                .padding(8)
+                .frame(maxWidth: .infinity)
+                .background(TokyoNight.color(TokyoNight.bg).opacity(0.85), in: RoundedRectangle(cornerRadius: 6))
+                .padding(.top, 8)
+            BottomBar {
+                Button("Switch Mode", action: controls.onToggle)
+            }
+        }
+    }
 }
