@@ -40,6 +40,8 @@ public class DefaultEngine: GameEngine {
     /// this engine's ``InputWriter`` methods.
     public let input: InputSystem
 
+    public var inputDevices: InputDevices { input.devices }
+
     /// Creates the engine, builds the initial scene, and prepares for the game loop.
     ///
     /// - Parameters:

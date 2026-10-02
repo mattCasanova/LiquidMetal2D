@@ -21,6 +21,10 @@ public protocol GameEngine: InputWriter {
     /// The scene manager that owns the current scene and handles transitions.
     var sceneManager: SceneManager { get }
 
+    /// The devices the engine accepts input from. `LiquidViewController`
+    /// installs only the platform sources these need.
+    var inputDevices: InputDevices { get }
+
     /// Starts the game loop on the engine's ``FrameClock``.
     func run()
 
