@@ -204,7 +204,8 @@ struct CollisionStressPanel: View {
                 .padding(8)
                 .frame(maxWidth: .infinity)
                 .background(TokyoNight.color(TokyoNight.bg).opacity(0.85), in: RoundedRectangle(cornerRadius: 6))
-                .padding(.top, 8)
+                .padding(.horizontal, 16)
+                .padding(.top, 56)
             BottomBar {
                 Button("Switch Mode", action: controls.onToggle)
             }

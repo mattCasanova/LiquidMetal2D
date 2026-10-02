@@ -239,7 +239,7 @@ struct CameraRotationPanel: View {
         ZStack(alignment: .top) {
             ReadoutText(String(format: "Camera Rotation: %.1f°", controls.rotationDegrees), size: 20)
                 .frame(maxWidth: .infinity)
-                .padding(.top, 8)
+                .padding(.top, 56)
             BottomBar {
                 Button("Schedule Wave", action: controls.onSpawn)
             }
