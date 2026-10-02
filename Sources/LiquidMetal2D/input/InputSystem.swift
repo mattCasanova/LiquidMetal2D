@@ -120,6 +120,10 @@ public final class InputSystem: InputReader, InputWriter {
         triggeredThisFrame[index] = true
         triggeredCount += 1
         frameEvents.append(.triggered(code))
+        // The first side of a modifier down presses the either-side code too.
+        if let either = code.eitherSideModifier {
+            press(either)
+        }
     }
 
     private func release(_ code: InputCode) {
@@ -128,6 +132,11 @@ public final class InputSystem: InputReader, InputWriter {
         down[index] = false
         releasedThisFrame[index] = true
         frameEvents.append(.released(code))
+        // The either-side code releases with the last side up.
+        if let either = code.eitherSideModifier, let sides = either.modifierSides,
+           !down[sides.left.rawValue], !down[sides.right.rawValue] {
+            release(either)
+        }
     }
 
     // MARK: - Touches
@@ -186,6 +195,9 @@ public final class InputSystem: InputReader, InputWriter {
         let device: InputDevices
         switch event {
         case .down(let code), .up(let code):
+            guard !code.isEitherSideModifier else {
+                preconditionFailure("InputSystem: \(code) is derived from its two sides; enqueue the physical key")
+            }
             device = code.device
         case .pointerMoved, .scroll, .touchBegan, .touchMoved, .touchEnded:
             device = .pointer

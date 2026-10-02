@@ -27,6 +27,9 @@ public enum InputCode: Int, Hashable, CaseIterable, Sendable {
     // Keyboard: modifiers
     case leftShift, rightShift, leftControl, rightControl
     case leftOption, rightOption, leftCommand, rightCommand
+    // Keyboard: either-side modifiers. Down while either physical side is
+    // down; the input system derives them, no source sends them.
+    case shift, control, option, command
     // Keyboard: function row
     case f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12
 
@@ -50,6 +53,7 @@ public enum InputCode: Int, Hashable, CaseIterable, Sendable {
              .arrowUp, .arrowDown, .arrowLeft, .arrowRight,
              .leftShift, .rightShift, .leftControl, .rightControl,
              .leftOption, .rightOption, .leftCommand, .rightCommand,
+             .shift, .control, .option, .command,
              .f1, .f2, .f3, .f4, .f5, .f6, .f7, .f8, .f9, .f10, .f11, .f12:
             return .keyboard
         case .gamepadA, .gamepadB, .gamepadX, .gamepadY,
@@ -60,4 +64,30 @@ public enum InputCode: Int, Hashable, CaseIterable, Sendable {
             return .gamepad
         }
     }
+
+    /// For a left or right modifier key, the either-side code it drives.
+    /// `nil` for every other code: most keys have no such group.
+    public var eitherSideModifier: InputCode? {
+        switch self {
+        case .leftShift, .rightShift: return .shift
+        case .leftControl, .rightControl: return .control
+        case .leftOption, .rightOption: return .option
+        case .leftCommand, .rightCommand: return .command
+        default: return nil
+        }
+    }
+
+    /// For an either-side modifier, its two physical keys; `nil` for every other code.
+    public var modifierSides: (left: InputCode, right: InputCode)? {
+        switch self {
+        case .shift: return (.leftShift, .rightShift)
+        case .control: return (.leftControl, .rightControl)
+        case .option: return (.leftOption, .rightOption)
+        case .command: return (.leftCommand, .rightCommand)
+        default: return nil
+        }
+    }
+
+    /// Whether this is one of the derived either-side modifiers.
+    public var isEitherSideModifier: Bool { modifierSides != nil }
 }

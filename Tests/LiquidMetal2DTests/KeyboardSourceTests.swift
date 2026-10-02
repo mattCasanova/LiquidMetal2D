@@ -8,7 +8,7 @@ final class KeyboardSourceTests: XCTestCase {
 
     func testEveryKeyboardCodeHasExactlyOneKey() {
         let mapped = KeyboardSource.map.values
-        for code in InputCode.allCases where code.device == .keyboard {
+        for code in InputCode.allCases where code.device == .keyboard && !code.isEitherSideModifier {
             XCTAssertEqual(mapped.filter { $0 == code }.count, 1, "\(code) must map from exactly one GCKeyCode")
         }
     }
@@ -16,6 +16,7 @@ final class KeyboardSourceTests: XCTestCase {
     func testNoKeyMapsToAnotherDevice() {
         for code in KeyboardSource.map.values {
             XCTAssertEqual(code.device, .keyboard, "\(code) is not a key")
+            XCTAssertFalse(code.isEitherSideModifier, "\(code) is derived, never sent")
         }
     }
 

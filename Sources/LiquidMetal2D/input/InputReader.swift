@@ -17,6 +17,11 @@
 /// A tap that goes down and up inside one frame is both triggered and
 /// released, and not pressed. Asking about a device the engine was not
 /// created with is a programmer error and traps.
+///
+/// For sets of codes see the extension: `isPressed(anyOf:)`,
+/// `isPressed(allOf:)`, `isTriggered(anyOf:)`, `isReleased(anyOf:)` and
+/// `isComboTriggered(_:)`. `.shift`, `.control`, `.option` and `.command`
+/// are down while either side is.
 @MainActor
 public protocol InputReader: AnyObject {
     func isPressed(_ code: InputCode) -> Bool

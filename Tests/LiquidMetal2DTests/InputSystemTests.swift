@@ -95,7 +95,7 @@ final class InputSystemTests: XCTestCase {
 
         let events = input.beginFrame()
 
-        XCTAssertEqual(Set(events), [.released(.leftShift), .released(.d), .released(.pointerPrimary)])
+        XCTAssertEqual(Set(events), [.released(.leftShift), .released(.shift), .released(.d), .released(.pointerPrimary)])
         XCTAssertTrue(input.isReleased(.d))
         XCTAssertFalse(input.isPressed(.leftShift))
         XCTAssertFalse(input.isPressed(.pointerPrimary))

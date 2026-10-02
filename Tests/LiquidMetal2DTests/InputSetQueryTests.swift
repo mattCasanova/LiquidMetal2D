@@ -1,0 +1,151 @@
+import XCTest
+@testable import LiquidMetal2D
+
+/// Either-side modifiers and the any / all / combo queries.
+@MainActor
+final class InputSetQueryTests: XCTestCase {
+
+    private func makeInput() -> InputSystem {
+        InputSystem(devices: [.pointer, .keyboard], unproject: { $0 })
+    }
+
+    private func frame(_ input: InputSystem, _ events: RawInputEvent...) {
+        for event in events {
+            input.enqueue(event)
+        }
+        input.beginFrame()
+    }
+
+    // MARK: - Either-side modifiers
+
+    func testEitherSideShiftFollowsBothSides() {
+        let input = makeInput()
+        input.enqueue(.down(.leftShift))
+        XCTAssertEqual(input.beginFrame(), [.triggered(.leftShift), .triggered(.shift)])
+        XCTAssertTrue(input.isTriggered(.shift))
+
+        frame(input, .down(.rightShift))
+        XCTAssertFalse(input.isTriggered(.shift), "already down from the left side")
+        XCTAssertTrue(input.isRepeating(.shift))
+
+        input.enqueue(.up(.leftShift))
+        XCTAssertEqual(input.beginFrame(), [.released(.leftShift)])
+        XCTAssertTrue(input.isPressed(.shift), "the right side still holds it")
+
+        input.enqueue(.up(.rightShift))
+        XCTAssertEqual(input.beginFrame(), [.released(.rightShift), .released(.shift)])
+        XCTAssertFalse(input.isPressed(.shift))
+        XCTAssertTrue(input.isReleased(.shift))
+    }
+
+    func testEveryModifierHasItsEitherSideCode() {
+        let pairs: [(InputCode, InputCode, InputCode)] = [
+            (.leftShift, .rightShift, .shift), (.leftControl, .rightControl, .control),
+            (.leftOption, .rightOption, .option), (.leftCommand, .rightCommand, .command)
+        ]
+        for (left, right, either) in pairs {
+            XCTAssertEqual(left.eitherSideModifier, either)
+            XCTAssertEqual(right.eitherSideModifier, either)
+            XCTAssertEqual(either.modifierSides?.left, left)
+            XCTAssertEqual(either.modifierSides?.right, right)
+            XCTAssertTrue(either.isEitherSideModifier)
+            XCTAssertEqual(either.device, .keyboard)
+        }
+        XCTAssertNil(InputCode.a.eitherSideModifier)
+        XCTAssertFalse(InputCode.leftShift.isEitherSideModifier)
+    }
+
+    // MARK: - Any and all
+
+    func testPressedAnyAndAll() {
+        let input = makeInput()
+        frame(input, .down(.w))
+
+        XCTAssertTrue(input.isPressed(anyOf: [.w, .d]))
+        XCTAssertFalse(input.isPressed(allOf: [.w, .d]))
+
+        frame(input, .down(.d))
+        XCTAssertTrue(input.isPressed(allOf: [.w, .d]))
+        XCTAssertFalse(input.isPressed(anyOf: [.a, .s]))
+    }
+
+    func testTriggeredAndReleasedAny() {
+        let input = makeInput()
+        let confirm: [InputCode] = [.space, .returnKey, .pointerPrimary]
+        frame(input, .down(.returnKey))
+
+        XCTAssertTrue(input.isTriggered(anyOf: confirm))
+        frame(input)
+        XCTAssertFalse(input.isTriggered(anyOf: confirm), "held, not triggered")
+
+        frame(input, .up(.returnKey))
+        XCTAssertTrue(input.isReleased(anyOf: confirm))
+        XCTAssertFalse(input.isReleased(anyOf: [.space]))
+    }
+
+    // MARK: - Combos
+
+    func testComboFiresWhenTheKeyCompletesItAfterTheModifier() {
+        let input = makeInput()
+        frame(input, .down(.leftCommand))
+        XCTAssertFalse(input.isComboTriggered([.command, .b]), "B is not down yet")
+
+        frame(input)
+        frame(input, .down(.b))
+        XCTAssertTrue(input.isComboTriggered([.command, .b]))
+
+        frame(input)
+        XCTAssertFalse(input.isComboTriggered([.command, .b]), "fires once, on the completing frame")
+    }
+
+    func testComboFiresWhenTheModifierCompletesItAfterTheKey() {
+        let input = makeInput()
+        frame(input, .down(.a))
+        frame(input, .down(.rightShift))
+
+        XCTAssertTrue(input.isComboTriggered([.shift, .a]), "the combo is complete either way round")
+    }
+
+    func testComboFiresWhenBothGoDownInOneFrame() {
+        let input = makeInput()
+        frame(input, .down(.leftShift), .down(.a))
+
+        XCTAssertTrue(input.isComboTriggered([.shift, .a]))
+    }
+
+    func testComboCountsATapInsideTheFrame() {
+        let input = makeInput()
+        frame(input, .down(.leftCommand))
+        frame(input, .down(.b), .up(.b))
+
+        XCTAssertFalse(input.isPressed(.b))
+        XCTAssertTrue(input.isComboTriggered([.command, .b]), "a fast press is not lost")
+    }
+
+    func testComboNeedsEveryCode() {
+        let input = makeInput()
+        frame(input, .down(.b))
+
+        XCTAssertFalse(input.isComboTriggered([.command, .b]))
+        XCTAssertFalse(input.isComboTriggered([.shift, .command, .b]))
+    }
+
+    func testComboDoesNotFireOnTheModifierAlone() {
+        let input = makeInput()
+        frame(input, .down(.b))
+        frame(input)
+        frame(input, .up(.b))
+        frame(input, .down(.leftCommand))
+
+        XCTAssertFalse(input.isComboTriggered([.command, .b]), "B is up again")
+    }
+
+    func testSetQueriesTakeAnyCollection() {
+        let input = makeInput()
+        frame(input, .down(.space))
+
+        XCTAssertTrue(input.isTriggered(anyOf: Set([InputCode.space, .escape])))
+        XCTAssertTrue(input.isPressed(anyOf: CollectionOfOne(InputCode.space)))
+        // An empty set traps (requireCodes); documented, not tested.
+    }
+}
