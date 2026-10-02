@@ -5,11 +5,8 @@
 //  Created by Matt Casanova on 3/17/26.
 //
 
-import Foundation
+import SwiftUI
 import LiquidMetal2D
-#if canImport(UIKit)
-import UIKit
-#endif
 
 /// Camera rotation & scheduler demo. Ships form a tunnel that oscillates
 /// smoothly via a per-frame sine wave. Press the Spawn button to schedule
@@ -19,12 +16,13 @@ import UIKit
 /// - `renderer.setCameraRotation(angle:)` — rotates the entire view
 /// - `Scheduler` — timed repeat events and task chaining (3 waves)
 /// - `GameObj.isActive` — deactivating objects that leave world bounds
-class CameraRotationDemo: Scene {
+class CameraRotationDemo: LiquidMetal2D.Scene {
     static var sceneType: any SceneType { SceneTypes.cameraRotationDemo }
 
     private var sceneMgr: SceneManager!
     private var renderer: Renderer!
     private var input: InputReader!
+    private var ui: DemoUI!
 
     private var objects = [GameObj]()
 
@@ -46,29 +44,28 @@ class CameraRotationDemo: Scene {
     private let spawnSpeed: Float = 30
     private let spawnZ: Float = 0
 
-    #if canImport(UIKit)
-    private var rotationLabel: UILabel!
-    private var spawnButton: UIButton!
-    #endif
+    private let controls = CameraRotationControls()
 
     func initialize(services: SceneServices) {
         self.sceneMgr = services.sceneMgr
         self.renderer = services.renderer
         self.input = services.input
+        self.ui = services.demoUI
 
         renderer.setCamera(point: Vec3(0, 0, 60))
         renderer.setDefaultPerspective()
         renderer.setClearColor(color: TokyoNight.clearColor)
 
         createTunnelObjects()
-        setupUI()
+
+        controls.onSpawn = { [unowned self] in scheduleSpawnWaves() }
+        showOverlay()
     }
 
-    func resume() {}
+    func resume() { showOverlay() }
 
     func resize() {
         renderer.setDefaultPerspective()
-        layoutUI()
     }
 
     func update(dt: Float) {
@@ -77,7 +74,7 @@ class CameraRotationDemo: Scene {
 
         let rotation = computeOscillation(dt: dt)
         renderer.setCameraRotation(angle: rotation)
-        updateLabel(rotation)
+        controls.rotationDegrees = GameMath.radianToDegree(rotation)
     }
 
     func draw() {
@@ -91,7 +88,7 @@ class CameraRotationDemo: Scene {
         objects.removeAll()
         scheduler.clear()
         renderer.setCameraRotation(angle: 0)
-        tearDownUI()
+        ui.overlay = nil
     }
 
     // MARK: - Oscillation
@@ -191,71 +188,9 @@ class CameraRotationDemo: Scene {
 
     // MARK: - UI
 
-    #if canImport(UIKit)
-    private func setupUI() {
-        rotationLabel = UILabel()
-        rotationLabel.textColor = TokyoNight.uiFg
-        rotationLabel.textAlignment = .center
-        rotationLabel.font = UIFont.monospacedDigitSystemFont(ofSize: 20, weight: .bold)
-        renderer.view.addSubview(rotationLabel)
-
-        spawnButton = createButton(title: "Schedule Wave", action: #selector(onSpawn))
-        renderer.view.addSubview(spawnButton)
-
-        updateLabel(0)
-        layoutUI()
+    private func showOverlay() {
+        ui.overlay = AnyView(CameraRotationPanel(controls: controls))
     }
-
-    private func createButton(title: String, action: Selector) -> UIButton {
-        let button = UIButton(frame: .zero)
-        button.backgroundColor = TokyoNight.uiDarker
-        button.setTitle(title, for: .normal)
-        button.setTitleColor(TokyoNight.uiBlue, for: .normal)
-        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
-        button.layer.cornerRadius = 6
-        button.addTarget(self, action: action, for: .touchUpInside)
-        return button
-    }
-
-    private func layoutUI() {
-        let safeTop = renderer.view.safeAreaInsets.top
-        let safeBottom = renderer.view.safeAreaInsets.bottom
-        let viewWidth = renderer.view.bounds.width
-        let viewHeight = renderer.view.bounds.height
-
-        rotationLabel.frame = CGRect(
-            x: 0, y: safeTop + 8,
-            width: viewWidth, height: 30)
-
-        let buttonWidth: CGFloat = 140
-        let buttonHeight: CGFloat = 44
-        let bottomY = viewHeight - safeBottom - buttonHeight - 16
-
-        spawnButton.frame = CGRect(
-            x: (viewWidth - buttonWidth) / 2,
-            y: bottomY, width: buttonWidth, height: buttonHeight)
-    }
-
-    private func updateLabel(_ rotation: Float) {
-        let degrees = GameMath.radianToDegree(rotation)
-        rotationLabel.text = String(format: "Camera Rotation: %.1f°", degrees)
-    }
-
-    @objc private func onSpawn() {
-        scheduleSpawnWaves()
-    }
-
-    private func tearDownUI() {
-        rotationLabel.removeFromSuperview()
-        spawnButton.removeFromSuperview()
-    }
-    #else
-    // Mac scaffolding until the SwiftUI rewrite reaches this scene's controls.
-    private func setupUI() {}
-    private func layoutUI() {}
-    private func updateLabel(_ rotation: Float) {}
-    private func tearDownUI() {}
-    #endif
 
     // MARK: - Tunnel
 
@@ -286,5 +221,28 @@ class CameraRotationDemo: Scene {
         }
     }
 
-    static func build() -> Scene { return CameraRotationDemo() }
+    static func build() -> LiquidMetal2D.Scene { return CameraRotationDemo() }
+}
+
+/// The live rotation readout and the wave button.
+@MainActor
+@Observable
+final class CameraRotationControls {
+    var rotationDegrees: Float = 0
+    var onSpawn: () -> Void = {}
+}
+
+struct CameraRotationPanel: View {
+    let controls: CameraRotationControls
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            ReadoutText(String(format: "Camera Rotation: %.1f°", controls.rotationDegrees), size: 20)
+                .frame(maxWidth: .infinity)
+                .padding(.top, 8)
+            BottomBar {
+                Button("Schedule Wave", action: controls.onSpawn)
+            }
+        }
+    }
 }
