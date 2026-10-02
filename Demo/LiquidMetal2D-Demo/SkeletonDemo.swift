@@ -5,11 +5,8 @@
 //  Created by Matt Casanova on 9/21/26.
 //
 
-import Foundation
+import SwiftUI
 import LiquidMetal2D
-#if canImport(UIKit)
-import UIKit
-#endif
 
 /// Skeletal animation demo: a white-box stick figure that idles, walks, jumps, slashes
 /// and throws its sword.
@@ -33,12 +30,13 @@ import UIKit
 /// It plays a loop on its own until the first touch. Then: hold the left or right half of
 /// the screen to walk, and use Jump, Throw and Slash (they work while walking). Reach
 /// stops walking; drag anywhere and the near hand follows. Tap Reach again to walk.
-class SkeletonDemo: Scene {
+class SkeletonDemo: LiquidMetal2D.Scene {
     static var sceneType: any SceneType { SceneTypes.skeletonDemo }
 
     private var sceneMgr: SceneManager!
     private var renderer: Renderer!
     private var input: InputReader!
+    private var ui: DemoUI!
 
     private let figureScale: Float = 2
     private let groundY: Float = -12
@@ -59,18 +57,13 @@ class SkeletonDemo: Scene {
     private var reach: IKConstraint!
     private var isReaching: Bool { !skeleton.ikConstraints.isEmpty }
 
-    #if canImport(UIKit)
-    private var buttons: [UIButton] = []
-    private var reachButton: UIButton!
-    private var eventFlash: UILabel!
-    private var eventLog: UILabel!
-    #endif
-    private var recentEvents: [String] = []
+    private let controls = SkeletonControls()
 
     func initialize(services: SceneServices) {
         self.sceneMgr = services.sceneMgr
         self.renderer = services.renderer
         self.input = services.input
+        self.ui = services.demoUI
 
         renderer.setCamera()
         renderer.setCameraRotation(angle: 0)
@@ -79,13 +72,16 @@ class SkeletonDemo: Scene {
 
         createObjects()
 
-        setupUI()
+        controls.onJump = { [unowned self] in isAutoplay = false; startJump() }
+        controls.onThrow = { [unowned self] in isAutoplay = false; startThrow() }
+        controls.onSlash = { [unowned self] in isAutoplay = false; startSlash() }
+        controls.onReach = { [unowned self] in toggleReach() }
+        showOverlay()
     }
 
-    func resume() {}
+    func resume() { showOverlay() }
 
     func resize() {
-        layoutUI()
         renderer.setDefaultPerspective()
     }
 
@@ -125,6 +121,7 @@ class SkeletonDemo: Scene {
     }
 
     func shutdown() {
+        ui.overlay = nil
     }
 
     // MARK: - Movement and actions
@@ -163,6 +160,19 @@ class SkeletonDemo: Scene {
         skeleton.animator.play(clips.throwSword, layer: 1, crossfade: 0.05, fadeOutWhenFinished: 0.15)
     }
 
+    /// Starts reaching toward a point in front of the chest; the next touch moves it.
+    private func toggleReach() {
+        isAutoplay = false
+        if isReaching {
+            skeleton.ikConstraints = []
+        } else {
+            let facing: Float = skeleton.flipX ? -1 : 1
+            reach.target = root.position + Vec2(5 * facing, 3)
+            skeleton.ikConstraints = [reach]
+        }
+        controls.isReaching = isReaching
+    }
+
     /// Left half of the screen walks left, right half walks right.
     private func touchDirection() -> Float {
         guard let touch = input.getScreenTouch() else { return 0 }
@@ -181,7 +191,7 @@ class SkeletonDemo: Scene {
     // MARK: - Animation events
 
     private func handle(event name: String) {
-        showEvent(name)
+        controls.show(event: name)
         if name == "throw" {
             releaseSword()
         }
@@ -247,102 +257,70 @@ class SkeletonDemo: Scene {
             parent: flyingSword.object, textureID: renderer.defaultTextureId, tintColor: TokyoNight.cyan))
     }
 
-    #if canImport(UIKit)
-    private func setupUI() {
-        createEventLabels()
-        reachButton = makeButton(title: "Reach", action: #selector(onReach))
-        buttons = [
-            makeButton(title: "Jump", action: #selector(onJump)),
-            makeButton(title: "Throw", action: #selector(onThrow)),
-            makeButton(title: "Slash", action: #selector(onSlash)),
-            reachButton,
-        ]
-        layoutUI()
+    // MARK: - UI
+
+    private func showOverlay() {
+        ui.overlay = AnyView(SkeletonPanel(controls: controls))
     }
 
-    private func createEventLabels() {
-        eventFlash = UILabel()
-        eventFlash.font = UIFont.monospacedSystemFont(ofSize: 34, weight: .bold)
-        eventFlash.textColor = TokyoNight.uiBlue
-        eventFlash.textAlignment = .center
-        eventFlash.alpha = 0
-        renderer.view.addSubview(eventFlash)
+    static func build() -> LiquidMetal2D.Scene { return SkeletonDemo() }
+}
 
-        eventLog = UILabel()
-        eventLog.font = UIFont.monospacedSystemFont(ofSize: 14, weight: .regular)
-        eventLog.textColor = TokyoNight.uiComment
-        eventLog.textAlignment = .right
-        eventLog.numberOfLines = 0
-        renderer.view.addSubview(eventLog)
-    }
+/// The skeleton scene's buttons and its event readout.
+@MainActor
+@Observable
+final class SkeletonControls {
+    var onJump: () -> Void = {}
+    var onThrow: () -> Void = {}
+    var onSlash: () -> Void = {}
+    var onReach: () -> Void = {}
+    var isReaching = false
 
-    /// Flashes the newest event big, and keeps the last few in a list, newest first.
-    private func showEvent(_ name: String) {
+    /// The newest event, flashed big in the middle; `flashOpacity` fades it out.
+    private(set) var flash = ""
+    private(set) var flashOpacity = 0.0
+    /// The last few events, newest first.
+    private(set) var recentEvents: [String] = []
+
+    func show(event name: String) {
         recentEvents.insert(name, at: 0)
         recentEvents = Array(recentEvents.prefix(8))
-        eventLog.text = recentEvents.joined(separator: "\n")
+        flash = name.uppercased()
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) { flashOpacity = 1 }
+        withAnimation(.easeOut(duration: 0.6).delay(0.1)) { flashOpacity = 0 }
+    }
+}
 
-        eventFlash.text = name.uppercased()
-        eventFlash.layer.removeAllAnimations()
-        eventFlash.alpha = 1
-        UIView.animate(withDuration: 0.6, delay: 0.1, options: [.curveEaseOut, .allowUserInteraction]) {
-            self.eventFlash.alpha = 0
+struct SkeletonPanel: View {
+    let controls: SkeletonControls
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            Text(controls.recentEvents.joined(separator: "\n"))
+                .font(.system(size: 14, design: .monospaced))
+                .foregroundStyle(TokyoNight.color(TokyoNight.comment))
+                .multilineTextAlignment(.trailing)
+                .padding(8)
+
+            GeometryReader { geometry in
+                Text(controls.flash)
+                    .font(.system(size: 34, weight: .bold, design: .monospaced))
+                    .foregroundStyle(TokyoNight.color(TokyoNight.blue))
+                    .opacity(controls.flashOpacity)
+                    .frame(maxWidth: .infinity)
+                    .position(x: geometry.size.width / 2, y: geometry.size.height * 0.2)
+            }
+
+            BottomBar {
+                Button("Jump", action: controls.onJump)
+                Button("Throw", action: controls.onThrow)
+                Button("Slash", action: controls.onSlash)
+                Button(controls.isReaching ? "Reach: On" : "Reach", action: controls.onReach)
+            }
         }
     }
-
-    private func makeButton(title: String, action: Selector) -> UIButton {
-        let button = UIButton(frame: .zero)
-        button.backgroundColor = TokyoNight.uiDarker
-        button.setTitle(title, for: .normal)
-        button.setTitleColor(TokyoNight.uiBlue, for: .normal)
-        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
-        button.layer.cornerRadius = 8
-        button.addTarget(self, action: action, for: .touchUpInside)
-        renderer.view.addSubview(button)
-        return button
-    }
-
-    private func layoutUI() {
-        let size = renderer.view.bounds.size
-        let gap: CGFloat = 12
-        let width = (size.width - gap * CGFloat(buttons.count + 1)) / CGFloat(buttons.count)
-        let height: CGFloat = 48
-        for (index, button) in buttons.enumerated() {
-            button.frame = CGRect(
-                x: gap + CGFloat(index) * (width + gap), y: size.height - height - 16,
-                width: width, height: height)
-        }
-
-        eventFlash.frame = CGRect(x: 0, y: size.height * 0.2, width: size.width, height: 44)
-        eventLog.frame = CGRect(x: size.width - 140, y: 8, width: 128, height: 170)
-    }
-    #else
-    // Mac scaffolding until the SwiftUI rewrite reaches this scene's controls.
-    private func setupUI() {}
-    private func layoutUI() {}
-    private func showEvent(_ name: String) {}
-    #endif
-
-    @objc func onJump() { isAutoplay = false; startJump() }
-    @objc func onThrow() { isAutoplay = false; startThrow() }
-    @objc func onSlash() { isAutoplay = false; startSlash() }
-
-    /// Starts reaching toward a point in front of the chest; the next touch moves it.
-    @objc func onReach() {
-        isAutoplay = false
-        if isReaching {
-            skeleton.ikConstraints = []
-        } else {
-            let facing: Float = skeleton.flipX ? -1 : 1
-            reach.target = root.position + Vec2(5 * facing, 3)
-            skeleton.ikConstraints = [reach]
-        }
-        #if canImport(UIKit)
-        reachButton.setTitle(isReaching ? "Reach: On" : "Reach", for: .normal)
-        #endif
-    }
-
-    static func build() -> Scene { return SkeletonDemo() }
 }
 
 /// The sword once it has left the hand: an ordinary object with simple ballistics
