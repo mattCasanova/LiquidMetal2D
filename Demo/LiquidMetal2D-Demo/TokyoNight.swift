@@ -7,9 +7,6 @@
 
 import SwiftUI
 import LiquidMetal2D
-#if canImport(UIKit)
-import UIKit
-#endif
 
 enum TokyoNight {
     // Accent colors
@@ -35,17 +32,6 @@ enum TokyoNight {
     static let darker    = Vec4(0.255, 0.282, 0.408, 1.0)  // #414868
     static let bg        = Vec4(0.102, 0.106, 0.149, 1.0)  // #1a1b26
 
-    #if canImport(UIKit)
-    // UIKit colors
-    static let uiFg      = UIColor(red: 0.753, green: 0.792, blue: 0.961, alpha: 1.0)
-    static let uiFgDark  = UIColor(red: 0.663, green: 0.694, blue: 0.839, alpha: 1.0)
-    static let uiComment = UIColor(red: 0.604, green: 0.647, blue: 0.808, alpha: 1.0)
-    static let uiBlue    = UIColor(red: 0.478, green: 0.635, blue: 0.969, alpha: 1.0)
-    static let uiPurple  = UIColor(red: 0.733, green: 0.604, blue: 0.969, alpha: 1.0)
-    static let uiDarker  = UIColor(red: 0.255, green: 0.282, blue: 0.408, alpha: 1.0)
-    static let uiBg      = UIColor(red: 0.102, green: 0.106, blue: 0.149, alpha: 1.0)
-    #endif
-
     // Metal clear color (Vec3 for renderer.setClearColor)
     static let clearColor = Vec3(0.102, 0.106, 0.149)  // #1a1b26
 
@@ -61,7 +47,7 @@ enum TokyoNight {
     // All bright accent colors for random tinting
     static let accents: [Vec4] = [red, orange, yellow, green, teal, cyan, sky, blue, purple]
 
-    /// A palette entry as a SwiftUI `Color`.
+    /// A palette entry as a SwiftUI `Color`, for the scene panels.
     static func color(_ value: Vec4) -> Color {
         Color(red: Double(value.x), green: Double(value.y), blue: Double(value.z), opacity: Double(value.w))
     }

@@ -17,7 +17,7 @@ import LiquidMetal2D
 /// `atan2` and set the ship's rotation to face that direction.
 ///
 /// **MainActor.assumeIsolated:**
-/// `getWorldTouch` is a `@MainActor`-isolated method because it reads UIKit touch state.
+/// `getWorldTouch` is a `@MainActor`-isolated method because it reads the platform touch state.
 /// Since the game loop runs on the main thread (via CADisplayLink), we use
 /// `MainActor.assumeIsolated` to tell Swift 6 concurrency that we are already on the
 /// main actor, avoiding an async call.
