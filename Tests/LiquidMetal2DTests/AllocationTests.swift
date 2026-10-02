@@ -96,6 +96,32 @@ final class AllocationTests: XCTestCase {
         XCTAssertEqual(count, 0)
     }
 
+    func testActionLookupsAllocateNothing() throws {
+        try requireOptimizedBuild()
+        let system = InputSystem(devices: [.pointer, .keyboard], unproject: { $0 })
+        let input: InputReader = system
+        let bindings = InputBindings<AllocationAction>(defaults: [
+            .jump: [.space, .w, .gamepadA], .left: [.a, .arrowLeft], .right: [.d, .arrowRight]
+        ])
+        system.enqueue(.down(.space))
+        system.enqueue(.down(.d))
+        system.beginFrame()
+        var total: Float = 0
+        let query = {
+            if input.isTriggered(.jump, in: bindings) { total += 1 }
+            if input.isPressed(.left, in: bindings) { total += 10 }
+            total += input.axis(negative: .left, positive: .right, in: bindings)
+            if input.firstTriggeredCode() != nil { total += 100 }
+        }
+        query()
+
+        total = 0
+        let count = AllocationCounter.count(query)
+
+        XCTAssertEqual(total, 102)
+        XCTAssertEqual(count, 0)
+    }
+
     // MARK: - Spatial grid
 
     func testForEachPotentialPairAllocatesNothing() throws {
@@ -275,4 +301,8 @@ final class AllocationTests: XCTestCase {
         }
         return grid
     }
+}
+
+private enum AllocationAction: String, InputAction {
+    case jump, left, right
 }
