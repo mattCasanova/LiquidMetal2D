@@ -5,8 +5,11 @@
 //  Created by Matt Casanova on 4/19/26.
 //
 
-import UIKit
+import Foundation
 import LiquidMetal2D
+#if canImport(UIKit)
+import UIKit
+#endif
 
 /// Demonstrates the alpha-blended variant of `ParticleShader` (new in 0.10.0)
 /// plus scale-over-lifetime (also new). Particles start small and tight,
@@ -25,6 +28,7 @@ class SmokeDemo: DefaultScene {
     private var smokeShader: ParticleShader!
     private var emitterObj: GameObj!
     private var ui: DemoSceneUI!
+    #if canImport(UIKit)
     private var burstButton: UIButton!
     private var colorButton: UIButton!
 
@@ -45,6 +49,7 @@ class SmokeDemo: DefaultScene {
     private var lifetimeLabel: UILabel!
     private var spreadLabel: UILabel!
     private var gravityLabel: UILabel!
+    #endif
 
     // Color palettes. Each has a primary + variation endpoint so particles
     // roll a random hue along the line between them. Alphas kept < 0.5 so
@@ -62,9 +67,11 @@ class SmokeDemo: DefaultScene {
 
     private var isNeon: Bool = false
 
+    #if canImport(UIKit)
     // "Correlated" switch + label.
     private var correlatedSwitch: UISwitch!
     private var correlatedLabel: UILabel!
+    #endif
 
     override func initialize(services: SceneServices) {
         super.initialize(services: services)
@@ -114,14 +121,7 @@ class SmokeDemo: DefaultScene {
         super.shutdown()
         renderer.unregister(shader: smokeShader)
         ui.removeFromSuperview()
-        burstButton.removeFromSuperview()
-        colorButton.removeFromSuperview()
-        correlatedSwitch?.removeFromSuperview()
-        correlatedLabel?.removeFromSuperview()
-        [emissionSlider, speedSlider, startScaleSlider, endScaleSlider,
-         lifetimeSlider, spreadSlider, gravitySlider,
-         emissionLabel, speedLabel, startScaleLabel, endScaleLabel,
-         lifetimeLabel, spreadLabel, gravityLabel].forEach { $0?.removeFromSuperview() }
+        tearDownUI()
     }
 
     // MARK: - Emitter
@@ -156,6 +156,7 @@ class SmokeDemo: DefaultScene {
 
     // MARK: - Actions
 
+    #if canImport(UIKit)
     @objc private func onBurst() {
         emitterObj.get(ParticleEmitterComponent.self)?.spawn(count: 40)
     }
@@ -233,6 +234,8 @@ class SmokeDemo: DefaultScene {
         gravityLabel.text = String(format: "Gravity Y: %+.1f", g)
     }
 
+    #endif
+
     @objc func onMenu() {
         ui.view.isHidden = true
         sceneMgr.pushScene(type: SceneTypes.pauseDemo)
@@ -240,6 +243,7 @@ class SmokeDemo: DefaultScene {
 
     // MARK: - UI
 
+    #if canImport(UIKit)
     private func setupUI() {
         ui = DemoSceneUI(
             parentView: renderer.view, target: self,
@@ -391,4 +395,23 @@ class SmokeDemo: DefaultScene {
             cursorY += labelHeight + rowHeight + rowSpacing
         }
     }
+
+    private func tearDownUI() {
+        burstButton.removeFromSuperview()
+        colorButton.removeFromSuperview()
+        correlatedSwitch?.removeFromSuperview()
+        correlatedLabel?.removeFromSuperview()
+        [emissionSlider, speedSlider, startScaleSlider, endScaleSlider,
+         lifetimeSlider, spreadSlider, gravitySlider,
+         emissionLabel, speedLabel, startScaleLabel, endScaleLabel,
+         lifetimeLabel, spreadLabel, gravityLabel].forEach { $0?.removeFromSuperview() }
+    }
+    #else
+    // Mac scaffolding until the SwiftUI rewrite reaches this scene's controls.
+    private func setupUI() {
+        ui = DemoSceneUI(parentView: renderer.view, target: self, menuAction: #selector(onMenu))
+    }
+    private func layoutControls() {}
+    private func tearDownUI() {}
+    #endif
 }

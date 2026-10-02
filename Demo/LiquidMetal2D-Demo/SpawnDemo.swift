@@ -5,7 +5,7 @@
 //  Originally StateTestScene by Matt Casanova on 3/20/20.
 //
 
-import UIKit
+import Foundation
 import LiquidMetal2D
 
 /// Touch-spawn demo with easing on spawn scale.

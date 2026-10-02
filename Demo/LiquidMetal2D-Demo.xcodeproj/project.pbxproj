@@ -3,10 +3,13 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D3A0A0022F9B0001000000A1 /* DemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A0A0012F9B0001000000A1 /* DemoApp.swift */; };
+		D3A0A0042F9B0001000000A1 /* DemoUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A0A0032F9B0001000000A1 /* DemoUI.swift */; };
+		D3A0A0062F9B0001000000A1 /* SceneMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A0A0052F9B0001000000A1 /* SceneMenu.swift */; };
 		A1B2C3CE2F67D0A7003831F3 /* GameTextures.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3CD2F67D0A7003831F3 /* GameTextures.swift */; };
 		A1B2C3D02F67C0A7003831F3 /* TokyoNight.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3CF2F67C0A7003831F3 /* TokyoNight.swift */; };
 		A1B2C3D22F67B0A7003831F3 /* AsyncLoadDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D12F67B0A7003831F3 /* AsyncLoadDemo.swift */; };
@@ -14,19 +17,18 @@
 		A1B2C3D62F6790A7003831F3 /* CameraRotationDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D52F6790A7003831F3 /* CameraRotationDemo.swift */; };
 		A1B2C3D82F67A0A7003831F3 /* MoveRightBehaviorFOV.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D72F67A0A7003831F3 /* MoveRightBehaviorFOV.swift */; };
 		A1B2C3DA2F67A0A7003831F3 /* MoveRightStateFOV.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D92F67A0A7003831F3 /* MoveRightStateFOV.swift */; };
+		C4A3E7A12E80000100C42A29 /* CameraPanDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A3E7A02E80000100C42A29 /* CameraPanDemo.swift */; };
+		C4A3E7A12E80000100C42A30 /* SmokeLayersDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A3E7A02E80000100C42A30 /* SmokeLayersDemo.swift */; };
 		C4A3E7A32E80000100C42A29 /* SkeletonDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A3E7A22E80000100C42A29 /* SkeletonDemo.swift */; };
-		C4A3E7A62E80000100C42A29 /* Animations in Resources */ = {isa = PBXBuildFile; fileRef = C4A3E7A72E80000100C42A29 /* Animations */; };
 		C4A3E7A52E80000100C42A29 /* StickFigure.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A3E7A42E80000100C42A29 /* StickFigure.swift */; };
+		C4A3E7A62E80000100C42A29 /* Animations in Resources */ = {isa = PBXBuildFile; fileRef = C4A3E7A72E80000100C42A29 /* Animations */; };
+		C4D15C0B2F8A1B2C00D15C0A /* disc.png in Resources */ = {isa = PBXBuildFile; fileRef = C4D15C0A2F8A1B2C00D15C0A /* disc.png */; };
 		F5021ABD2F94D074000FC89F /* WireframeDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5021ABC2F94D074000FC89F /* WireframeDemo.swift */; };
 		F5021ABF2F957BB8000FC89F /* ParticleDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5021ABE2F957BB8000FC89F /* ParticleDemo.swift */; };
 		F5021AC12F958340000FC89F /* RocketTrailDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5021AC02F958340000FC89F /* RocketTrailDemo.swift */; };
 		F5021AC32F95B0A7003831F3 /* LineParticleDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5021AC22F95B0A7003831F3 /* LineParticleDemo.swift */; };
-		F536B68F241690A800B3566F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F536B68E241690A800B3566F /* AppDelegate.swift */; };
-		F536B691241690A800B3566F /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F536B690241690A800B3566F /* SceneDelegate.swift */; };
 		F536B693241690A800B3566F /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F536B692241690A800B3566F /* ViewController.swift */; };
-		F536B696241690A800B3566F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F536B694241690A800B3566F /* Main.storyboard */; };
 		F536B698241690A900B3566F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F536B697241690A900B3566F /* Assets.xcassets */; };
-		F536B69B241690A900B3566F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F536B699241690A900B3566F /* LaunchScreen.storyboard */; };
 		F536B6A5241691DB00B3566F /* LiquidMetal2D in Frameworks */ = {isa = PBXBuildFile; productRef = F536B6A4241691DB00B3566F /* LiquidMetal2D */; };
 		F536B6AB2416922F00B3566F /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = F536B6AA2416922E00B3566F /* Constants.swift */; };
 		F536B6AE2416925800B3566F /* MassRenderDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F536B6AC2416925800B3566F /* MassRenderDemo.swift */; };
@@ -34,7 +36,6 @@
 		F536B6B32416926800B3566F /* playerShip1_orange.png in Resources */ = {isa = PBXBuildFile; fileRef = F536B6B02416926800B3566F /* playerShip1_orange.png */; };
 		F536B6B42416926800B3566F /* playerShip1_green.png in Resources */ = {isa = PBXBuildFile; fileRef = F536B6B12416926800B3566F /* playerShip1_green.png */; };
 		F536B6B52416926800B3566F /* playerShip1_blue.png in Resources */ = {isa = PBXBuildFile; fileRef = F536B6B22416926800B3566F /* playerShip1_blue.png */; };
-		C4D15C0B2F8A1B2C00D15C0A /* disc.png in Resources */ = {isa = PBXBuildFile; fileRef = C4D15C0A2F8A1B2C00D15C0A /* disc.png */; };
 		F53AAB0F2F6770A7003831F3 /* InstanceDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53AAB072F6770A7003831F3 /* InstanceDemo.swift */; };
 		F53AAB102F6770A7003831F3 /* FindAndGoBehavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53AAB082F6770A7003831F3 /* FindAndGoBehavior.swift */; };
 		F53AAB112F6770A7003831F3 /* FindAndGoStates.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53AAB092F6770A7003831F3 /* FindAndGoStates.swift */; };
@@ -50,13 +51,14 @@
 		F57FE9732426D8E4005D5A59 /* RandomAngleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F57FE9722426D8E4005D5A59 /* RandomAngleState.swift */; };
 		F57FE9762427C72F005D5A59 /* MoveRightBehavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = F57FE9752427C72F005D5A59 /* MoveRightBehavior.swift */; };
 		F57FE9782427CEF3005D5A59 /* MoveRightState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F57FE9772427CEF3005D5A59 /* MoveRightState.swift */; };
-		C4A3E7A12E80000100C42A29 /* CameraPanDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A3E7A02E80000100C42A29 /* CameraPanDemo.swift */; };
-		C4A3E7A12E80000100C42A30 /* SmokeLayersDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A3E7A02E80000100C42A30 /* SmokeLayersDemo.swift */; };
 		F5EDA0B42416952400C42A29 /* TouchZoomDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5EDA0B32416952400C42A29 /* TouchZoomDemo.swift */; };
 		F5ZOMBIE012F67A0A7003831F3 /* ZombieDemoComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5ZOMBIE002F67A0A7003831F3 /* ZombieDemoComponent.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		D3A0A0012F9B0001000000A1 /* DemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoApp.swift; sourceTree = "<group>"; };
+		D3A0A0032F9B0001000000A1 /* DemoUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoUI.swift; sourceTree = "<group>"; };
+		D3A0A0052F9B0001000000A1 /* SceneMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneMenu.swift; sourceTree = "<group>"; };
 		A1B2C3CD2F67D0A7003831F3 /* GameTextures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameTextures.swift; sourceTree = "<group>"; };
 		A1B2C3CF2F67C0A7003831F3 /* TokyoNight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokyoNight.swift; sourceTree = "<group>"; };
 		A1B2C3D12F67B0A7003831F3 /* AsyncLoadDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncLoadDemo.swift; sourceTree = "<group>"; };
@@ -64,20 +66,19 @@
 		A1B2C3D52F6790A7003831F3 /* CameraRotationDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraRotationDemo.swift; sourceTree = "<group>"; };
 		A1B2C3D72F67A0A7003831F3 /* MoveRightBehaviorFOV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveRightBehaviorFOV.swift; sourceTree = "<group>"; };
 		A1B2C3D92F67A0A7003831F3 /* MoveRightStateFOV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveRightStateFOV.swift; sourceTree = "<group>"; };
+		C4A3E7A02E80000100C42A29 /* CameraPanDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPanDemo.swift; sourceTree = "<group>"; };
+		C4A3E7A02E80000100C42A30 /* SmokeLayersDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeLayersDemo.swift; sourceTree = "<group>"; };
 		C4A3E7A22E80000100C42A29 /* SkeletonDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkeletonDemo.swift; sourceTree = "<group>"; };
-		C4A3E7A72E80000100C42A29 /* Animations */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Animations; sourceTree = "<group>"; };
 		C4A3E7A42E80000100C42A29 /* StickFigure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StickFigure.swift; sourceTree = "<group>"; };
+		C4A3E7A72E80000100C42A29 /* Animations */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Animations; sourceTree = "<group>"; };
+		C4D15C0A2F8A1B2C00D15C0A /* disc.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = disc.png; sourceTree = "<group>"; };
 		F5021ABC2F94D074000FC89F /* WireframeDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WireframeDemo.swift; sourceTree = "<group>"; };
 		F5021ABE2F957BB8000FC89F /* ParticleDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParticleDemo.swift; sourceTree = "<group>"; };
 		F5021AC02F958340000FC89F /* RocketTrailDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RocketTrailDemo.swift; sourceTree = "<group>"; };
 		F5021AC22F95B0A7003831F3 /* LineParticleDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineParticleDemo.swift; sourceTree = "<group>"; };
 		F536B68B241690A800B3566F /* LiquidMetal2D-Demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "LiquidMetal2D-Demo.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		F536B68E241690A800B3566F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		F536B690241690A800B3566F /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		F536B692241690A800B3566F /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
-		F536B695241690A800B3566F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		F536B697241690A900B3566F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		F536B69A241690A900B3566F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		F536B69C241690A900B3566F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F536B6AA2416922E00B3566F /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		F536B6AC2416925800B3566F /* MassRenderDemo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MassRenderDemo.swift; sourceTree = "<group>"; };
@@ -85,7 +86,6 @@
 		F536B6B02416926800B3566F /* playerShip1_orange.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = playerShip1_orange.png; sourceTree = "<group>"; };
 		F536B6B12416926800B3566F /* playerShip1_green.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = playerShip1_green.png; sourceTree = "<group>"; };
 		F536B6B22416926800B3566F /* playerShip1_blue.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = playerShip1_blue.png; sourceTree = "<group>"; };
-		C4D15C0A2F8A1B2C00D15C0A /* disc.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = disc.png; sourceTree = "<group>"; };
 		F53AAB042F6770A7003831F3 /* CollisionDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollisionDemo.swift; sourceTree = "<group>"; };
 		F53AAB062F6770A7003831F3 /* DemoSceneUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoSceneUI.swift; sourceTree = "<group>"; };
 		F53AAB072F6770A7003831F3 /* InstanceDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstanceDemo.swift; sourceTree = "<group>"; };
@@ -101,8 +101,6 @@
 		F57FE9722426D8E4005D5A59 /* RandomAngleState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomAngleState.swift; sourceTree = "<group>"; };
 		F57FE9752427C72F005D5A59 /* MoveRightBehavior.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveRightBehavior.swift; sourceTree = "<group>"; };
 		F57FE9772427CEF3005D5A59 /* MoveRightState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveRightState.swift; sourceTree = "<group>"; };
-		C4A3E7A02E80000100C42A29 /* CameraPanDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPanDemo.swift; sourceTree = "<group>"; };
-		C4A3E7A02E80000100C42A30 /* SmokeLayersDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeLayersDemo.swift; sourceTree = "<group>"; };
 		F5EDA0B32416952400C42A29 /* TouchZoomDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchZoomDemo.swift; sourceTree = "<group>"; };
 		F5ZOMBIE002F67A0A7003831F3 /* ZombieDemoComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZombieDemoComponent.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -146,6 +144,8 @@
 				A1B2C3CD2F67D0A7003831F3 /* GameTextures.swift */,
 				A1B2C3CF2F67C0A7003831F3 /* TokyoNight.swift */,
 				F536B6A2241690FB00B3566F /* appleDefaults */,
+				D3A0A0032F9B0001000000A1 /* DemoUI.swift */,
+				D3A0A0052F9B0001000000A1 /* SceneMenu.swift */,
 				F536B692241690A800B3566F /* ViewController.swift */,
 				F536B697241690A900B3566F /* Assets.xcassets */,
 			);
@@ -155,10 +155,7 @@
 		F536B6A2241690FB00B3566F /* appleDefaults */ = {
 			isa = PBXGroup;
 			children = (
-				F536B68E241690A800B3566F /* AppDelegate.swift */,
-				F536B690241690A800B3566F /* SceneDelegate.swift */,
-				F536B694241690A800B3566F /* Main.storyboard */,
-				F536B699241690A900B3566F /* LaunchScreen.storyboard */,
+				D3A0A0012F9B0001000000A1 /* DemoApp.swift */,
 				F536B69C241690A900B3566F /* Info.plist */,
 			);
 			name = appleDefaults;
@@ -276,7 +273,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1130;
-				LastUpgradeCheck = 2600;
+				LastUpgradeCheck = 2700;
 				ORGANIZATIONNAME = "Matt Casanova";
 				TargetAttributes = {
 					F536B68A241690A800B3566F = {
@@ -311,13 +308,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				F536B6B32416926800B3566F /* playerShip1_orange.png in Resources */,
-				F536B69B241690A900B3566F /* LaunchScreen.storyboard in Resources */,
 				F536B6B42416926800B3566F /* playerShip1_green.png in Resources */,
 				F536B698241690A900B3566F /* Assets.xcassets in Resources */,
 				F536B6B52416926800B3566F /* playerShip1_blue.png in Resources */,
 				C4D15C0B2F8A1B2C00D15C0A /* disc.png in Resources */,
 				C4A3E7A62E80000100C42A29 /* Animations in Resources */,
-				F536B696241690A800B3566F /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -328,6 +323,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D3A0A0022F9B0001000000A1 /* DemoApp.swift in Sources */,
+				D3A0A0042F9B0001000000A1 /* DemoUI.swift in Sources */,
+				D3A0A0062F9B0001000000A1 /* SceneMenu.swift in Sources */,
 				A1B2C3D22F67B0A7003831F3 /* AsyncLoadDemo.swift in Sources */,
 				A1B2C3D42F6780A7003831F3 /* BezierDemo.swift in Sources */,
 				C4A3E7A32E80000100C42A29 /* SkeletonDemo.swift in Sources */,
@@ -353,9 +351,7 @@
 				F536B6AE2416925800B3566F /* MassRenderDemo.swift in Sources */,
 				F536B693241690A800B3566F /* ViewController.swift in Sources */,
 				F536B6AF2416925800B3566F /* SceneTypes.swift in Sources */,
-				F536B68F241690A800B3566F /* AppDelegate.swift in Sources */,
 				F5593FB32F717F1D005C0470 /* CollisionStressDemo.swift in Sources */,
-				F536B691241690A800B3566F /* SceneDelegate.swift in Sources */,
 				C4A3E7A12E80000100C42A29 /* CameraPanDemo.swift in Sources */,
 				F5EDA0B42416952400C42A29 /* TouchZoomDemo.swift in Sources */,
 				F57FE9762427C72F005D5A59 /* MoveRightBehavior.swift in Sources */,
@@ -372,22 +368,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
-		F536B694241690A800B3566F /* Main.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				F536B695241690A800B3566F /* Base */,
-			);
-			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
-		F536B699241690A900B3566F /* LaunchScreen.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				F536B69A241690A900B3566F /* Base */,
-			);
-			name = LaunchScreen.storyboard;
-			sourceTree = "<group>";
-		};
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
@@ -395,6 +375,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -459,6 +440,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";

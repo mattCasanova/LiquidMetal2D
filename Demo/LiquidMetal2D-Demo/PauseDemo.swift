@@ -6,6 +6,7 @@
 //  of all available scenes. Tap to switch, or Resume to go back.
 //
 
+#if canImport(UIKit)
 import UIKit
 import LiquidMetal2D
 
@@ -183,3 +184,4 @@ extension PauseDemo: UITableViewDataSource, UITableViewDelegate {
         selectScene(scenes[indexPath.row])
     }
 }
+#endif

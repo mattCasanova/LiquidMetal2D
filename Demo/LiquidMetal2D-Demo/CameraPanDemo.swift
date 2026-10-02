@@ -5,7 +5,7 @@
 //  Created by Matt Casanova on 9/21/26.
 //
 
-import UIKit
+import Foundation
 import LiquidMetal2D
 
 /// Camera pan demo. The camera drifts over a fixed grid of ships while three things

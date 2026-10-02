@@ -5,7 +5,7 @@
 //  Created by Matt Casanova on 3/17/26.
 //
 
-import UIKit
+import Foundation
 import LiquidMetal2D
 
 /// Cubic bezier curve demo with interactive control point dragging.

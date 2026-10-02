@@ -5,7 +5,7 @@
 //  Originally CollisionScene by Matt Casanova on 3/24/20.
 //
 
-import UIKit
+import Foundation
 import LiquidMetal2D
 
 /// Collision detection and AI state machine demo.

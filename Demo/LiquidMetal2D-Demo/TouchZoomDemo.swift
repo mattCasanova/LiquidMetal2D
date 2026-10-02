@@ -6,7 +6,7 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-import UIKit
+import Foundation
 import LiquidMetal2D
 
 /// Touch input and camera zoom demo.

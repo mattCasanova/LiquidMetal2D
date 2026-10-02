@@ -6,10 +6,15 @@
 //  Copyright © 2020 Matt Casanova. All rights reserved.
 //
 
-import UIKit
 import LiquidMetal2D
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
-/// The app's root view controller, subclassing LiquidViewController.
+/// The engine's host, subclassing `LiquidViewController`. `DemoApp` puts it on screen
+/// through `LiquidView`; the same class runs on iOS and the Mac.
 ///
 /// **Engine setup pattern:** This is the entry point for a LiquidMetal2D app. The three
 /// steps to launch the engine are:
@@ -19,12 +24,23 @@ import LiquidMetal2D
 ///    subclass `DefaultScene`). Pass the scene classes to `addScenes(_:)`.
 ///
 /// 2. **Create a renderer:** `DefaultRenderer` is the engine's Metal-based renderer.
-///    It needs the parent UIView, the maximum number of objects you will draw per frame
+///    It needs the parent view, the maximum number of objects you will draw per frame
 ///    (`maxObjects`), and the byte size of your per-object uniform struct (`uniformSize`).
 ///
 /// 3. **Create and run the engine:** `DefaultEngine` takes the renderer, the initial scene
 ///    type, and the scene factory. Calling `gameEngine.run()` starts the game loop.
 class ViewController: LiquidViewController {
+    private let ui: DemoUI
+
+    init(ui: DemoUI) {
+        self.ui = ui
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("ViewController is built in code; see DemoApp")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -50,8 +66,12 @@ class ViewController: LiquidViewController {
             SmokeDemo.self,
             SmokeLayersDemo.self,
             SkeletonDemo.self,
-            PauseDemo.self,
         ])
+        #if canImport(UIKit)
+        // UIKit top to bottom; the SwiftUI rewrite replaces it. Only the UIKit Menu
+        // button pushes it, so the Mac never asks for it.
+        sceneFactory.addScenes([PauseDemo.self])
+        #endif
 
         // Step 2: Create the Metal renderer.
         let renderer = DefaultRenderer(
@@ -63,12 +83,14 @@ class ViewController: LiquidViewController {
         let documents = DocumentIO(presentingVC: self)
 
         // Step 4: Create the engine and start the game loop.
-        gameEngine = DefaultEngine(
+        let engine = DefaultEngine(
             renderer: renderer,
             documents: documents,
             initialSceneType: SceneTypes.asyncLoadDemo,
             sceneFactory: sceneFactory)
+        gameEngine = engine
+        ui.sceneMgr = engine.sceneManager
 
-        gameEngine.run()
+        engine.run()
     }
 }

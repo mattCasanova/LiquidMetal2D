@@ -6,8 +6,9 @@
 //  in the upper-left corner that pushes the scene menu.
 //
 
-import UIKit
 import LiquidMetal2D
+#if canImport(UIKit)
+import UIKit
 
 /// Reusable UI overlay that every demo scene uses to show a "Menu" button.
 ///
@@ -65,3 +66,18 @@ class DemoSceneUI {
         view.removeFromSuperview()
     }
 }
+#elseif canImport(AppKit)
+import AppKit
+
+/// Mac stand-in until the SwiftUI rewrite deletes this class: `SceneMenu` is the scene
+/// picker there, so there is no button to add. `view` is never put in a window; it only
+/// gives the scenes' show, hide and layout calls something to talk to.
+@MainActor
+class DemoSceneUI {
+    let view = NSView()
+
+    init(parentView: NSView, target: AnyObject, menuAction: Selector) {}
+    func layout() {}
+    func removeFromSuperview() {}
+}
+#endif

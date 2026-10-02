@@ -5,8 +5,11 @@
 //  Created by Matt Casanova on 4/26/26.
 //
 
-import UIKit
+import Foundation
 import LiquidMetal2D
+#if canImport(UIKit)
+import UIKit
+#endif
 
 /// Mirror of ``ParticleDemo`` that exercises ``EmitterShape/line`` instead
 /// of the default point emitter — particles spawn uniformly along a 10-unit
@@ -22,6 +25,7 @@ class LineParticleDemo: DefaultScene {
     private var particleShader: ParticleShader!
     private var emitterObj: GameObj!
     private var ui: DemoSceneUI!
+    #if canImport(UIKit)
     private var burstButton: UIButton!
     private var pauseButton: UIButton!
     private var colorButton: UIButton!
@@ -42,6 +46,7 @@ class LineParticleDemo: DefaultScene {
 
     private var correlatedSwitch: UISwitch!
     private var correlatedLabel: UILabel!
+    #endif
 
     private let fireStartColor = Vec4(1.0, 0.55, 0.15, 0.7)
     private let fireStartVar   = Vec4(1.0, 0.85, 0.20, 0.7)
@@ -102,15 +107,7 @@ class LineParticleDemo: DefaultScene {
         super.shutdown()
         renderer.unregister(shader: particleShader)
         ui.removeFromSuperview()
-        burstButton.removeFromSuperview()
-        pauseButton.removeFromSuperview()
-        colorButton.removeFromSuperview()
-        correlatedSwitch?.removeFromSuperview()
-        correlatedLabel?.removeFromSuperview()
-        [emissionSlider, speedSlider, scaleSlider,
-         lifetimeSlider, spreadSlider, gravitySlider,
-         emissionLabel, speedLabel, scaleLabel,
-         lifetimeLabel, spreadLabel, gravityLabel].forEach { $0?.removeFromSuperview() }
+        tearDownUI()
     }
 
     // MARK: - Emitter
@@ -146,6 +143,7 @@ class LineParticleDemo: DefaultScene {
 
     // MARK: - Actions
 
+    #if canImport(UIKit)
     @objc private func onBurst() {
         emitterObj.get(ParticleEmitterComponent.self)?.spawn(count: 60)
     }
@@ -220,6 +218,8 @@ class LineParticleDemo: DefaultScene {
             = correlatedSwitch.isOn
     }
 
+    #endif
+
     @objc func onMenu() {
         ui.view.isHidden = true
         sceneMgr.pushScene(type: SceneTypes.pauseDemo)
@@ -227,6 +227,7 @@ class LineParticleDemo: DefaultScene {
 
     // MARK: - UI
 
+    #if canImport(UIKit)
     private func setupUI() {
         ui = DemoSceneUI(
             parentView: renderer.view, target: self,
@@ -373,4 +374,24 @@ class LineParticleDemo: DefaultScene {
             cursorY += labelHeight + rowHeight + rowSpacing
         }
     }
+
+    private func tearDownUI() {
+        burstButton.removeFromSuperview()
+        pauseButton.removeFromSuperview()
+        colorButton.removeFromSuperview()
+        correlatedSwitch?.removeFromSuperview()
+        correlatedLabel?.removeFromSuperview()
+        [emissionSlider, speedSlider, scaleSlider,
+         lifetimeSlider, spreadSlider, gravitySlider,
+         emissionLabel, speedLabel, scaleLabel,
+         lifetimeLabel, spreadLabel, gravityLabel].forEach { $0?.removeFromSuperview() }
+    }
+    #else
+    // Mac scaffolding until the SwiftUI rewrite reaches this scene's controls.
+    private func setupUI() {
+        ui = DemoSceneUI(parentView: renderer.view, target: self, menuAction: #selector(onMenu))
+    }
+    private func layoutButtons() {}
+    private func tearDownUI() {}
+    #endif
 }

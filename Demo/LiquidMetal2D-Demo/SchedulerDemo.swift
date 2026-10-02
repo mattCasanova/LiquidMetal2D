@@ -5,7 +5,7 @@
 //  Originally ThirdScene by Matt Casanova on 3/18/20.
 //
 
-import UIKit
+import Foundation
 import LiquidMetal2D
 
 /// Scheduler demo showcasing task chaining, finite repeats, and completion callbacks.

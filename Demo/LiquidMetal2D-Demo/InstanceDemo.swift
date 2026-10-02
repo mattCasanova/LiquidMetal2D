@@ -5,7 +5,7 @@
 //  Originally SecondScene by Matt Casanova on 3/13/20.
 //
 
-import UIKit
+import Foundation
 import LiquidMetal2D
 
 /// Explosion / radial burst demo with touch-to-rotate.

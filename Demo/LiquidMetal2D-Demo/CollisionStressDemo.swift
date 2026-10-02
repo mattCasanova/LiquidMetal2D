@@ -1,5 +1,8 @@
-import UIKit
+import Foundation
 import LiquidMetal2D
+#if canImport(UIKit)
+import UIKit
+#endif
 
 /// Collision stress test comparing brute force vs SpatialGrid broadphase.
 ///
@@ -30,8 +33,10 @@ class CollisionStressDemo: Scene {
 
     // UI
     private var ui: DemoSceneUI!
+    #if canImport(UIKit)
     private var statsLabel: UILabel!
     private var toggleButton: UIButton!
+    #endif
 
     func initialize(services: SceneServices) {
         self.sceneMgr = services.sceneMgr
@@ -93,8 +98,7 @@ class CollisionStressDemo: Scene {
         objects.removeAll()
         colliders.removeAll()
         colliderMap.removeAll()
-        statsLabel.removeFromSuperview()
-        toggleButton.removeFromSuperview()
+        tearDownUI()
         ui.removeFromSuperview()
     }
 
@@ -173,6 +177,7 @@ class CollisionStressDemo: Scene {
 
     // MARK: - UI
 
+    #if canImport(UIKit)
     private func setupUI() {
         ui = DemoSceneUI(
             parentView: renderer.view, target: self,
@@ -236,6 +241,20 @@ class CollisionStressDemo: Scene {
         useBroadphase.toggle()
         updateToggleLabel()
     }
+
+    private func tearDownUI() {
+        statsLabel.removeFromSuperview()
+        toggleButton.removeFromSuperview()
+    }
+    #else
+    // Mac scaffolding until the SwiftUI rewrite reaches this scene's controls.
+    private func setupUI() {
+        ui = DemoSceneUI(parentView: renderer.view, target: self, menuAction: #selector(onMenu))
+    }
+    private func layoutUI() {}
+    private func updateStats() {}
+    private func tearDownUI() {}
+    #endif
 
     @objc func onMenu() {
         ui.view.isHidden = true

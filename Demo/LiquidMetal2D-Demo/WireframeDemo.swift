@@ -5,8 +5,11 @@
 //  Created by Matt Casanova on 4/19/26.
 //
 
-import UIKit
+import Foundation
 import LiquidMetal2D
+#if canImport(UIKit)
+import UIKit
+#endif
 
 /// Shows three shaders cooperating in one scene: `AlphaBlendShader` for the
 /// sprite, `WireframeShader` for the collider outline overlay, and
@@ -42,9 +45,11 @@ class MultiShaderDemo: DefaultScene {
     private var ripple: RippleShader!
     private var grid: SpatialGrid!
     private var ui: DemoSceneUI!
+    #if canImport(UIKit)
     private var spawnButton: UIButton!
     private var wireToggle: UIButton!
     private var rippleToggle: UIButton!
+    #endif
     private var showWireframes: Bool = true
     private var rippleOn: Bool = false
 
@@ -140,13 +145,12 @@ class MultiShaderDemo: DefaultScene {
         renderer.unregister(shader: wireframe)
         renderer.unregister(shader: ripple)
         ui.removeFromSuperview()
-        spawnButton.removeFromSuperview()
-        wireToggle.removeFromSuperview()
-        rippleToggle.removeFromSuperview()
+        tearDownUI()
     }
 
     // MARK: - Spawn + toggles
 
+    #if canImport(UIKit)
     @objc private func onSpawn() {
         spawnPair()
     }
@@ -160,6 +164,7 @@ class MultiShaderDemo: DefaultScene {
         rippleOn.toggle()
         rippleToggle.setTitle(rippleOn ? "Ripple: On" : "Ripple: Off", for: .normal)
     }
+    #endif
 
     private func spawnPair() {
         let bounds = renderer.getVisibleBounds(zOrder: 0)
@@ -214,6 +219,7 @@ class MultiShaderDemo: DefaultScene {
 
     // MARK: - UI
 
+    #if canImport(UIKit)
     private func setupUI() {
         ui = DemoSceneUI(
             parentView: renderer.view, target: self,
@@ -261,4 +267,18 @@ class MultiShaderDemo: DefaultScene {
             x: leftX + (buttonWidth + gap) * 2, y: bottomY,
             width: buttonWidth, height: buttonHeight)
     }
+
+    private func tearDownUI() {
+        spawnButton.removeFromSuperview()
+        wireToggle.removeFromSuperview()
+        rippleToggle.removeFromSuperview()
+    }
+    #else
+    // Mac scaffolding until the SwiftUI rewrite reaches this scene's controls.
+    private func setupUI() {
+        ui = DemoSceneUI(parentView: renderer.view, target: self, menuAction: #selector(onMenu))
+    }
+    private func layoutButtons() {}
+    private func tearDownUI() {}
+    #endif
 }

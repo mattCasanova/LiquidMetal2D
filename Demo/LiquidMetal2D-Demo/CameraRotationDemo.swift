@@ -5,8 +5,11 @@
 //  Created by Matt Casanova on 3/17/26.
 //
 
-import UIKit
+import Foundation
 import LiquidMetal2D
+#if canImport(UIKit)
+import UIKit
+#endif
 
 /// Camera rotation & scheduler demo. Ships form a tunnel that oscillates
 /// smoothly via a per-frame sine wave. Press the Spawn button to schedule
@@ -43,9 +46,11 @@ class CameraRotationDemo: Scene {
     private let spawnSpeed: Float = 30
     private let spawnZ: Float = 0
 
-    private var rotationLabel: UILabel!
     private var ui: DemoSceneUI!
+    #if canImport(UIKit)
+    private var rotationLabel: UILabel!
     private var spawnButton: UIButton!
+    #endif
 
     func initialize(services: SceneServices) {
         self.sceneMgr = services.sceneMgr
@@ -88,8 +93,7 @@ class CameraRotationDemo: Scene {
         objects.removeAll()
         scheduler.clear()
         renderer.setCameraRotation(angle: 0)
-        rotationLabel.removeFromSuperview()
-        spawnButton.removeFromSuperview()
+        tearDownUI()
         ui.removeFromSuperview()
     }
 
@@ -190,6 +194,7 @@ class CameraRotationDemo: Scene {
 
     // MARK: - UI
 
+    #if canImport(UIKit)
     private func setupUI() {
         ui = DemoSceneUI(
             parentView: renderer.view, target: self,
@@ -246,6 +251,20 @@ class CameraRotationDemo: Scene {
     @objc private func onSpawn() {
         scheduleSpawnWaves()
     }
+
+    private func tearDownUI() {
+        rotationLabel.removeFromSuperview()
+        spawnButton.removeFromSuperview()
+    }
+    #else
+    // Mac scaffolding until the SwiftUI rewrite reaches this scene's controls.
+    private func setupUI() {
+        ui = DemoSceneUI(parentView: renderer.view, target: self, menuAction: #selector(onMenu))
+    }
+    private func layoutUI() {}
+    private func updateLabel(_ rotation: Float) {}
+    private func tearDownUI() {}
+    #endif
 
     // MARK: - Tunnel
 

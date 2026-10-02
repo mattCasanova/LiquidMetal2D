@@ -5,7 +5,7 @@
 //  Copyright © 2026 Matt Casanova. All rights reserved.
 //
 
-import UIKit
+import Foundation
 import LiquidMetal2D
 
 /// Mass rendering and visual effects demo showcasing 4,500 ships at varying z-depths.

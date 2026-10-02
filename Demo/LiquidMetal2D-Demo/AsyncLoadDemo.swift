@@ -11,16 +11,21 @@
 //  Copyright © 2026 Matt Casanova. All rights reserved.
 //
 
-import UIKit
+import Foundation
 import LiquidMetal2D
+#if canImport(UIKit)
+import UIKit
+#endif
 
 class AsyncLoadDemo: DefaultScene {
     override class var sceneType: any SceneType { SceneTypes.asyncLoadDemo }
 
     private let artificialDelay: Float = 5.0
 
+    #if canImport(UIKit)
     private var statusLabel: UILabel!
     private var startButton: UIButton!
+    #endif
 
     // Star movement
     private let baseSpeed: Float = 0.35
@@ -47,6 +52,7 @@ class AsyncLoadDemo: DefaultScene {
     }
 
     override func layoutUI() {
+        #if canImport(UIKit)
         let bounds = renderer.view.bounds
         let centerX = bounds.width / 2
         let centerY = bounds.height / 2
@@ -56,6 +62,7 @@ class AsyncLoadDemo: DefaultScene {
         startButton.frame = CGRect(
             x: centerX - 60, y: centerY + 20,
             width: 120, height: 50)
+        #endif
     }
 
     override func update(dt: Float) {
@@ -81,8 +88,7 @@ class AsyncLoadDemo: DefaultScene {
 
     override func shutdown() {
         super.shutdown()
-        statusLabel.removeFromSuperview()
-        startButton.removeFromSuperview()
+        tearDownUI()
     }
 
     // MARK: - Stars
@@ -119,6 +125,7 @@ class AsyncLoadDemo: DefaultScene {
 
     // MARK: - UI
 
+    #if canImport(UIKit)
     private func setupUI() {
         statusLabel = UILabel()
         statusLabel.textColor = TokyoNight.uiFg
@@ -140,6 +147,16 @@ class AsyncLoadDemo: DefaultScene {
         layoutUI()
     }
 
+    private func tearDownUI() {
+        statusLabel.removeFromSuperview()
+        startButton.removeFromSuperview()
+    }
+    #else
+    // Mac scaffolding until the SwiftUI rewrite reaches this scene's controls.
+    private func setupUI() {}
+    private func tearDownUI() {}
+    #endif
+
     // MARK: - Loading
 
     private func loadAllTextures() {
@@ -159,8 +176,13 @@ class AsyncLoadDemo: DefaultScene {
     }
 
     private func onLoadComplete() {
+        #if canImport(UIKit)
         statusLabel.text = "Ready!"
         startButton.isHidden = false
+        #else
+        // No Start button on the Mac until it is drawn in SwiftUI: go straight on.
+        onStart()
+        #endif
     }
 
     @objc func onStart() {

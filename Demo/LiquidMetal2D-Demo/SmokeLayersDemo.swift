@@ -5,8 +5,11 @@
 //  Created by Matt Casanova on 9/25/26.
 //
 
-import UIKit
+import Foundation
 import LiquidMetal2D
+#if canImport(UIKit)
+import UIKit
+#endif
 
 /// Two alpha-blended smoke plumes rising side by side at different depths, overlapping in the middle. Shows that
 /// `ParticleShader` in `.alpha` mode draws emitters far to near (new in 0.15.0; before, it
@@ -33,8 +36,10 @@ class SmokeLayersDemo: DefaultScene {
     private var warmPlume: GameObj!
     private var coolPlume: GameObj!
     private var ui: DemoSceneUI!
+    #if canImport(UIKit)
     private var swapButton: UIButton!
     private var statusLabel: UILabel!
+    #endif
 
     // Fairly opaque so "which one is on top" is obvious, fading out at the end.
     private let warmStart = Vec4(1.00, 0.62, 0.39, 0.65)   // Tokyo Night orange
@@ -89,8 +94,7 @@ class SmokeLayersDemo: DefaultScene {
         super.shutdown()
         renderer.unregister(shader: smokeShader)
         ui.removeFromSuperview()
-        swapButton.removeFromSuperview()
-        statusLabel.removeFromSuperview()
+        tearDownUI()
     }
 
     // MARK: - Emitters
@@ -121,14 +125,10 @@ class SmokeLayersDemo: DefaultScene {
 
     // MARK: - Actions
 
+    #if canImport(UIKit)
     @objc private func onSwap() {
         swap(&warmPlume.zOrder, &coolPlume.zOrder)
         updateStatus()
-    }
-
-    @objc func onMenu() {
-        ui.view.isHidden = true
-        sceneMgr.pushScene(type: SceneTypes.pauseDemo)
     }
 
     private func updateStatus() {
@@ -174,5 +174,23 @@ class SmokeLayersDemo: DefaultScene {
             x: (viewWidth - buttonWidth) / 2, y: viewHeight - safeBottom - buttonHeight - 16,
             width: buttonWidth, height: buttonHeight)
         statusLabel.frame = CGRect(x: 16, y: safeTop + 56, width: viewWidth - 32, height: 24)
+    }
+
+    private func tearDownUI() {
+        swapButton.removeFromSuperview()
+        statusLabel.removeFromSuperview()
+    }
+    #else
+    // Mac scaffolding until the SwiftUI rewrite reaches this scene's controls.
+    private func setupUI() {
+        ui = DemoSceneUI(parentView: renderer.view, target: self, menuAction: #selector(onMenu))
+    }
+    private func layoutControls() {}
+    private func tearDownUI() {}
+    #endif
+
+    @objc func onMenu() {
+        ui.view.isHidden = true
+        sceneMgr.pushScene(type: SceneTypes.pauseDemo)
     }
 }

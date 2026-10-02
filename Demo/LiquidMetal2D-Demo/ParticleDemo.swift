@@ -5,8 +5,11 @@
 //  Created by Matt Casanova on 4/19/26.
 //
 
-import UIKit
+import Foundation
 import LiquidMetal2D
+#if canImport(UIKit)
+import UIKit
+#endif
 
 /// Showcases `ParticleShader` — a fourth engine shader doing additive-blended,
 /// texture-sampled particles with order-independent compositing.
@@ -32,6 +35,7 @@ class ParticleDemo: DefaultScene {
     private var particleShader: ParticleShader!
     private var emitterObj: GameObj!
     private var ui: DemoSceneUI!
+    #if canImport(UIKit)
     private var burstButton: UIButton!
     private var pauseButton: UIButton!
     private var colorButton: UIButton!
@@ -56,6 +60,7 @@ class ParticleDemo: DefaultScene {
     // "Correlated color variation" switch at the top of the slider column.
     private var correlatedSwitch: UISwitch!
     private var correlatedLabel: UILabel!
+    #endif
 
     // Color palette with matched start-color + variation endpoints and
     // end-color + variation endpoints. Each particle picks a random t
@@ -124,15 +129,7 @@ class ParticleDemo: DefaultScene {
         super.shutdown()
         renderer.unregister(shader: particleShader)
         ui.removeFromSuperview()
-        burstButton.removeFromSuperview()
-        pauseButton.removeFromSuperview()
-        colorButton.removeFromSuperview()
-        correlatedSwitch?.removeFromSuperview()
-        correlatedLabel?.removeFromSuperview()
-        [emissionSlider, speedSlider, scaleSlider,
-         lifetimeSlider, spreadSlider, gravitySlider,
-         emissionLabel, speedLabel, scaleLabel,
-         lifetimeLabel, spreadLabel, gravityLabel].forEach { $0?.removeFromSuperview() }
+        tearDownUI()
     }
 
     // MARK: - Emitter
@@ -169,6 +166,7 @@ class ParticleDemo: DefaultScene {
 
     // MARK: - Actions
 
+    #if canImport(UIKit)
     @objc private func onBurst() {
         emitterObj.get(ParticleEmitterComponent.self)?.spawn(count: 60)
     }
@@ -246,6 +244,8 @@ class ParticleDemo: DefaultScene {
             = correlatedSwitch.isOn
     }
 
+    #endif
+
     @objc func onMenu() {
         ui.view.isHidden = true
         sceneMgr.pushScene(type: SceneTypes.pauseDemo)
@@ -253,6 +253,7 @@ class ParticleDemo: DefaultScene {
 
     // MARK: - UI
 
+    #if canImport(UIKit)
     private func setupUI() {
         ui = DemoSceneUI(
             parentView: renderer.view, target: self,
@@ -405,4 +406,24 @@ class ParticleDemo: DefaultScene {
             cursorY += labelHeight + rowHeight + rowSpacing
         }
     }
+
+    private func tearDownUI() {
+        burstButton.removeFromSuperview()
+        pauseButton.removeFromSuperview()
+        colorButton.removeFromSuperview()
+        correlatedSwitch?.removeFromSuperview()
+        correlatedLabel?.removeFromSuperview()
+        [emissionSlider, speedSlider, scaleSlider,
+         lifetimeSlider, spreadSlider, gravitySlider,
+         emissionLabel, speedLabel, scaleLabel,
+         lifetimeLabel, spreadLabel, gravityLabel].forEach { $0?.removeFromSuperview() }
+    }
+    #else
+    // Mac scaffolding until the SwiftUI rewrite reaches this scene's controls.
+    private func setupUI() {
+        ui = DemoSceneUI(parentView: renderer.view, target: self, menuAction: #selector(onMenu))
+    }
+    private func layoutButtons() {}
+    private func tearDownUI() {}
+    #endif
 }

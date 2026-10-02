@@ -5,8 +5,11 @@
 //  Created by Matt Casanova on 9/21/26.
 //
 
-import UIKit
+import Foundation
 import LiquidMetal2D
+#if canImport(UIKit)
+import UIKit
+#endif
 
 /// Skeletal animation demo: a white-box stick figure that idles, walks, jumps, slashes
 /// and throws its sword.
@@ -57,10 +60,12 @@ class SkeletonDemo: Scene {
     private var isReaching: Bool { !skeleton.ikConstraints.isEmpty }
 
     private var ui: DemoSceneUI!
+    #if canImport(UIKit)
     private var buttons: [UIButton] = []
     private var reachButton: UIButton!
     private var eventFlash: UILabel!
     private var eventLog: UILabel!
+    #endif
     private var recentEvents: [String] = []
 
     func initialize(services: SceneServices) {
@@ -78,15 +83,7 @@ class SkeletonDemo: Scene {
         ui = DemoSceneUI(
             parentView: renderer.view, target: self,
             menuAction: #selector(onMenu))
-        createEventLabels()
-        reachButton = makeButton(title: "Reach", action: #selector(onReach))
-        buttons = [
-            makeButton(title: "Jump", action: #selector(onJump)),
-            makeButton(title: "Throw", action: #selector(onThrow)),
-            makeButton(title: "Slash", action: #selector(onSlash)),
-            reachButton,
-        ]
-        layoutUI()
+        setupUI()
     }
 
     func resume() { ui.view.isHidden = false }
@@ -256,6 +253,19 @@ class SkeletonDemo: Scene {
             parent: flyingSword.object, textureID: renderer.defaultTextureId, tintColor: TokyoNight.cyan))
     }
 
+    #if canImport(UIKit)
+    private func setupUI() {
+        createEventLabels()
+        reachButton = makeButton(title: "Reach", action: #selector(onReach))
+        buttons = [
+            makeButton(title: "Jump", action: #selector(onJump)),
+            makeButton(title: "Throw", action: #selector(onThrow)),
+            makeButton(title: "Slash", action: #selector(onSlash)),
+            reachButton,
+        ]
+        layoutUI()
+    }
+
     private func createEventLabels() {
         eventFlash = UILabel()
         eventFlash.font = UIFont.monospacedSystemFont(ofSize: 34, weight: .bold)
@@ -312,6 +322,12 @@ class SkeletonDemo: Scene {
         eventFlash.frame = CGRect(x: 0, y: size.height * 0.2, width: size.width, height: 44)
         eventLog.frame = CGRect(x: size.width - 140, y: 8, width: 128, height: 170)
     }
+    #else
+    // Mac scaffolding until the SwiftUI rewrite reaches this scene's controls.
+    private func setupUI() {}
+    private func layoutUI() {}
+    private func showEvent(_ name: String) {}
+    #endif
 
     @objc func onJump() { isAutoplay = false; startJump() }
     @objc func onThrow() { isAutoplay = false; startThrow() }
@@ -327,7 +343,9 @@ class SkeletonDemo: Scene {
             reach.target = root.position + Vec2(5 * facing, 3)
             skeleton.ikConstraints = [reach]
         }
+        #if canImport(UIKit)
         reachButton.setTitle(isReaching ? "Reach: On" : "Reach", for: .normal)
+        #endif
     }
 
     @objc func onMenu() { ui.view.isHidden = true; sceneMgr.pushScene(type: SceneTypes.pauseDemo) }
