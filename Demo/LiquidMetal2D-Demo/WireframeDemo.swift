@@ -5,11 +5,8 @@
 //  Created by Matt Casanova on 4/19/26.
 //
 
-import Foundation
+import SwiftUI
 import LiquidMetal2D
-#if canImport(UIKit)
-import UIKit
-#endif
 
 /// Shows three shaders cooperating in one scene: `AlphaBlendShader` for the
 /// sprite, `WireframeShader` for the collider outline overlay, and
@@ -44,13 +41,8 @@ class MultiShaderDemo: DefaultScene {
     private var wireframe: WireframeShader!
     private var ripple: RippleShader!
     private var grid: SpatialGrid!
-    #if canImport(UIKit)
-    private var spawnButton: UIButton!
-    private var wireToggle: UIButton!
-    private var rippleToggle: UIButton!
-    #endif
-    private var showWireframes: Bool = true
-    private var rippleOn: Bool = false
+    private let controls = MultiShaderControls()
+    private var ui: DemoUI!
 
     override func initialize(services: SceneServices) {
         super.initialize(services: services)
@@ -72,13 +64,13 @@ class MultiShaderDemo: DefaultScene {
         let bounds = renderer.getVisibleBounds(zOrder: 0)
         grid = SpatialGrid(bounds: bounds, cellWidth: 4, cellHeight: 4)
 
-        setupUI()
+        ui = services.demoUI
+        controls.onSpawn = { [unowned self] in spawnPair() }
+        showOverlay()
         spawnPair()
     }
 
-    override func layoutUI() {
-        layoutButtons()
-    }
+    override func resume() { showOverlay() }
 
     override func update(dt: Float) {
         let bounds = renderer.getVisibleBounds(zOrder: 0)
@@ -122,13 +114,13 @@ class MultiShaderDemo: DefaultScene {
         renderer.usePerspective()
 
         // Pass 1: sprite pass — flip between AlphaBlend and Ripple shaders.
-        if rippleOn {
+        if controls.rippleOn {
             renderer.useShader(ripple)
         }
         renderer.submit(objects: objects)
 
         // Pass 2: wireframe overlay, optional.
-        if showWireframes {
+        if controls.showWireframes {
             renderer.useShader(wireframe)
             renderer.submit(objects: objects)
         }
@@ -140,26 +132,10 @@ class MultiShaderDemo: DefaultScene {
         super.shutdown()
         renderer.unregister(shader: wireframe)
         renderer.unregister(shader: ripple)
-        tearDownUI()
+        ui.overlay = nil
     }
 
-    // MARK: - Spawn + toggles
-
-    #if canImport(UIKit)
-    @objc private func onSpawn() {
-        spawnPair()
-    }
-
-    @objc private func onToggleWireframe() {
-        showWireframes.toggle()
-        wireToggle.setTitle(showWireframes ? "Wire: On" : "Wire: Off", for: .normal)
-    }
-
-    @objc private func onToggleRipple() {
-        rippleOn.toggle()
-        rippleToggle.setTitle(rippleOn ? "Ripple: On" : "Ripple: Off", for: .normal)
-    }
-    #endif
+    // MARK: - Spawn
 
     private func spawnPair() {
         let bounds = renderer.getVisibleBounds(zOrder: 0)
@@ -209,60 +185,28 @@ class MultiShaderDemo: DefaultScene {
 
     // MARK: - UI
 
-    #if canImport(UIKit)
-    private func setupUI() {
-        spawnButton = makeButton(title: "Spawn", action: #selector(onSpawn))
-        wireToggle = makeButton(title: "Wire: On", action: #selector(onToggleWireframe))
-        rippleToggle = makeButton(title: "Ripple: Off", action: #selector(onToggleRipple))
-        renderer.view.addSubview(spawnButton)
-        renderer.view.addSubview(wireToggle)
-        renderer.view.addSubview(rippleToggle)
-
-        layoutButtons()
+    private func showOverlay() {
+        ui.overlay = AnyView(MultiShaderPanel(controls: controls))
     }
+}
 
-    private func makeButton(title: String, action: Selector) -> UIButton {
-        let button = UIButton(frame: .zero)
-        button.backgroundColor = TokyoNight.uiDarker
-        button.setTitle(title, for: .normal)
-        button.setTitleColor(TokyoNight.uiBlue, for: .normal)
-        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 15)
-        button.layer.cornerRadius = 6
-        button.addTarget(self, action: action, for: .touchUpInside)
-        return button
+/// The two overlay switches, read by `draw` every frame, and the spawn button.
+@MainActor
+@Observable
+final class MultiShaderControls {
+    var showWireframes = true
+    var rippleOn = false
+    var onSpawn: () -> Void = {}
+}
+
+struct MultiShaderPanel: View {
+    let controls: MultiShaderControls
+
+    var body: some View {
+        BottomBar {
+            Button("Spawn", action: controls.onSpawn)
+            Button(controls.showWireframes ? "Wire: On" : "Wire: Off") { controls.showWireframes.toggle() }
+            Button(controls.rippleOn ? "Ripple: On" : "Ripple: Off") { controls.rippleOn.toggle() }
+        }
     }
-
-    private func layoutButtons() {
-        let safeBottom = renderer.view.safeAreaInsets.bottom
-        let viewWidth = renderer.view.bounds.width
-        let viewHeight = renderer.view.bounds.height
-
-        let buttonWidth: CGFloat = 110
-        let buttonHeight: CGFloat = 44
-        let gap: CGFloat = 10
-        let bottomY = viewHeight - safeBottom - buttonHeight - 16
-        let totalWidth = buttonWidth * 3 + gap * 2
-        let leftX = (viewWidth - totalWidth) / 2
-
-        spawnButton.frame = CGRect(
-            x: leftX, y: bottomY, width: buttonWidth, height: buttonHeight)
-        wireToggle.frame = CGRect(
-            x: leftX + (buttonWidth + gap), y: bottomY,
-            width: buttonWidth, height: buttonHeight)
-        rippleToggle.frame = CGRect(
-            x: leftX + (buttonWidth + gap) * 2, y: bottomY,
-            width: buttonWidth, height: buttonHeight)
-    }
-
-    private func tearDownUI() {
-        spawnButton.removeFromSuperview()
-        wireToggle.removeFromSuperview()
-        rippleToggle.removeFromSuperview()
-    }
-    #else
-    // Mac scaffolding until the SwiftUI rewrite reaches this scene's controls.
-    private func setupUI() {}
-    private func layoutButtons() {}
-    private func tearDownUI() {}
-    #endif
 }
