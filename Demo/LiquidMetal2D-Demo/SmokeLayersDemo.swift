@@ -5,11 +5,8 @@
 //  Created by Matt Casanova on 9/25/26.
 //
 
-import Foundation
+import SwiftUI
 import LiquidMetal2D
-#if canImport(UIKit)
-import UIKit
-#endif
 
 /// Two alpha-blended smoke plumes rising side by side at different depths, overlapping in the middle. Shows that
 /// `ParticleShader` in `.alpha` mode draws emitters far to near (new in 0.15.0; before, it
@@ -35,10 +32,8 @@ class SmokeLayersDemo: DefaultScene {
     private var smokeShader: ParticleShader!
     private var warmPlume: GameObj!
     private var coolPlume: GameObj!
-    #if canImport(UIKit)
-    private var swapButton: UIButton!
-    private var statusLabel: UILabel!
-    #endif
+    private let controls = SmokeLayersControls()
+    private var ui: DemoUI!
 
     // Fairly opaque so "which one is on top" is obvious, fading out at the end.
     private let warmStart = Vec4(1.00, 0.62, 0.39, 0.65)   // Tokyo Night orange
@@ -64,12 +59,14 @@ class SmokeLayersDemo: DefaultScene {
 
         warmPlume = makePlume(x: -plumeOffset, startColor: warmStart, endColor: warmEnd, zOrder: nearZ)
         coolPlume = makePlume(x: plumeOffset, startColor: coolStart, endColor: coolEnd, zOrder: farZ)
-        setupUI()
+
+        ui = services.demoUI
+        controls.onSwap = { [unowned self] in swapPlumes() }
+        updateStatus()
+        showOverlay()
     }
 
-    override func layoutUI() {
-        layoutControls()
-    }
+    override func resume() { showOverlay() }
 
     override func update(dt: Float) {
         warmPlume.get(ParticleEmitterComponent.self)?.update(dt: dt)
@@ -89,7 +86,7 @@ class SmokeLayersDemo: DefaultScene {
     override func shutdown() {
         super.shutdown()
         renderer.unregister(shader: smokeShader)
-        tearDownUI()
+        ui.overlay = nil
     }
 
     // MARK: - Emitters
@@ -120,62 +117,46 @@ class SmokeLayersDemo: DefaultScene {
 
     // MARK: - Actions
 
-    #if canImport(UIKit)
-    @objc private func onSwap() {
+    private func swapPlumes() {
         swap(&warmPlume.zOrder, &coolPlume.zOrder)
         updateStatus()
     }
 
     private func updateStatus() {
         let nearName = warmPlume.zOrder > coolPlume.zOrder ? "Orange" : "Cyan"
-        statusLabel.text = "\(nearName) is near — it should be bigger and on top in the middle"
+        controls.status = "\(nearName) is near — it should be bigger and on top in the middle"
     }
 
     // MARK: - UI
 
-    private func setupUI() {
-        swapButton = UIButton(frame: .zero)
-        swapButton.backgroundColor = TokyoNight.uiDarker
-        swapButton.setTitle("Swap", for: .normal)
-        swapButton.setTitleColor(TokyoNight.uiBlue, for: .normal)
-        swapButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 15)
-        swapButton.layer.cornerRadius = 6
-        swapButton.addTarget(self, action: #selector(onSwap), for: .touchUpInside)
-        renderer.view.addSubview(swapButton)
-
-        statusLabel = UILabel(frame: .zero)
-        statusLabel.textColor = TokyoNight.uiBlue
-        statusLabel.font = UIFont.boldSystemFont(ofSize: 15)
-        statusLabel.textAlignment = .center
-        renderer.view.addSubview(statusLabel)
-
-        updateStatus()
-        layoutControls()
+    private func showOverlay() {
+        ui.overlay = AnyView(SmokeLayersPanel(controls: controls))
     }
+}
 
-    private func layoutControls() {
-        let safeTop = renderer.view.safeAreaInsets.top
-        let safeBottom = renderer.view.safeAreaInsets.bottom
-        let viewWidth = renderer.view.bounds.width
-        let viewHeight = renderer.view.bounds.height
+/// The status line and the Swap button.
+@MainActor
+@Observable
+final class SmokeLayersControls {
+    var status = ""
+    var onSwap: () -> Void = {}
+}
 
-        let buttonWidth: CGFloat = 120
-        let buttonHeight: CGFloat = 44
-        swapButton.frame = CGRect(
-            x: (viewWidth - buttonWidth) / 2, y: viewHeight - safeBottom - buttonHeight - 16,
-            width: buttonWidth, height: buttonHeight)
-        statusLabel.frame = CGRect(x: 16, y: safeTop + 56, width: viewWidth - 32, height: 24)
+struct SmokeLayersPanel: View {
+    let controls: SmokeLayersControls
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            Text(controls.status)
+                .font(.system(size: 15, weight: .bold))
+                .foregroundStyle(TokyoNight.color(TokyoNight.blue))
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 16)
+                .padding(.top, 56)
+            BottomBar {
+                Button("Swap", action: controls.onSwap)
+            }
+        }
     }
-
-    private func tearDownUI() {
-        swapButton.removeFromSuperview()
-        statusLabel.removeFromSuperview()
-    }
-    #else
-    // Mac scaffolding until the SwiftUI rewrite reaches this scene's controls.
-    private func setupUI() {}
-    private func layoutControls() {}
-    private func tearDownUI() {}
-    #endif
-
 }
