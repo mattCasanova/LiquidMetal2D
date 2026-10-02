@@ -77,31 +77,39 @@ public final class InputSystem: InputReader, InputWriter {
         frameEvents.removeAll(keepingCapacity: true)
 
         for event in queue {
-            switch event {
-            case .down(let code):
-                press(code)
-            case .up(let code):
-                release(code)
-            case .pointerMoved(let location):
-                pointerLocation = location
-            case .scroll(let delta):
-                scrollDelta += delta
-            case .touchBegan(let id, let location):
-                beginTouch(id: id, at: location)
-            case .touchMoved(let id, let location):
-                moveTouch(id: id, to: location)
-            case .touchEnded(let id):
-                endTouch(id: id)
-            case .focusLost:
-                for code in InputCode.allCases where down[code.rawValue] {
-                    release(code)
-                }
-                pointerLocation = nil
-                touches.removeAll(keepingCapacity: true)
-            }
+            apply(event)
         }
         queue.removeAll(keepingCapacity: true)
         return frameEvents
+    }
+
+    private func apply(_ event: RawInputEvent) {
+        switch event {
+        case .down(let code):
+            press(code)
+        case .up(let code):
+            release(code)
+        case .pointerMoved(let location):
+            pointerLocation = location
+        case .scroll(let delta):
+            scrollDelta += delta
+        case .touchBegan(let id, let location):
+            beginTouch(id: id, at: location)
+        case .touchMoved(let id, let location):
+            moveTouch(id: id, to: location)
+        case .touchEnded(let id):
+            endTouch(id: id)
+        case .focusLost:
+            loseFocus()
+        }
+    }
+
+    private func loseFocus() {
+        for code in InputCode.allCases where down[code.rawValue] {
+            release(code)
+        }
+        pointerLocation = nil
+        touches.removeAll(keepingCapacity: true)
     }
 
     private func press(_ code: InputCode) {

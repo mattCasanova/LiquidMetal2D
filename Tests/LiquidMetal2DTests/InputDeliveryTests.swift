@@ -82,7 +82,7 @@ final class InputDeliveryTests: XCTestCase {
     func testDeadObserversAreNotKeptAlive() {
         let observers = InputObservers()
         var observer: Recorder? = Recorder()
-        weak var weakObserver = observer
+        weak let weakObserver = observer
         observers.add(keyboard: observer!)
         observer = nil
 

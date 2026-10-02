@@ -73,34 +73,34 @@ public final class InputObservers {
         for event in events {
             switch event {
             case .triggered(let code):
-                switch code.device {
-                case .pointer:
-                    let location = input.pointer.location
-                    forEachLive(&pointerObservers) { $0.pointerTriggered(code, at: location) }
-                case .keyboard:
-                    forEachLive(&keyboardObservers) { $0.keyTriggered(code) }
-                case .gamepad:
-                    forEachLive(&gamepadObservers) { $0.gamepadTriggered(code) }
-                default:
-                    preconditionFailure("InputCode \(code) belongs to no single device")
-                }
+                route(code, isDown: true, input: input)
             case .released(let code):
-                switch code.device {
-                case .pointer:
-                    let location = input.pointer.location
-                    forEachLive(&pointerObservers) { $0.pointerReleased(code, at: location) }
-                case .keyboard:
-                    forEachLive(&keyboardObservers) { $0.keyReleased(code) }
-                case .gamepad:
-                    forEachLive(&gamepadObservers) { $0.gamepadReleased(code) }
-                default:
-                    preconditionFailure("InputCode \(code) belongs to no single device")
-                }
+                route(code, isDown: false, input: input)
             case .gamepadConnected:
                 forEachLive(&gamepadObservers) { $0.gamepadConnectionChanged(isConnected: true) }
             case .gamepadDisconnected:
                 forEachLive(&gamepadObservers) { $0.gamepadConnectionChanged(isConnected: false) }
             }
+        }
+    }
+
+    private func route(_ code: InputCode, isDown: Bool, input: InputReader) {
+        switch code.device {
+        case .pointer:
+            let location = input.pointer.location
+            forEachLive(&pointerObservers) { observer in
+                if isDown {
+                    observer.pointerTriggered(code, at: location)
+                } else {
+                    observer.pointerReleased(code, at: location)
+                }
+            }
+        case .keyboard:
+            forEachLive(&keyboardObservers) { isDown ? $0.keyTriggered(code) : $0.keyReleased(code) }
+        case .gamepad:
+            forEachLive(&gamepadObservers) { isDown ? $0.gamepadTriggered(code) : $0.gamepadReleased(code) }
+        default:
+            preconditionFailure("InputCode \(code) belongs to no single device")
         }
     }
 
