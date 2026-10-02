@@ -169,13 +169,42 @@ final class InputSetQueryTests: XCTestCase {
         XCTAssertTrue(input.isComboTriggered([.leftShift, .a]), "the held .shift is named through its side")
     }
 
-    func testAComboWithNoKeySkipsTheModifierCheck() {
+    func testAComboSkipsTheModifierCheckWithTheKeyboardOff() {
         let input = InputSystem(devices: [.pointer], unproject: { $0 })
         frame(input, .down(.pointerPrimary))
         frame(input, .down(.pointerSecondary))
 
         XCTAssertTrue(input.isComboTriggered([.pointerPrimary, .pointerSecondary]),
                       "no keyboard: asking about Shift would trap")
+    }
+
+    func testAHeldModifierBlocksAMouseComboWithTheKeyboardOn() {
+        let input = makeInput()
+        frame(input, .down(.leftShift))
+        frame(input, .down(.pointerPrimary))
+        frame(input, .down(.pointerSecondary))
+
+        XCTAssertFalse(input.isComboTriggered([.pointerPrimary, .pointerSecondary]), "Shift is not named")
+        XCTAssertTrue(input.isComboTriggered([.shift, .pointerPrimary, .pointerSecondary]))
+    }
+
+    // MARK: - Disabled devices
+
+    func testSetQueriesTreatADisabledDeviceAsNeverDown() {
+        let input = InputSystem(devices: [.keyboard], unproject: { $0 })
+        let jump: [InputCode] = [.space, .gamepadA, .pointerPrimary]
+        input.enqueue(.down(.space))
+        input.beginFrame()
+
+        XCTAssertTrue(input.isTriggered(anyOf: jump), "the keyboard half of the binding still works")
+        XCTAssertTrue(input.isPressed(anyOf: jump))
+        XCTAssertFalse(input.isPressed(allOf: jump), "a gamepad button that cannot be down")
+        XCTAssertFalse(input.isComboTriggered([.space, .gamepadA]))
+        XCTAssertFalse(input.isTriggered(anyOf: [.gamepadA]), "a list of only disabled codes is never down")
+
+        input.enqueue(.up(.space))
+        input.beginFrame()
+        XCTAssertTrue(input.isReleased(anyOf: jump))
     }
 
     func testSetQueriesTakeAnyCollection() {

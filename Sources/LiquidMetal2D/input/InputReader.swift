@@ -21,9 +21,14 @@
 /// For sets of codes see the extension: `isPressed(anyOf:)`,
 /// `isPressed(allOf:)`, `isTriggered(anyOf:)`, `isReleased(anyOf:)` and
 /// `isComboTriggered(_:)`. `.shift`, `.control`, `.option` and `.command`
-/// are down while either side is.
+/// are down while either side is. In the set queries a code of a device
+/// that is off counts as never down, so one binding list can name keys and
+/// gamepad buttons whatever devices a build turns on.
 @MainActor
 public protocol InputReader: AnyObject {
+    /// The devices the engine was created with.
+    var devices: InputDevices { get }
+
     func isPressed(_ code: InputCode) -> Bool
     func isTriggered(_ code: InputCode) -> Bool
     func isReleased(_ code: InputCode) -> Bool
