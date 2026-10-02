@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D3A0A00A2F9B0001000000A1 /* DemoControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A0A0092F9B0001000000A1 /* DemoControls.swift */; };
 		D3A0A0082F9B0001000000A1 /* DemoServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A0A0072F9B0001000000A1 /* DemoServices.swift */; };
 		A1B2C3CE2F67D0A7003831F3 /* GameTextures.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3CD2F67D0A7003831F3 /* GameTextures.swift */; };
 		A1B2C3D02F67C0A7003831F3 /* TokyoNight.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3CF2F67C0A7003831F3 /* TokyoNight.swift */; };
@@ -56,6 +57,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		D3A0A0092F9B0001000000A1 /* DemoControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoControls.swift; sourceTree = "<group>"; };
 		D3A0A0072F9B0001000000A1 /* DemoServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoServices.swift; sourceTree = "<group>"; };
 		A1B2C3CD2F67D0A7003831F3 /* GameTextures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameTextures.swift; sourceTree = "<group>"; };
 		A1B2C3CF2F67C0A7003831F3 /* TokyoNight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokyoNight.swift; sourceTree = "<group>"; };
@@ -146,6 +148,7 @@
 				F536B6A2241690FB00B3566F /* appleDefaults */,
 				D3A0A0032F9B0001000000A1 /* DemoUI.swift */,
 				D3A0A0072F9B0001000000A1 /* DemoServices.swift */,
+				D3A0A0092F9B0001000000A1 /* DemoControls.swift */,
 				D3A0A0052F9B0001000000A1 /* SceneMenu.swift */,
 				F536B692241690A800B3566F /* ViewController.swift */,
 				F536B697241690A900B3566F /* Assets.xcassets */,
@@ -326,6 +329,7 @@
 				D3A0A0022F9B0001000000A1 /* DemoApp.swift in Sources */,
 				D3A0A0042F9B0001000000A1 /* DemoUI.swift in Sources */,
 				D3A0A0082F9B0001000000A1 /* DemoServices.swift in Sources */,
+				D3A0A00A2F9B0001000000A1 /* DemoControls.swift in Sources */,
 				D3A0A0062F9B0001000000A1 /* SceneMenu.swift in Sources */,
 				A1B2C3D22F67B0A7003831F3 /* AsyncLoadDemo.swift in Sources */,
 				A1B2C3D42F6780A7003831F3 /* BezierDemo.swift in Sources */,

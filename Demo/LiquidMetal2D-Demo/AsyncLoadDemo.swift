@@ -11,21 +11,16 @@
 //  Copyright © 2026 Matt Casanova. All rights reserved.
 //
 
-import Foundation
+import SwiftUI
 import LiquidMetal2D
-#if canImport(UIKit)
-import UIKit
-#endif
 
 class AsyncLoadDemo: DefaultScene {
     override class var sceneType: any SceneType { SceneTypes.asyncLoadDemo }
 
     private let artificialDelay: Float = 5.0
 
-    #if canImport(UIKit)
-    private var statusLabel: UILabel!
-    private var startButton: UIButton!
-    #endif
+    private let controls = AsyncLoadControls()
+    private var ui: DemoUI!
 
     // Star movement
     private let baseSpeed: Float = 0.35
@@ -44,26 +39,17 @@ class AsyncLoadDemo: DefaultScene {
         renderer.setClearColor(color: TokyoNight.clearColor)
 
         createStars()
-        setupUI()
+
+        ui = services.demoUI
+        controls.onStart = { [unowned self] in onStart() }
+        showOverlay()
 
         scheduler.add(task: ScheduledTask(time: artificialDelay, action: { [weak self] _ in
             self?.loadAllTextures()
         }, count: 1))
     }
 
-    override func layoutUI() {
-        #if canImport(UIKit)
-        let bounds = renderer.view.bounds
-        let centerX = bounds.width / 2
-        let centerY = bounds.height / 2
-        statusLabel.frame = CGRect(
-            x: 0, y: centerY - 40,
-            width: bounds.width, height: 40)
-        startButton.frame = CGRect(
-            x: centerX - 60, y: centerY + 20,
-            width: 120, height: 50)
-        #endif
-    }
+    override func resume() { showOverlay() }
 
     override func update(dt: Float) {
         scheduler.update(dt: dt)
@@ -88,7 +74,7 @@ class AsyncLoadDemo: DefaultScene {
 
     override func shutdown() {
         super.shutdown()
-        tearDownUI()
+        ui.overlay = nil
     }
 
     // MARK: - Stars
@@ -125,37 +111,9 @@ class AsyncLoadDemo: DefaultScene {
 
     // MARK: - UI
 
-    #if canImport(UIKit)
-    private func setupUI() {
-        statusLabel = UILabel()
-        statusLabel.textColor = TokyoNight.uiFg
-        statusLabel.textAlignment = .center
-        statusLabel.font = UIFont.monospacedDigitSystemFont(ofSize: 24, weight: .bold)
-        statusLabel.text = "Loading..."
-        renderer.view.addSubview(statusLabel)
-
-        startButton = UIButton(type: .system)
-        startButton.setTitle("Start", for: .normal)
-        startButton.setTitleColor(TokyoNight.uiBg, for: .normal)
-        startButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 20)
-        startButton.backgroundColor = TokyoNight.uiBlue
-        startButton.layer.cornerRadius = 10
-        startButton.addTarget(self, action: #selector(onStart), for: .touchUpInside)
-        startButton.isHidden = true
-        renderer.view.addSubview(startButton)
-
-        layoutUI()
+    private func showOverlay() {
+        ui.overlay = AnyView(AsyncLoadPanel(controls: controls))
     }
-
-    private func tearDownUI() {
-        statusLabel.removeFromSuperview()
-        startButton.removeFromSuperview()
-    }
-    #else
-    // Mac scaffolding until the SwiftUI rewrite reaches this scene's controls.
-    private func setupUI() {}
-    private func tearDownUI() {}
-    #endif
 
     // MARK: - Loading
 
@@ -176,16 +134,36 @@ class AsyncLoadDemo: DefaultScene {
     }
 
     private func onLoadComplete() {
-        #if canImport(UIKit)
-        statusLabel.text = "Ready!"
-        startButton.isHidden = false
-        #else
-        // No Start button on the Mac until it is drawn in SwiftUI: go straight on.
-        onStart()
-        #endif
+        controls.status = "Ready!"
+        controls.isReady = true
     }
 
-    @objc func onStart() {
+    func onStart() {
         sceneMgr.setScene(type: SceneTypes.massRenderDemo)
+    }
+}
+
+/// What the loading panel shows and does.
+@MainActor
+@Observable
+final class AsyncLoadControls {
+    var status = "Loading..."
+    var isReady = false
+    var onStart: () -> Void = {}
+}
+
+/// The status line and, once the textures are in, the Start button, centred over the stars.
+struct AsyncLoadPanel: View {
+    let controls: AsyncLoadControls
+
+    var body: some View {
+        VStack(spacing: 20) {
+            ReadoutText(controls.status, size: 24)
+            if controls.isReady {
+                Button("Start", action: controls.onStart)
+                    .buttonStyle(.demo)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
