@@ -28,6 +28,11 @@ public protocol Scene {
     /// Called when the screen size or orientation changes.
     func resize()
 
+    /// Called before `update` on frames that had input events, with the
+    /// frame's events in order. Only the current scene hears them; a frame
+    /// that performs a transition drops its events. The default does nothing.
+    func deliverInput(_ events: [InputEvent])
+
     /// Called every frame to advance game logic.
     /// - Parameter dt: Delta time in seconds since the last frame.
     func update(dt: Float)
@@ -40,6 +45,10 @@ public protocol Scene {
 
     /// Factory method. Return a new instance of this scene.
     static func build() -> Scene
+}
+
+public extension Scene {
+    func deliverInput(_ events: [InputEvent]) {}
 }
 
 /// Base scene class with default implementations and standard setup.
@@ -69,6 +78,10 @@ open class DefaultScene: Scene {
 
     /// Optional scheduler for timed tasks. Automatically cleared on shutdown.
     public let scheduler = Scheduler()
+
+    /// Who hears this scene's input events. Add `self` (or a helper) in
+    /// `initialize`; cleared on shutdown.
+    public let inputObservers = InputObservers()
 
     /// Subclasses must override to return their scene type.
     open class var sceneType: any SceneType {
@@ -110,13 +123,19 @@ open class DefaultScene: Scene {
     /// Override to reposition UI elements after rotation or layout changes.
     open func layoutUI() {}
 
+    /// Forwards the frame's events to ``inputObservers``.
+    open func deliverInput(_ events: [InputEvent]) {
+        inputObservers.deliver(events, from: input)
+    }
+
     open func update(dt: Float) {}
 
-    /// Clears objects and scheduler. Override to add custom cleanup
-    /// (unload textures, remove UI, etc.) — call super.shutdown().
+    /// Clears objects, scheduler and input observers. Override to add custom
+    /// cleanup (unload textures, remove UI, etc.) — call super.shutdown().
     open func shutdown() {
         objects.removeAll()
         scheduler.clear()
+        inputObservers.removeAll()
     }
 
     open func resume() {}

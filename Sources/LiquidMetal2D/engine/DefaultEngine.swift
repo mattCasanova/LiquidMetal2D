@@ -114,11 +114,15 @@ public class DefaultEngine: GameEngine {
         if rawDt <= 0 { return }
         let dt = min(rawDt, DefaultEngine.maxFrameTime)
 
-        input.beginFrame()
+        let events = input.beginFrame()
 
         if sceneManager.needsTransition {
             sceneManager.performTransition()
             return
+        }
+
+        if !events.isEmpty {
+            sceneManager.currentScene.deliverInput(events)
         }
 
         autoreleasepool {
