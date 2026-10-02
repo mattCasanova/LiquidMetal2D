@@ -7,9 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D3A0A0022F9B0001000000A1 /* DemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A0A0012F9B0001000000A1 /* DemoApp.swift */; };
-		D3A0A0042F9B0001000000A1 /* DemoUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A0A0032F9B0001000000A1 /* DemoUI.swift */; };
-		D3A0A0062F9B0001000000A1 /* SceneMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A0A0052F9B0001000000A1 /* SceneMenu.swift */; };
 		A1B2C3CE2F67D0A7003831F3 /* GameTextures.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3CD2F67D0A7003831F3 /* GameTextures.swift */; };
 		A1B2C3D02F67C0A7003831F3 /* TokyoNight.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3CF2F67C0A7003831F3 /* TokyoNight.swift */; };
 		A1B2C3D22F67B0A7003831F3 /* AsyncLoadDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D12F67B0A7003831F3 /* AsyncLoadDemo.swift */; };
@@ -23,6 +20,9 @@
 		C4A3E7A52E80000100C42A29 /* StickFigure.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A3E7A42E80000100C42A29 /* StickFigure.swift */; };
 		C4A3E7A62E80000100C42A29 /* Animations in Resources */ = {isa = PBXBuildFile; fileRef = C4A3E7A72E80000100C42A29 /* Animations */; };
 		C4D15C0B2F8A1B2C00D15C0A /* disc.png in Resources */ = {isa = PBXBuildFile; fileRef = C4D15C0A2F8A1B2C00D15C0A /* disc.png */; };
+		D3A0A0022F9B0001000000A1 /* DemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A0A0012F9B0001000000A1 /* DemoApp.swift */; };
+		D3A0A0042F9B0001000000A1 /* DemoUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A0A0032F9B0001000000A1 /* DemoUI.swift */; };
+		D3A0A0062F9B0001000000A1 /* SceneMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A0A0052F9B0001000000A1 /* SceneMenu.swift */; };
 		F5021ABD2F94D074000FC89F /* WireframeDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5021ABC2F94D074000FC89F /* WireframeDemo.swift */; };
 		F5021ABF2F957BB8000FC89F /* ParticleDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5021ABE2F957BB8000FC89F /* ParticleDemo.swift */; };
 		F5021AC12F958340000FC89F /* RocketTrailDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5021AC02F958340000FC89F /* RocketTrailDemo.swift */; };
@@ -56,9 +56,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		D3A0A0012F9B0001000000A1 /* DemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoApp.swift; sourceTree = "<group>"; };
-		D3A0A0032F9B0001000000A1 /* DemoUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoUI.swift; sourceTree = "<group>"; };
-		D3A0A0052F9B0001000000A1 /* SceneMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneMenu.swift; sourceTree = "<group>"; };
 		A1B2C3CD2F67D0A7003831F3 /* GameTextures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameTextures.swift; sourceTree = "<group>"; };
 		A1B2C3CF2F67C0A7003831F3 /* TokyoNight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokyoNight.swift; sourceTree = "<group>"; };
 		A1B2C3D12F67B0A7003831F3 /* AsyncLoadDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncLoadDemo.swift; sourceTree = "<group>"; };
@@ -72,6 +69,9 @@
 		C4A3E7A42E80000100C42A29 /* StickFigure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StickFigure.swift; sourceTree = "<group>"; };
 		C4A3E7A72E80000100C42A29 /* Animations */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Animations; sourceTree = "<group>"; };
 		C4D15C0A2F8A1B2C00D15C0A /* disc.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = disc.png; sourceTree = "<group>"; };
+		D3A0A0012F9B0001000000A1 /* DemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoApp.swift; sourceTree = "<group>"; };
+		D3A0A0032F9B0001000000A1 /* DemoUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoUI.swift; sourceTree = "<group>"; };
+		D3A0A0052F9B0001000000A1 /* SceneMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneMenu.swift; sourceTree = "<group>"; };
 		F5021ABC2F94D074000FC89F /* WireframeDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WireframeDemo.swift; sourceTree = "<group>"; };
 		F5021ABE2F957BB8000FC89F /* ParticleDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParticleDemo.swift; sourceTree = "<group>"; };
 		F5021AC02F958340000FC89F /* RocketTrailDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RocketTrailDemo.swift; sourceTree = "<group>"; };
@@ -367,9 +367,6 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin PBXVariantGroup section */
-/* End PBXVariantGroup section */
-
 /* Begin XCBuildConfiguration section */
 		F536B69D241690A900B3566F /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -499,7 +496,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_STYLE[sdk=macosx*]" = Manual;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				INFOPLIST_FILE = "LiquidMetal2D-Demo/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -520,7 +520,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_STYLE[sdk=macosx*]" = Manual;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				INFOPLIST_FILE = "LiquidMetal2D-Demo/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
