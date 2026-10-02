@@ -196,6 +196,7 @@ public final class InputSystem: InputReader, InputWriter {
         switch event {
         case .down(let code), .up(let code):
             guard !code.isEitherSideModifier else {
+                // A replay of frame events must skip these; see InputEvent.
                 preconditionFailure("InputSystem: \(code) is derived from its two sides; enqueue the physical key")
             }
             device = code.device

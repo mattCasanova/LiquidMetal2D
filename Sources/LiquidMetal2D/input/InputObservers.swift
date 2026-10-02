@@ -12,7 +12,9 @@ public protocol PointerObserver: AnyObject {
     func pointerReleased(_ code: InputCode, at location: Vec2?)
 }
 
-/// Hears key events.
+/// Hears key events. A modifier press arrives twice, as the physical side and
+/// then as the either-side code (`.leftShift`, then `.shift`); listen for the
+/// one you mean and ignore the other.
 @MainActor
 public protocol KeyboardObserver: AnyObject {
     func keyTriggered(_ code: InputCode)
