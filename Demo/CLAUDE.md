@@ -15,7 +15,7 @@ Demo app showcasing LiquidMetal2D engine features. Each scene demonstrates a dif
 
 All source files live in `Demo/LiquidMetal2D-Demo/` (paths below are relative to the engine root):
 
-- **Entry point** — `DemoApp.swift` (SwiftUI `App`) → `LiquidView { ViewController(ui:) }` → `ViewController.swift` subclasses `LiquidViewController`, registers all scenes with `SceneFactory`, creates `DefaultRenderer`, builds the engine with `buildServices` returning `DemoServices`, and starts it with `inputDevices: [.pointer, .keyboard]`
+- **Entry point** — `DemoApp.swift` (SwiftUI `App`, declaring the engine's `GameWindow`: on the Mac one window with no close button, no Command-W, N or Q) → `LiquidView { ViewController(ui:) }` → `ViewController.swift` subclasses `LiquidViewController`, registers all scenes with `SceneFactory`, creates `DefaultRenderer`, builds the engine with `buildServices` returning `DemoServices`, and starts it with `inputDevices: [.pointer, .keyboard]`
 - **The overlay pattern** — `DemoUI` (`@Observable`, one for the app) carries `sceneMgr`, the current scene's `overlay: AnyView?` and `isMenuHidden`. A scene with controls owns an `@Observable` `XControls` object (slider values, readouts, button closures), builds an `XPanel` SwiftUI view over it, sets `ui.overlay = AnyView(XPanel(controls:))` in `initialize` **and** `resume` (a pushed scene takes the slot), and clears it in `shutdown`. Scenes reach `DemoUI` through `services.demoUI` (`DemoServices.swift`). Sliders are read by the scene each `update` (`FireControls.apply(to:palette:)`); buttons call closures the scene set. SwiftUI controls eat their own input; touches and clicks on the Metal view reach the engine
 - **Scene menu** — `SceneMenu.swift`: a `Menu` top-left listing `SceneTypes.navigable` plus a Pause item that pushes `PauseDemo`. `DemoApp` hides it while `ui.isMenuHidden`
 - **Shared controls** — `DemoControls.swift`: `DemoButtonStyle` (`.buttonStyle(.demo)`), `BottomBar` (centred button row along the bottom), `ReadoutText` (monospaced readout), `LabeledSlider(title:value:range:format:)`, `ControlColumn` (right-docked scrolling column)
@@ -44,7 +44,7 @@ All source files live in `Demo/LiquidMetal2D-Demo/` (paths below are relative to
 | Input | `InputDemo.swift` | The input layer: pointer (hover vs buttons), a marker per touch point, held keys, a flash per trigger, the observer log, Shift-A and Command-B combos (`isComboTriggered` with stored arrays), and actions: `DemoAction` through `InputBindings` (jump logs, the move axis reads -1/0/1, Rebind Jump captures the next key with `firstTriggeredCode()`). The engine is created with `inputDevices: [.pointer, .keyboard]` |
 | Smoke Layers | `SmokeLayersDemo.swift` | Two alpha-blended plumes at different z: the nearer (bigger) one must draw on top; Swap exchanges their `zOrder`. Checks `ParticleShader`'s far-to-near order (0.15.0) |
 | Async Loading | `AsyncLoadDemo.swift` | Async texture loading with starfield loading screen; Start button appears when done |
-| Pause Menu | `PauseDemo.swift` | Push/pop scene stack: a plain `Scene` whose only job is the `PausePanel` overlay; `draw` does nothing so the frozen scene stays visible |
+| Pause Menu | `PauseDemo.swift` | Push/pop scene stack: a plain `Scene` whose only job is the `PausePanel` overlay; `draw` does nothing so the frozen scene stays visible. On the Mac its Quit Demo… asks first, then calls `LiquidApp.quit()`: the only way out besides the Dock |
 
 ## Behaviors & State Machines
 
