@@ -23,16 +23,19 @@ import SwiftUI
 /// }
 /// ```
 ///
-/// `fixedSize` only applies on the Mac.
+/// `fixedSize` only applies on the Mac; `title` names the window in the
+/// iPad's window switcher.
 public struct GameWindow<Content: View>: SwiftUI.Scene {
+    private let title: String
     private let content: () -> Content
 
     public init(_ title: String, fixedSize: CGSize? = nil, @ViewBuilder content: @escaping () -> Content) {
+        self.title = title
         self.content = content
     }
 
     public var body: some SwiftUI.Scene {
-        WindowGroup {
+        WindowGroup(title) {
             content()
         }
     }
