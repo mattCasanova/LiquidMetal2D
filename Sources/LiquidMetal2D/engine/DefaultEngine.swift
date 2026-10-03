@@ -57,6 +57,11 @@ public class DefaultEngine: GameEngine {
     /// ``AppState/active``.
     public private(set) var appState: AppState = .active
     private var appStateObservers: [WeakBox<AppStateObserver>] = []
+    /// A transition ran outside `frame()` (on a state change). The next frame
+    /// drains the input queue and drops its events, as a transition frame
+    /// does: the release that ended the player's leave must not reach the
+    /// scene that was pushed meanwhile.
+    private var dropsNextFrameInput = false
     /// Set at the end of `init`: it reports into `self`.
     private var appStateSource: AppStateSource?
 
@@ -204,6 +209,7 @@ public class DefaultEngine: GameEngine {
         sceneManager.currentScene.appStateChanged(to: state)
         if sceneManager.needsTransition {
             sceneManager.performTransition()
+            dropsNextFrameInput = true
         }
         updateClock()
     }
@@ -250,6 +256,10 @@ public class DefaultEngine: GameEngine {
 
         if sceneManager.needsTransition {
             sceneManager.performTransition()
+            return
+        }
+        if dropsNextFrameInput {
+            dropsNextFrameInput = false
             return
         }
 

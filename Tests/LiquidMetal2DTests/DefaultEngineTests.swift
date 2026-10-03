@@ -173,6 +173,23 @@ final class DefaultEngineTests: XCTestCase {
         engine.shutdown()
     }
 
+    func testInputQueuedWhileLeavingNeverReachesThePushedScene() throws {
+        let (engine, clock) = try makeEngine(initial: .pusher)
+        engine.run()
+        engine.enqueue(.down(.pointerPrimary))
+        engine.appStateDidChange(to: .inactive)
+        engine.enqueue(.focusLost)
+        engine.appStateDidChange(to: .active)
+
+        clock.advance(by: 1.0 / 60)
+        clock.advance(by: 1.0 / 60)
+
+        let pause = try XCTUnwrap(RecordingScene.current as? SecondScene)
+        XCTAssertEqual(pause.eventCounts, [], "the release that ended the leave is dropped, as on a transition frame")
+        XCTAssertEqual(pause.releasedAtUpdates, [false], "a pause scene resuming on release must not resume at once")
+        engine.shutdown()
+    }
+
     func testTheSameStateTwiceIsDeliveredOnce() throws {
         let (engine, _) = try makeEngine()
         engine.run()
@@ -294,6 +311,8 @@ private class RecordingScene: DefaultScene {
     static var current: RecordingScene!
 
     private(set) var updates: [Float] = []
+    private(set) var eventCounts: [Int] = []
+    private(set) var releasedAtUpdates: [Bool] = []
     private(set) var states: [AppState] = []
     private(set) var draws = 0
     private(set) var isShutDown = false
@@ -308,6 +327,12 @@ private class RecordingScene: DefaultScene {
 
     override func update(dt: Float) {
         updates.append(dt)
+        releasedAtUpdates.append(input.isReleased(.pointerPrimary))
+    }
+
+    override func deliverInput(_ events: [InputEvent]) {
+        eventCounts.append(events.count)
+        super.deliverInput(events)
     }
 
     override func draw() {
