@@ -7,6 +7,9 @@
 //
 
 import Foundation
+#if canImport(AppKit) && !canImport(UIKit)
+import AppKit
+#endif
 
 /// Default game engine implementation. Runs the main game loop from a
 /// ``FrameClock``, owns the ``InputSystem`` and delegates scene management
@@ -44,6 +47,11 @@ public class DefaultEngine: GameEngine {
 
     private let keyboardSource: KeyboardSource?
     private let focusSource: FocusSource
+    private var isShutDown = false
+    #if canImport(AppKit) && !canImport(UIKit)
+    /// Shuts the engine down when the app quits, by any path.
+    private var terminationObserver: NSObjectProtocol?
+    #endif
 
     /// Creates the engine, builds the initial scene, and prepares for the game loop.
     ///
@@ -95,11 +103,28 @@ public class DefaultEngine: GameEngine {
                 documents: documents)
 
         sceneManager.start(services: services)
+
+        #if canImport(AppKit) && !canImport(UIKit)
+        terminationObserver = NotificationCenter.default.addObserver(
+            forName: NSApplication.willTerminateNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.shutdown() }
+        }
+        #endif
     }
 
     /// Shuts down the engine: stops the game loop, shuts down all scenes,
-    /// and releases renderer resources.
+    /// and releases renderer resources. Runs once; later calls do nothing
+    /// (closing the window, SwiftUI dismantling the view and the app quitting
+    /// can each ask). On the Mac it also runs when the app quits, by any path.
     public func shutdown() {
+        guard !isShutDown else { return }
+        isShutDown = true
+        #if canImport(AppKit) && !canImport(UIKit)
+        if let terminationObserver {
+            NotificationCenter.default.removeObserver(terminationObserver)
+        }
+        #endif
         clock.stop()
         keyboardSource?.stop()
         focusSource.stop()

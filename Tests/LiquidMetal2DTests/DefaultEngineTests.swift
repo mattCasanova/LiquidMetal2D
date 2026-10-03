@@ -1,4 +1,7 @@
 import XCTest
+#if canImport(AppKit) && !canImport(UIKit)
+import AppKit
+#endif
 @testable import LiquidMetal2D
 
 /// The engine loop, stepped by a fake clock: no display link, no window.
@@ -55,6 +58,32 @@ final class DefaultEngineTests: XCTestCase {
         engine.shutdown()
     }
 
+    func testShutdownRunsOnce() throws {
+        let (engine, _) = try makeEngine()
+        engine.run()
+        let scene = try XCTUnwrap(RecordingScene.current)
+
+        engine.shutdown()
+        engine.shutdown()
+
+        XCTAssertEqual(scene.shutdowns, 1, "the window, SwiftUI and the app quitting can each ask")
+    }
+
+    #if canImport(AppKit) && !canImport(UIKit)
+    func testAppQuittingShutsTheEngineDown() throws {
+        let (engine, clock) = try makeEngine()
+        engine.run()
+        let scene = try XCTUnwrap(RecordingScene.current)
+
+        NotificationCenter.default.post(name: NSApplication.willTerminateNotification, object: nil)
+
+        XCTAssertEqual(scene.shutdowns, 1, "every quit path saves through scene shutdown")
+        XCTAssertFalse(clock.isRunning)
+        engine.shutdown()
+        XCTAssertEqual(scene.shutdowns, 1)
+    }
+    #endif
+
     func testShutdownStopsTheClockAndTheScene() throws {
         let (engine, clock) = try makeEngine()
         engine.run()
@@ -96,6 +125,7 @@ private class RecordingScene: DefaultScene {
     private(set) var updates: [Float] = []
     private(set) var draws = 0
     private(set) var isShutDown = false
+    private(set) var shutdowns = 0
 
     override class var sceneType: any SceneType { TestScenes.first }
 
@@ -114,6 +144,7 @@ private class RecordingScene: DefaultScene {
 
     override func shutdown() {
         isShutDown = true
+        shutdowns += 1
         super.shutdown()
     }
 }
