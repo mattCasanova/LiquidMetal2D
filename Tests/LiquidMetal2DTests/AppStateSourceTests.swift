@@ -74,6 +74,35 @@ final class AppStateSourceTests: XCTestCase {
         window.contentView = nil
     }
 
+    /// Every notification the Mac source listens to makes it recompute. In the
+    /// test host the app is never active, so each recompute from a forced
+    /// `.active` lands on `.inactive`; a name nobody observes leaves `.active`.
+    func testEveryWatchedNotificationRecomputes() throws {
+        let view = NSView()
+        let window = NSWindow(contentRect: .init(x: 0, y: 0, width: 64, height: 64),
+                              styleMask: [.titled], backing: .buffered, defer: true)
+        window.isReleasedWhenClosed = false
+        window.contentView = view
+        let (engine, _) = try makeEngine(view: view)
+        engine.run()
+        let appNames: [Notification.Name] = [
+            NSApplication.didBecomeActiveNotification, NSApplication.didResignActiveNotification,
+            NSApplication.didHideNotification, NSApplication.didUnhideNotification
+        ]
+        let windowNames: [Notification.Name] = [
+            NSWindow.didBecomeKeyNotification, NSWindow.didResignKeyNotification,
+            NSWindow.didMiniaturizeNotification, NSWindow.didDeminiaturizeNotification
+        ]
+
+        for (name, object) in appNames.map({ ($0, nil as Any?) }) + windowNames.map({ ($0, window as Any?) }) {
+            engine.appStateDidChange(to: .active)
+            NotificationCenter.default.post(name: name, object: object)
+            XCTAssertEqual(engine.appState, .inactive, "\(name.rawValue) is not watched")
+        }
+        engine.shutdown()
+        window.contentView = nil
+    }
+
     func testAnotherWindowsNotificationsAreIgnored() throws {
         let view = NSView()
         let window = NSWindow(contentRect: .init(x: 0, y: 0, width: 64, height: 64),
