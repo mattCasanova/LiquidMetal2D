@@ -12,6 +12,12 @@
 /// (``Scene/appStateChanged(to:)``) when it changes. What to do about it,
 /// such as pushing a pause scene or saving, is the game's choice; the
 /// engine only freezes its own loop (see ``DefaultEngine``).
+///
+/// A game that pauses should react to **any state other than `.active`**,
+/// and only when its pause scene is not already up: a Mac minimise can go
+/// from `.active` straight to `.background`, and `.inactive` also arrives
+/// on the way back (iOS foregrounding, a Mac unhide or restore before the
+/// window is key). Save on `.background`.
 public enum AppState: Sendable, Equatable {
     /// In front with focus: the player is playing.
     case active

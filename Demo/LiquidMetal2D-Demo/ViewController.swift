@@ -104,9 +104,11 @@ class ViewController: LiquidViewController, AppStateObserver {
         engine.run()
     }
 
-    /// Pushes the pause menu when the player switches away or hides the app, unless it is
-    /// already up or the loader is still running. The push happens at once, so the menu is
-    /// on screen while the player is away.
+    /// Pushes the pause menu on any state other than active (a minimise can skip inactive,
+    /// and inactive also arrives on the way back), unless it is already up or the loader is
+    /// still running: the loader is the first scene, so a brief inactive at launch must not
+    /// open the menu over it, and it has nothing to pause. The push happens at once, so the
+    /// SwiftUI menu is on screen while the player is away.
     func appStateChanged(to state: AppState) {
         guard state != .active else { return }
         let sceneMgr = gameEngine.sceneManager

@@ -30,9 +30,12 @@ public protocol Scene {
 
     /// Called when the app's ``AppState`` changes: the player switched away,
     /// hid the game, or came back. Only the current scene hears it, after
-    /// app-level ``AppStateObserver``s. A transition requested here (pushing a
-    /// pause scene) happens at once, so it is on screen while the player is
-    /// away. The default does nothing.
+    /// app-level ``AppStateObserver``s. Any transition pending afterwards
+    /// (one requested here, by an observer, or earlier in the frame) happens
+    /// at once, so a pushed pause scene is current while the player is away;
+    /// nothing is drawn until the loop runs again, so a SwiftUI overlay shows
+    /// at once and Metal-drawn content on the first frame back. React to any
+    /// state other than `.active` (see ``AppState``). The default does nothing.
     func appStateChanged(to state: AppState)
 
     /// Called before `update` on frames that had input events, with the

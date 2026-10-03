@@ -20,21 +20,27 @@ import AppKit
 /// scene, then freezes the loop: always in the background, and while
 /// inactive unless `pausesWhenInactive` is false. Coming back restarts the
 /// loop with a normal first frame. Pausing, pause menus and saving are the
-/// game's: push a pause scene from ``Scene/appStateChanged(to:)``, save on
-/// ``AppState/background``.
+/// game's: push a pause scene on any state other than ``AppState/active``
+/// (from ``Scene/appStateChanged(to:)`` or an ``AppStateObserver``), save on
+/// ``AppState/background``. The lifecycle API lives on this class, so keep a
+/// typed reference where you build it. An app launched hidden (`open -g`)
+/// counts as active until its first focus change. Observers must not spin a
+/// nested run loop (a modal alert): frames keep firing inside it.
 ///
 /// Conforms to ``GameEngine`` (loop, rendering, and ``InputWriter`` for the
 /// platform layer's events). Create one in your `LiquidViewController`
 /// subclass's `viewDidLoad()`:
 ///
 /// ```swift
-/// gameEngine = DefaultEngine(
+/// let engine = DefaultEngine(
 ///     renderer: renderer,
 ///     documents: DocumentIO(presentingVC: self),
 ///     inputDevices: [.pointer, .keyboard],
 ///     initialSceneType: MyScenes.menu,
 ///     sceneFactory: factory)
-/// gameEngine.run()
+/// engine.addAppStateObserver(self)
+/// gameEngine = engine
+/// engine.run()
 /// ```
 @MainActor
 public class DefaultEngine: GameEngine {
@@ -189,14 +195,18 @@ public class DefaultEngine: GameEngine {
         appStateObservers.append(WeakBox(observer))
     }
 
+    /// Stops `observer` hearing changes. Not needed for a released observer.
     public func removeAppStateObserver(_ observer: AppStateObserver) {
         appStateObservers.removeAll { $0.value == nil || $0.value === observer }
     }
 
     /// The platform source's entry point (and the tests'). Tells observers,
-    /// then the current scene; performs a transition the scene asked for at
-    /// once (the frozen loop would not run it until the player is back); then
-    /// stops or restarts the clock.
+    /// then the current scene; performs any pending transition at once (the
+    /// frozen loop would not run it until the player is back); then stops or
+    /// restarts the clock. A state change posted from inside `update` (a
+    /// scene calling `NSApp.hide`) therefore transitions mid-frame: the new
+    /// scene draws before its first update, and `setScene` shuts the caller
+    /// down inside its own update. Change state from the run loop, not a frame.
     func appStateDidChange(to state: AppState) {
         guard !isShutDown, state != appState else { return }
         appState = state
