@@ -21,6 +21,9 @@ import LiquidMetal2D
 /// - **setScene vs pushScene:** `setScene(type:)` replaces the whole stack (shutting down every
 ///   stacked scene); `pushScene` adds on top. Picking a scene here uses `setScene`; Resume uses
 ///   `popScene`.
+/// - **Quitting (Mac):** `GameWindow` removes every accidental way to quit, so the panel's
+///   Quit Demo button asks first and then calls `LiquidApp.quit()`. The prompt is the
+///   demo's own; a game decides whether and how to ask.
 /// - **The overlay pattern:** this scene's whole job is the SwiftUI view it hands to
 ///   `DemoUI.overlay` in `initialize` and clears in `shutdown` (see `DemoUI`). `update` and
 ///   `draw` do nothing, so the last frame drawn by the scene below stays on screen.
@@ -57,6 +60,7 @@ final class PauseDemo: LiquidMetal2D.Scene {
 struct PausePanel: View {
     let onResume: () -> Void
     let onSelect: (SceneTypes) -> Void
+    @State private var isConfirmingQuit = false
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -71,6 +75,11 @@ struct PausePanel: View {
                     ForEach(SceneTypes.navigable, id: \.self) { scene in
                         Button(scene.title) { onSelect(scene) }
                     }
+                    #if os(macOS)
+                    Button("Quit Demo…") { isConfirmingQuit = true }
+                        .foregroundStyle(TokyoNight.color(TokyoNight.red))
+                        .padding(.top, 8)
+                    #endif
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(TokyoNight.color(TokyoNight.fg))
@@ -78,5 +87,11 @@ struct PausePanel: View {
             }
             .frame(maxWidth: 400, alignment: .leading)
         }
+        #if os(macOS)
+        .alert("Quit the demo?", isPresented: $isConfirmingQuit) {
+            Button("Quit", role: .destructive) { LiquidApp.quit() }
+            Button("Cancel", role: .cancel) {}
+        }
+        #endif
     }
 }

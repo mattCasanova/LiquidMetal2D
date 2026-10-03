@@ -4,6 +4,8 @@
 //
 //  The app's entry point: one window holding the engine's Metal view with SwiftUI
 //  controls over it. Runs on iPhone, iPad and the Mac from this one target.
+//  `GameWindow` makes it one window on the Mac with no accidental way to close
+//  or quit; the pause panel's Quit asks first, as a game would.
 //
 
 import SwiftUI
@@ -16,7 +18,7 @@ struct DemoApp: App {
     @State private var ui = DemoUI()
 
     var body: some SwiftUI.Scene {
-        WindowGroup {
+        GameWindow("LiquidMetal2D Demo") {
             ZStack(alignment: .topLeading) {
                 LiquidView { ViewController(ui: ui) }
                     .ignoresSafeArea()
