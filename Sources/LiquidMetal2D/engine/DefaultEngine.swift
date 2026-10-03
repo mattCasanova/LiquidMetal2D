@@ -203,9 +203,14 @@ public class DefaultEngine: GameEngine {
 
         appStateObservers.removeAll { $0.value == nil }
         for box in appStateObservers {
+            // An observer may shut the engine down (a quit on background);
+            // the rest, and the scene, then hear nothing: the scene is gone.
+            guard !isShutDown else { return }
             box.value?.appStateChanged(to: state)
         }
-        guard !isShutDown else { return }
+        // An observer that spun the run loop (a modal alert) may have let a
+        // newer state through already; the scene heard that one, not this.
+        guard !isShutDown, appState == state else { return }
         sceneManager.currentScene.appStateChanged(to: state)
         if sceneManager.needsTransition {
             sceneManager.performTransition()

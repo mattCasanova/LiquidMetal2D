@@ -68,6 +68,23 @@ final class DefaultEngineTests: XCTestCase {
         engine.shutdown()
 
         XCTAssertEqual(scene.shutdowns, 1, "the window, SwiftUI and the app quitting can each ask")
+        XCTAssertEqual(CountingRenderer.shutdowns, 1, "the renderer, unlike the scenes, is not asked twice")
+    }
+
+    func testObserverShuttingDownStopsTheDelivery() throws {
+        let (engine, _) = try makeEngine()
+        engine.run()
+        let scene = try XCTUnwrap(RecordingScene.current)
+        let quitter = ClosureObserver { [unowned engine] in engine.shutdown() }
+        let later = RecordingObserver()
+        engine.addAppStateObserver(quitter)
+        engine.addAppStateObserver(later)
+
+        engine.appStateDidChange(to: .background)
+
+        XCTAssertEqual(AppStateLog.entries, [], "later observers and the shut-down scene hear nothing")
+        XCTAssertEqual(scene.states, [])
+        XCTAssertEqual(scene.shutdowns, 1)
     }
 
     #if canImport(AppKit) && !canImport(UIKit)
@@ -233,6 +250,8 @@ final class DefaultEngineTests: XCTestCase {
     func testNothingHappensAfterShutdown() throws {
         let (engine, clock) = try makeEngine()
         engine.run()
+        let observer = RecordingObserver()
+        engine.addAppStateObserver(observer)
         engine.appStateDidChange(to: .background)
         let scene = try XCTUnwrap(RecordingScene.current)
         engine.shutdown()
@@ -241,6 +260,7 @@ final class DefaultEngineTests: XCTestCase {
 
         XCTAssertFalse(clock.isRunning)
         XCTAssertEqual(scene.states, [.background])
+        XCTAssertEqual(AppStateLog.entries, ["observer background", "scene background"])
         XCTAssertEqual(engine.appState, .background, "a shut-down engine stops tracking")
     }
 
@@ -273,11 +293,12 @@ final class DefaultEngineTests: XCTestCase {
     ) throws -> (DefaultEngine, FakeClock) {
         _ = try ShaderTestSupport.makeDevice()
         AppStateLog.entries = []
+        CountingRenderer.shutdowns = 0
         let factory = SceneFactory()
         factory.addScenes([RecordingScene.self, SecondScene.self, PushingScene.self])
         let clock = FakeClock()
         let engine = DefaultEngine(
-            renderer: DefaultRenderer(parentView: PlatformView(), maxObjects: 1),
+            renderer: CountingRenderer(parentView: PlatformView(), maxObjects: 1),
             documents: DocumentIO(presentingVC: PlatformViewController()),
             pausesWhenInactive: pausesWhenInactive,
             initialSceneType: initial,
@@ -295,6 +316,25 @@ private enum TestScenes: SceneType {
 @MainActor
 private enum AppStateLog {
     static var entries: [String] = []
+}
+
+/// Counts `shutdown()` calls: the engine's own guard, not the renderer's
+/// tolerance, must keep a second shutdown out.
+@MainActor
+private final class CountingRenderer: DefaultRenderer {
+    static var shutdowns = 0
+
+    override func shutdown() {
+        CountingRenderer.shutdowns += 1
+        super.shutdown()
+    }
+}
+
+@MainActor
+private final class ClosureObserver: AppStateObserver {
+    private let action: () -> Void
+    init(_ action: @escaping () -> Void) { self.action = action }
+    func appStateChanged(to state: AppState) { action() }
 }
 
 @MainActor
