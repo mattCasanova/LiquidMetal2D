@@ -26,6 +26,10 @@ import LiquidMetal2D
 /// - Observers: `inputObservers.add(pointer:)` / `add(keyboard:)` on a
 ///   `DefaultScene`; only the current scene hears events, so push Pause and
 ///   the log stops.
+/// - App state: `appStateChanged(to:)` logs a line when the app loses focus or goes out
+///   of sight. `ViewController`, an app-level observer, hears first and asks for the pause
+///   menu; this scene still hears the change before the menu goes up. Coming back reaches
+///   the pause menu, not this scene, so only leaving is logged.
 /// - Devices: `ViewController` creates the engine with
 ///   `inputDevices: [.pointer, .keyboard]`; without `.keyboard` the key
 ///   queries here would trap.
@@ -147,6 +151,10 @@ class InputDemo: DefaultScene, PointerObserver, KeyboardObserver {
     override func shutdown() {
         super.shutdown()
         ui.overlay = nil
+    }
+
+    override func appStateChanged(to state: AppState) {
+        controls.log("app   \(state)")
     }
 
     // MARK: - Observers

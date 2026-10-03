@@ -29,7 +29,13 @@ import AppKit
 ///
 /// 3. **Create and run the engine:** `DefaultEngine` takes the renderer, the initial scene
 ///    type, and the scene factory. Calling `gameEngine.run()` starts the game loop.
-class ViewController: LiquidViewController {
+///
+/// **Pausing when the player leaves:** the controller registers as the engine's
+/// `AppStateObserver`. When the app loses focus or goes out of sight it pushes `PauseDemo`,
+/// the same scene the Pause button shows. The engine only reports the change and freezes its
+/// own loop; the pause screen is the app's choice, made in this one place rather than in
+/// every scene. Nothing pops on return: the player resumes when ready.
+class ViewController: LiquidViewController, AppStateObserver {
     private let ui: DemoUI
 
     init(ui: DemoUI) {
@@ -93,7 +99,22 @@ class ViewController: LiquidViewController {
             })
         gameEngine = engine
         ui.sceneMgr = engine.sceneManager
+        engine.addAppStateObserver(self)
 
         engine.run()
+    }
+
+    /// Pushes the pause menu when the player switches away or hides the app, unless it is
+    /// already up or the loader is still running. The push happens at once, so the menu is
+    /// on screen while the player is away.
+    func appStateChanged(to state: AppState) {
+        guard state != .active else { return }
+        let sceneMgr = gameEngine.sceneManager
+        guard let current = sceneMgr.currentSceneType as? SceneTypes else {
+            assertionFailure("the demo registers only SceneTypes, got \(sceneMgr.currentSceneType)")
+            return
+        }
+        guard current != .pauseDemo, current != .asyncLoadDemo else { return }
+        sceneMgr.pushScene(type: SceneTypes.pauseDemo)
     }
 }
