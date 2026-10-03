@@ -57,6 +57,8 @@ public class DefaultEngine: GameEngine {
     /// ``AppState/active``.
     public private(set) var appState: AppState = .active
     private var appStateObservers: [WeakBox<AppStateObserver>] = []
+    /// Set at the end of `init`: it reports into `self`.
+    private var appStateSource: AppStateSource?
 
     public let renderer: Renderer
     public let sceneManager: SceneManager
@@ -130,6 +132,12 @@ public class DefaultEngine: GameEngine {
 
         sceneManager.start(services: services)
 
+        // Weak: a notification can arrive at any time, even after an engine
+        // dropped without `shutdown()` is gone.
+        appStateSource = AppStateSource(view: renderer.view) { [weak self] state in
+            self?.appStateDidChange(to: state)
+        }
+
         #if canImport(AppKit) && !canImport(UIKit)
         terminationObserver = NotificationCenter.default.addObserver(
             forName: NSApplication.willTerminateNotification, object: nil, queue: .main
@@ -154,6 +162,7 @@ public class DefaultEngine: GameEngine {
         clock.stop()
         isClockRunning = false
         appStateObservers.removeAll()
+        appStateSource?.stop()
         keyboardSource?.stop()
         focusSource.stop()
         sceneManager.shutdown()
