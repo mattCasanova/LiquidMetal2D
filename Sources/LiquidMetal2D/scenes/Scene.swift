@@ -28,6 +28,13 @@ public protocol Scene {
     /// Called when the screen size or orientation changes.
     func resize()
 
+    /// Called when the app's ``AppState`` changes: the player switched away,
+    /// hid the game, or came back. Only the current scene hears it, after
+    /// app-level ``AppStateObserver``s. A transition requested here (pushing a
+    /// pause scene) happens at once, so it is on screen while the player is
+    /// away. The default does nothing.
+    func appStateChanged(to state: AppState)
+
     /// Called before `update` on frames that had input events, with the
     /// frame's events in order. Only the current scene hears them; a frame
     /// that performs a transition drops its events. The default does nothing.
@@ -49,6 +56,7 @@ public protocol Scene {
 
 public extension Scene {
     func deliverInput(_ events: [InputEvent]) {}
+    func appStateChanged(to state: AppState) {}
 }
 
 /// Base scene class with default implementations and standard setup.
@@ -127,6 +135,9 @@ open class DefaultScene: Scene {
     open func deliverInput(_ events: [InputEvent]) {
         inputObservers.deliver(events, from: input)
     }
+
+    /// Does nothing. Override to pause, save or mute when the player leaves.
+    open func appStateChanged(to state: AppState) {}
 
     open func update(dt: Float) {}
 

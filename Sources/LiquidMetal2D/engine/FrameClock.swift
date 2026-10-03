@@ -37,11 +37,15 @@ public final class DisplayLinkClock: FrameClock {
         self.view = view
     }
 
+    /// The link's time of the latest frame. Before the first frame fires the
+    /// link reports 0, so this answers the current host time instead (the
+    /// same base): an engine that reads it right after starting the clock
+    /// then sees a normal first frame instead of one clamped from 0.
     public var timestamp: Double {
         guard let link else {
             preconditionFailure("DisplayLinkClock.timestamp read before start()")
         }
-        return link.timestamp
+        return link.timestamp > 0 ? link.timestamp : CACurrentMediaTime()
     }
 
     public func start(onFrame: @escaping @MainActor () -> Void) {

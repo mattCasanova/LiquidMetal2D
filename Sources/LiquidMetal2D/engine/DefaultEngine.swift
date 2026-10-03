@@ -15,6 +15,14 @@ import AppKit
 /// ``FrameClock``, owns the ``InputSystem`` and delegates scene management
 /// to a ``SceneManager``.
 ///
+/// It also tracks the app's ``AppState``. When the player switches away or
+/// hides the game it tells app-level ``AppStateObserver``s and the current
+/// scene, then freezes the loop: always in the background, and while
+/// inactive unless `pausesWhenInactive` is false. Coming back restarts the
+/// loop with a normal first frame. Pausing, pause menus and saving are the
+/// game's: push a pause scene from ``Scene/appStateChanged(to:)``, save on
+/// ``AppState/background``.
+///
 /// Conforms to ``GameEngine`` (loop, rendering, and ``InputWriter`` for the
 /// platform layer's events). Create one in your `LiquidViewController`
 /// subclass's `viewDidLoad()`:
@@ -36,6 +44,19 @@ public class DefaultEngine: GameEngine {
 
     private let clock: FrameClock
     private var lastFrameTime: Double = 0.0
+    /// `run()` was called: the loop should go whenever the app state allows.
+    private var isStarted = false
+    /// The clock is started right now (`run()` started it and no state change
+    /// stopped it).
+    private var isClockRunning = false
+
+    /// Whether the loop stops while the app is ``AppState/inactive``. It
+    /// always stops in the background.
+    public let pausesWhenInactive: Bool
+    /// The app's state as of the latest platform notification. Starts at
+    /// ``AppState/active``.
+    public private(set) var appState: AppState = .active
+    private var appStateObservers: [WeakBox<AppStateObserver>] = []
 
     public let renderer: Renderer
     public let sceneManager: SceneManager
@@ -62,6 +83,9 @@ public class DefaultEngine: GameEngine {
     ///   - inputDevices: The devices to accept and allow queries on. The
     ///     default, `[.pointer]`, is the one-touch behaviour the engine
     ///     always had.
+    ///   - pausesWhenInactive: Stop the loop while the app is visible but
+    ///     without focus. On by default; turn it off for a game that must keep
+    ///     running behind another app. The loop always stops in the background.
     ///   - initialSceneType: The first scene to display.
     ///   - sceneFactory: Registry mapping scene types to builders.
     ///   - buildServices: Optional closure that wraps the engine-built
@@ -74,12 +98,14 @@ public class DefaultEngine: GameEngine {
         renderer: Renderer,
         documents: DocumentIO,
         inputDevices: InputDevices = [.pointer],
+        pausesWhenInactive: Bool = true,
         initialSceneType: some SceneType,
         sceneFactory: SceneFactory,
         buildServices: ((Renderer, InputReader, SceneManager, DocumentIO) -> SceneServices)? = nil,
         clock: FrameClock? = nil
     ) {
         self.renderer = renderer
+        self.pausesWhenInactive = pausesWhenInactive
         self.clock = clock ?? DisplayLinkClock(view: renderer.view)
         let input = InputSystem(
             devices: inputDevices,
@@ -126,20 +152,78 @@ public class DefaultEngine: GameEngine {
         }
         #endif
         clock.stop()
+        isClockRunning = false
+        appStateObservers.removeAll()
         keyboardSource?.stop()
         focusSource.stop()
         sceneManager.shutdown()
         renderer.shutdown()
     }
 
-    /// Starts the game loop: the clock calls ``frame()`` every refresh.
+    /// Starts the game loop: the clock calls ``frame()`` every refresh. If
+    /// the app state already says frozen, the loop starts when it allows.
     public func run() {
-        // The clock holds the closure, and the engine holds the clock, so
-        // the closure must not retain the engine (a cycle until `stop()`).
-        // An engine dropped without `shutdown()` traps on its next frame
-        // instead of running on unseen.
-        clock.start { [unowned self] in self.frame() }
-        lastFrameTime = clock.timestamp
+        isStarted = true
+        updateClock()
+    }
+
+    // MARK: - App state
+
+    /// Registers app-level code to hear every ``AppState`` change, before the
+    /// current scene. Held weakly; a released observer is dropped.
+    public func addAppStateObserver(_ observer: AppStateObserver) {
+        appStateObservers.append(WeakBox(observer))
+    }
+
+    public func removeAppStateObserver(_ observer: AppStateObserver) {
+        appStateObservers.removeAll { $0.value == nil || $0.value === observer }
+    }
+
+    /// The platform source's entry point (and the tests'). Tells observers,
+    /// then the current scene; performs a transition the scene asked for at
+    /// once (the frozen loop would not run it until the player is back); then
+    /// stops or restarts the clock.
+    func appStateDidChange(to state: AppState) {
+        guard !isShutDown, state != appState else { return }
+        appState = state
+
+        appStateObservers.removeAll { $0.value == nil }
+        for box in appStateObservers {
+            box.value?.appStateChanged(to: state)
+        }
+        guard !isShutDown else { return }
+        sceneManager.currentScene.appStateChanged(to: state)
+        if sceneManager.needsTransition {
+            sceneManager.performTransition()
+        }
+        updateClock()
+    }
+
+    /// Whether the loop should run in `state`.
+    private func allowsFrames(in state: AppState) -> Bool {
+        switch state {
+        case .active: true
+        case .inactive: !pausesWhenInactive
+        case .background: false
+        }
+    }
+
+    /// Starts or stops the clock to match `run()`, shutdown and the app state.
+    private func updateClock() {
+        let shouldRun = isStarted && !isShutDown && allowsFrames(in: appState)
+        if shouldRun && !isClockRunning {
+            // The clock holds the closure, and the engine holds the clock, so
+            // the closure must not retain the engine (a cycle until `stop()`).
+            // An engine dropped without `shutdown()` traps on its next frame
+            // instead of running on unseen.
+            clock.start { [unowned self] in self.frame() }
+            isClockRunning = true
+            // Measure the first frame from now, not from before a freeze.
+            lastFrameTime = clock.timestamp
+        } else if !shouldRun && isClockRunning {
+            clock.stop()
+            isClockRunning = false
+        }
     }
 
     /// One frame. Skips frames with no elapsed time, clamps long ones,

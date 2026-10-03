@@ -9,11 +9,20 @@ final class FakeClock: FrameClock {
     var isRunning: Bool { onFrame != nil }
 
     func start(onFrame: @escaping @MainActor () -> Void) {
+        // DisplayLinkClock traps here; failing keeps the rest of the suite running.
+        if self.onFrame != nil {
+            XCTFail("FakeClock.start called while running")
+        }
         self.onFrame = onFrame
     }
 
     func stop() {
         onFrame = nil
+    }
+
+    /// Moves time forward without firing a frame: time spent away.
+    func skip(by seconds: Double) {
+        timestamp += seconds
     }
 
     /// Moves time forward and fires one frame.
