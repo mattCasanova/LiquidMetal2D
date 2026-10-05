@@ -144,6 +144,33 @@ final class AllocationTests: XCTestCase {
         XCTAssertGreaterThan(polygon.points.count, 48, "the walls were in range")
     }
 
+    func testLightMapAddAllocatesNothing() throws {
+        try requireOptimizedBuild()
+        let renderCore = try ShaderTestSupport.makeRenderCore()
+        renderCore.resize(scale: 1, layerSize: CGSize(width: 64, height: 64))
+        let lightMap = LightMap(renderCore: renderCore, maxLights: 16, maxVertices: 2000, resolutionScale: 1)
+        var lights: [Light] = []
+        for i in 0..<10 {
+            var light = Light(position: Vec2(Float(i) * 3 - 15, 0), radius: 8, color: Vec3(1, 0.5, 0.2))
+            if i % 2 == 0 { light.halfAngle = 0.5 }
+            lights.append(light)
+        }
+        var total = 0
+
+        for _ in 0..<3 {
+            XCTAssertTrue(lightMap.begin())
+            total += withExtendedLifetime(renderCore) {
+                AllocationCounter.count {
+                    for light in lights { lightMap.add(light) }
+                }
+            }
+            lightMap.commit(viewProjection: Mat4.makeOrthographic(
+                left: -32, right: 32, bottom: -32, top: 32, nearZ: -100, farZ: 100))
+        }
+
+        XCTAssertEqual(total, 0)
+    }
+
     func testForEachPotentialPairAllocatesNothing() throws {
         try requireOptimizedBuild()
         let grid = makeGrid()

@@ -32,6 +32,24 @@ final class UniformLayoutTests: XCTestCase {
         XCTAssertEqual(MemoryLayout<ParticleUniform>.offset(of: \.transform), 16)
     }
 
+    func testLightUniform() {
+        XCTAssertEqual(LightUniform.stride, 48)
+        XCTAssertEqual(MemoryLayout<LightUniform>.offset(of: \.color), 0)
+        XCTAssertEqual(MemoryLayout<LightUniform>.offset(of: \.center), 16)
+        XCTAssertEqual(MemoryLayout<LightUniform>.offset(of: \.radius), 24)
+        XCTAssertEqual(MemoryLayout<LightUniform>.offset(of: \.falloff), 28)
+        XCTAssertEqual(MemoryLayout<LightUniform>.offset(of: \.direction), 32)
+        XCTAssertEqual(MemoryLayout<LightUniform>.offset(of: \.cosHalfAngle), 40)
+        XCTAssertEqual(MemoryLayout<LightUniform>.offset(of: \.cosInner), 44)
+    }
+
+    func testLightVertex() {
+        XCTAssertEqual(LightVertex.stride, 16)
+        XCTAssertEqual(MemoryLayout<LightVertex>.offset(of: \.position), 0)
+        XCTAssertEqual(MemoryLayout<LightVertex>.offset(of: \.z), 8)
+        XCTAssertEqual(MemoryLayout<LightVertex>.offset(of: \.light), 12)
+    }
+
     func testWireframeUniform() {
         XCTAssertEqual(WireframeUniform.stride, 64)
         XCTAssertEqual(MemoryLayout<WireframeUniform>.offset(of: \.color), 0)

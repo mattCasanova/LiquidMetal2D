@@ -1,0 +1,58 @@
+#include <metal_stdlib>
+using namespace metal;
+
+// Mirrors LightUniform.swift; UniformLayoutTests pins the layout.
+struct LightVertex { float2 position; float z; uint light; };
+struct LightUniform {
+    float4 color; float2 center; float radius; float falloff;
+    float2 direction; float cosHalfAngle; float cosInner;
+};
+
+struct LightOut {
+    float4 position [[position]];
+    float2 world;
+    uint light [[flat]];
+};
+
+vertex LightOut light_vertex(const device LightVertex* verts [[buffer(0)]],
+                             constant float4x4& viewProjection [[buffer(1)]],
+                             uint vid [[vertex_id]]) {
+    LightVertex v = verts[vid];
+    LightOut out;
+    out.position = viewProjection * float4(v.position, v.z, 1.0);
+    out.world = v.position;
+    out.light = v.light;
+    return out;
+}
+
+// Brightness falls with the world distance to the light, so the fan's
+// triangles never show; a cone also fades across its edges. Lights add.
+fragment half4 light_fragment(LightOut in [[stage_in]],
+                              const device LightUniform* lights [[buffer(0)]]) {
+    LightUniform l = lights[in.light];
+    float2 toPixel = in.world - l.center;
+    float d = length(toPixel);
+    float a = pow(saturate(1.0 - d / l.radius), l.falloff);
+    if (l.cosHalfAngle > -1.0) {
+        float c = dot(toPixel / max(d, 1e-5), l.direction);
+        a *= smoothstep(l.cosHalfAngle, l.cosInner, c);
+    }
+    return half4(half3(l.color.rgb * a), 1.0);
+}
+
+struct CompositeOut { float4 position [[position]]; float2 uv; };
+
+// One triangle covering the screen: vertex ids 0, 1, 2 -> (-1,-1), (3,-1), (-1,3).
+vertex CompositeOut composite_vertex(uint vid [[vertex_id]]) {
+    float2 p = float2((vid << 1) & 2, vid & 2);
+    CompositeOut out;
+    out.position = float4(p * 2.0 - 1.0, 0.0, 1.0);
+    out.uv = float2(p.x, 1.0 - p.y);
+    return out;
+}
+
+fragment half4 composite_fragment(CompositeOut in [[stage_in]],
+                                  texture2d<half> lightMap [[texture(0)]],
+                                  sampler s [[sampler(0)]]) {
+    return half4(lightMap.sample(s, in.uv).rgb, 1.0);
+}
