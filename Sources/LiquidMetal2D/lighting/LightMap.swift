@@ -8,7 +8,7 @@
 import Metal
 
 /// The frame's lights, drawn into an offscreen float texture that the
-/// renderer later multiplies over the scene (Phase 3).
+/// renderer then multiplies over the scene.
 ///
 /// Each frame: ``begin()``, set ``ambient``, ``add(_:outline:)`` every
 /// light, ``commit(viewProjection:)``. The commit encodes and commits its
@@ -18,6 +18,9 @@ import Metal
 /// engine builds the fan when no outline is passed (a 48-gon, or an arc for
 /// a cone); a ``VisibilityPolygon``'s points make the walls cast shadows.
 /// `add` writes straight into this frame's buffer and allocates nothing.
+/// Then, inside the scene's pass, ``Renderer/composite(_:)`` multiplies the
+/// texture over everything drawn so far; what is submitted after it stays
+/// bright (emissive: neon, eyes, UI).
 @MainActor
 public final class LightMap {
     private static let spokes = 48
@@ -32,6 +35,8 @@ public final class LightMap {
 
     private unowned let renderCore: RenderCore
     private let pipelineState: MTLRenderPipelineState
+    private let compositePipeline: MTLRenderPipelineState
+    private let compositeSampler: MTLSamplerState
     private let bufferProvider: BufferProvider
     /// Vertices fill the front of each buffer; the lights follow.
     private let verticesSize: Int
@@ -40,6 +45,8 @@ public final class LightMap {
     private var lightCount = 0
     private var vertexCount = 0
     private var hasBegun = false
+    /// `commit` ran since the last `begin`: the texture holds this frame's lights.
+    private var isCommitted = false
     /// The lights' texture. Tests read it back; the composite samples it.
     private(set) var texture: MTLTexture
 
@@ -53,6 +60,8 @@ public final class LightMap {
         self.maxVertices = maxVertices
         self.resolutionScale = resolutionScale
         pipelineState = LightPipeline.createLights(renderCore: renderCore)
+        compositePipeline = LightPipeline.createComposite(renderCore: renderCore)
+        compositeSampler = LightPipeline.createCompositeSampler(renderCore: renderCore)
         verticesSize = LightVertex.stride * maxVertices
         bufferProvider = BufferProvider(
             device: renderCore.device, size: verticesSize + LightUniform.stride * maxLights)
@@ -71,6 +80,7 @@ public final class LightMap {
         lightCount = 0
         vertexCount = 0
         hasBegun = true
+        isCommitted = false
         let wanted = Self.textureSize(renderCore, scale: resolutionScale)
         if texture.width != wanted.width || texture.height != wanted.height {
             texture = Self.makeTexture(device: renderCore.device, size: wanted)
@@ -152,6 +162,22 @@ public final class LightMap {
         let provider = bufferProvider
         commandBuffer.addCompletedHandler { _ in provider.signal() }
         commandBuffer.commit()
+        isCommitted = true
+    }
+
+    /// Multiplies this frame's light texture over what `pass` has drawn so
+    /// far, with one full-screen triangle. ``Renderer/composite(_:)`` calls
+    /// it after flushing the current shader; game code goes through that.
+    /// Needs a ``commit(viewProjection:)`` since the last `begin()`.
+    public func composite(on pass: RenderPass) {
+        assert(isCommitted, "LightMap.composite before commit(): the texture holds no lights for this frame")
+        guard isCommitted else { return }
+        let encoder = pass.encoder
+        encoder.setViewport(renderCore.viewport)
+        encoder.setRenderPipelineState(compositePipeline)
+        encoder.setFragmentTexture(texture, index: 0)
+        encoder.setFragmentSamplerState(compositeSampler, index: 0)
+        encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
     }
 
     // MARK: - Shapes

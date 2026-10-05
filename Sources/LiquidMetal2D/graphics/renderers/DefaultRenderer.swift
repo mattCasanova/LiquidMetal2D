@@ -165,6 +165,12 @@ open class DefaultRenderer: Renderer {
 
     // MARK: - Pass lifecycle
 
+    /// The pass `beginPass` draws into. Tests override it to draw into a
+    /// texture they can read.
+    open func makeRenderPass() -> RenderPass? {
+        RenderPass(renderCore: renderCore)
+    }
+
     open func beginPass() -> Bool {
         guard projectionBufferProvider.wait() else { return false }
 
@@ -181,7 +187,7 @@ open class DefaultRenderer: Renderer {
             }
         }
 
-        guard let pass = RenderPass(renderCore: renderCore) else {
+        guard let pass = makeRenderPass() else {
             projectionBufferProvider.signal()
             for shader in shaders { shader.signalFrameComplete() }
             return false
@@ -226,6 +232,22 @@ open class DefaultRenderer: Renderer {
     open func submit(objects: [GameObj]) {
         if currentShader == nil { useShader(alphaBlend) }
         currentShader?.submit(objects: objects)
+    }
+
+    public func makeLightMap(maxLights: Int, maxVertices: Int, resolutionScale: Float) -> LightMap {
+        LightMap(
+            renderCore: renderCore, maxLights: maxLights, maxVertices: maxVertices, resolutionScale: resolutionScale)
+    }
+
+    open func composite(_ lightMap: LightMap) {
+        guard let pass = currentPass else {
+            assertionFailure("composite outside beginPass/endPass")
+            return
+        }
+        currentShader?.flush(pass: pass)
+        lightMap.composite(on: pass)
+        // The composite changed the encoder's pipeline: the next submit must bind again.
+        currentShader = nil
     }
 
     open func endPass() {

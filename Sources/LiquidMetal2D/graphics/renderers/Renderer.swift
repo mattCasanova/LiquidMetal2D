@@ -81,10 +81,25 @@ public protocol Renderer: AnyObject {
     /// whatever your draw code produces.
     func submit(objects: [GameObj])
 
+    /// A light map on this renderer's device. Make one per scene that
+    /// lights; see ``LightMap`` for the per-frame calls.
+    func makeLightMap(maxLights: Int, maxVertices: Int, resolutionScale: Float) -> LightMap
+
+    /// Multiplies `lightMap` over everything drawn so far in this pass.
+    /// Flushes the active shader first; the next `submit` rebinds, and what
+    /// it draws is not darkened (emissive). `lightMap` must have been
+    /// committed this frame, before `beginPass`.
+    func composite(_ lightMap: LightMap)
+
     func endPass()
 }
 
 public extension Renderer {
+    /// A light map with the defaults: 64 lights, 18,432 vertices, half resolution.
+    func makeLightMap() -> LightMap {
+        makeLightMap(maxLights: 64, maxVertices: 18_432, resolutionScale: 0.5)
+    }
+
     /// Returns the default FOV in radians, adjusted for aspect ratio to keep
     /// the vertical visible area consistent across orientations.
     ///

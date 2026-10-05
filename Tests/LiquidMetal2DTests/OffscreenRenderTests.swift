@@ -390,6 +390,8 @@ final class OffscreenRenderTests: XCTestCase {
 @MainActor
 final class OffscreenRenderPass: RenderPass {
     static var target: MTLTexture?
+    /// Signalled when the most recent pass made through a renderer finishes on the GPU.
+    static var lastPass: DispatchSemaphore?
 
     override static func createDescriptor(
         drawable: CAMetalDrawable, clearColor: MTLClearColor
