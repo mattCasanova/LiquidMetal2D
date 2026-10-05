@@ -124,6 +124,26 @@ final class AllocationTests: XCTestCase {
 
     // MARK: - Spatial grid
 
+    func testVisibilityPolygonComputeAllocatesNothing() throws {
+        try requireOptimizedBuild()
+        var walls: [LineSegment] = []
+        for i in 0..<5 {
+            let center = Vec2(Float(i) * 6 - 12, Float(i % 2) * 4)
+            LineSegment.appendEdges(ofCenter: center, width: 3, height: 2, to: &walls)
+        }
+        var polygon = VisibilityPolygon()
+        polygon.compute(from: Vec2(0, 1), radius: 20, walls: walls)
+
+        let count = AllocationCounter.count {
+            for frame in 0..<50 {
+                polygon.compute(from: Vec2(Float(frame % 7) - 3, 1), radius: 20, walls: walls)
+            }
+        }
+
+        XCTAssertEqual(count, 0)
+        XCTAssertGreaterThan(polygon.points.count, 48, "the walls were in range")
+    }
+
     func testForEachPotentialPairAllocatesNothing() throws {
         try requireOptimizedBuild()
         let grid = makeGrid()

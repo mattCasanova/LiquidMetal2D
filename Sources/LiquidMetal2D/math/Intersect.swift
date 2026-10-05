@@ -150,6 +150,27 @@ public enum Intersect {
         return cross * cross <= radiusSquared * lengthSquared
     }
 
+    // MARK: - Ray vs Line Segment
+
+    /// Distance along a ray to where it crosses a segment, or nil when the
+    /// ray misses, runs parallel, or would have to go backwards.
+    ///
+    /// Solves `origin + t·direction = start + u·(end − start)` with two
+    /// cross products; a hit needs `t ≥ 0` and `0 ≤ u ≤ 1`. `direction`
+    /// should be a unit vector so `t` is a distance. A zero-length segment
+    /// counts as parallel: it blocks nothing.
+    @inlinable
+    public static func raySegment(origin: Vec2, direction: Vec2, start: Vec2, end: Vec2) -> Float? {
+        let edge = end - start
+        let denominator = direction.cross(edge)
+        guard abs(denominator) >= 1e-8 else { return nil }
+        let toStart = start - origin
+        let t = toStart.cross(edge) / denominator
+        let u = toStart.cross(direction) / denominator
+        guard t >= 0, u >= 0, u <= 1 else { return nil }
+        return t
+    }
+
     // MARK: - AABB vs AABB
 
     /// Returns `true` if two `AABB` instances overlap or touch.
