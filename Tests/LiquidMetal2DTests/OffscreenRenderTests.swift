@@ -299,7 +299,7 @@ final class OffscreenRenderTests: XCTestCase {
         }
     }
 
-    private static func makeObject(position: Vec2, scale: Vec2, rotation: Float = 0) -> GameObj {
+    static func makeObject(position: Vec2, scale: Vec2, rotation: Float = 0) -> GameObj {
         let obj = GameObj()
         obj.position = position
         obj.scale = scale
@@ -343,7 +343,7 @@ final class OffscreenRenderTests: XCTestCase {
     }
 
     /// One frame of `shader` drawing `objects` into a readable 64×64 texture.
-    private static func render(_ shader: some Shader, objects: [GameObj], renderCore: RenderCore) throws -> Image {
+    static func render(_ shader: some Shader, objects: [GameObj], renderCore: RenderCore) throws -> Image {
         try render(shader, submits: [objects], renderCore: renderCore)
     }
 
@@ -391,7 +391,7 @@ final class OffscreenRenderTests: XCTestCase {
 final class OffscreenRenderPass: RenderPass {
     static var target: MTLTexture?
 
-    override class func createDescriptor(
+    override static func createDescriptor(
         drawable: CAMetalDrawable, clearColor: MTLClearColor
     ) -> MTLRenderPassDescriptor? {
         guard let target else { return nil }

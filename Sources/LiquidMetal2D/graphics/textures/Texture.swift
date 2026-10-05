@@ -64,6 +64,9 @@ public class Texture {
         self.path = Bundle.main.path(forResource: name, ofType: ext)
         self.isMipmapped = isMipmapped
         self.loadCount = 1
+        if path == nil {
+            DebugPrint("Texture %@ is not in the main bundle; it will draw as the error texture", fileName)
+        }
     }
 
     /// Loads the texture synchronously on the main thread.
@@ -100,6 +103,9 @@ public class Texture {
                     if let self, let loaded {
                         self.publish(loaded.value)
                         DebugPrint("Async loaded Texture %@", self.fileName)
+                    } else if let self {
+                        DebugPrint("Texture %@ at %@ failed to decode; it will draw as the error texture",
+                                   self.fileName, path)
                     }
                     completion?()
                 }
@@ -109,7 +115,8 @@ public class Texture {
 
     /// Decodes the first image in the file at `path`. Like `UIImage.cgImage`,
     /// it ignores EXIF orientation. Pure, so the load queue can call it.
-    private nonisolated static func loadCGImage(path: String) -> CGImage? {
+    /// Internal so a test can push a real PNG through the whole path.
+    nonisolated static func loadCGImage(path: String) -> CGImage? {
         let url = URL(fileURLWithPath: path) as CFURL
         guard let source = CGImageSourceCreateWithURL(url, nil) else { return nil }
         return CGImageSourceCreateImageAtIndex(source, 0, nil)
@@ -123,7 +130,7 @@ public class Texture {
 
     /// Decodes `image` into a new GPU texture. Pure: touches no instance
     /// state, so it can run on any thread.
-    private nonisolated static func makeTexture(
+    nonisolated static func makeTexture(
         from image: CGImage, isMipmapped: Bool, device: MTLDevice, commandQueue: MTLCommandQueue
     ) -> MTLTexture? {
         let colorSpace = CGColorSpaceCreateDeviceRGB()
