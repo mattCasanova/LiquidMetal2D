@@ -19,6 +19,8 @@ class AsyncLoadDemo: DefaultScene {
 
     private let artificialDelay: Float = 5.0
 
+    private var isLoaded = false
+    private var hasWaited = false
     private let controls = AsyncLoadControls()
     private var ui: DemoUI!
 
@@ -41,11 +43,16 @@ class AsyncLoadDemo: DefaultScene {
         createStars()
 
         ui = services.demoUI
+        // No way out until the textures are requested: a scene picked from the
+        // menu before that would draw every ship as the error texture for good.
+        ui.isMenuHidden = true
         controls.onStart = { [unowned self] in onStart() }
         showOverlay()
 
+        loadAllTextures()
         scheduler.add(task: ScheduledTask(time: artificialDelay, action: { [weak self] _ in
-            self?.loadAllTextures()
+            self?.hasWaited = true
+            self?.showReadyIfDone()
         }, count: 1))
     }
 
@@ -75,6 +82,7 @@ class AsyncLoadDemo: DefaultScene {
     override func shutdown() {
         super.shutdown()
         ui.overlay = nil
+        ui.isMenuHidden = false
     }
 
     // MARK: - Stars
@@ -134,6 +142,13 @@ class AsyncLoadDemo: DefaultScene {
     }
 
     private func onLoadComplete() {
+        isLoaded = true
+        showReadyIfDone()
+    }
+
+    /// Ready once the textures are in and the starfield has had its moment.
+    private func showReadyIfDone() {
+        guard isLoaded, hasWaited else { return }
         controls.status = "Ready!"
         controls.isReady = true
     }
