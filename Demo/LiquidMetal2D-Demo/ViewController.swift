@@ -73,6 +73,7 @@ class ViewController: LiquidViewController, AppStateObserver {
             SmokeLayersDemo.self,
             SkeletonDemo.self,
             InputDemo.self,
+            LightingDemo.self,
             PauseDemo.self,
         ])
 

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		D3A0A00C2F9B0001000000A1 /* InputDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A0A00B2F9B0001000000A1 /* InputDemo.swift */; };
+		D3A0A00E2F9B0001000000A1 /* LightingDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A0A00D2F9B0001000000A1 /* LightingDemo.swift */; };
 		D3A0A00A2F9B0001000000A1 /* DemoControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A0A0092F9B0001000000A1 /* DemoControls.swift */; };
 		D3A0A0082F9B0001000000A1 /* DemoServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A0A0072F9B0001000000A1 /* DemoServices.swift */; };
 		A1B2C3CE2F67D0A7003831F3 /* GameTextures.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3CD2F67D0A7003831F3 /* GameTextures.swift */; };
@@ -59,6 +60,7 @@
 
 /* Begin PBXFileReference section */
 		D3A0A00B2F9B0001000000A1 /* InputDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputDemo.swift; sourceTree = "<group>"; };
+		D3A0A00D2F9B0001000000A1 /* LightingDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LightingDemo.swift; sourceTree = "<group>"; };
 		D3A0A0092F9B0001000000A1 /* DemoControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoControls.swift; sourceTree = "<group>"; };
 		D3A0A0072F9B0001000000A1 /* DemoServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoServices.swift; sourceTree = "<group>"; };
 		A1B2C3CD2F67D0A7003831F3 /* GameTextures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameTextures.swift; sourceTree = "<group>"; };
@@ -176,6 +178,7 @@
 				F5021AC22F95B0A7003831F3 /* LineParticleDemo.swift */,
 				C4A3E7A22E80000100C42A29 /* SkeletonDemo.swift */,
 				D3A0A00B2F9B0001000000A1 /* InputDemo.swift */,
+				D3A0A00D2F9B0001000000A1 /* LightingDemo.swift */,
 				C4A3E7A42E80000100C42A29 /* StickFigure.swift */,
 				C4A3E7A72E80000100C42A29 /* Animations */,
 				F5021ABC2F94D074000FC89F /* WireframeDemo.swift */,
@@ -338,6 +341,7 @@
 				A1B2C3D42F6780A7003831F3 /* BezierDemo.swift in Sources */,
 				C4A3E7A32E80000100C42A29 /* SkeletonDemo.swift in Sources */,
 				D3A0A00C2F9B0001000000A1 /* InputDemo.swift in Sources */,
+				D3A0A00E2F9B0001000000A1 /* LightingDemo.swift in Sources */,
 				C4A3E7A52E80000100C42A29 /* StickFigure.swift in Sources */,
 				F5021ABD2F94D074000FC89F /* WireframeDemo.swift in Sources */,
 				A1B2C3D62F6790A7003831F3 /* CameraRotationDemo.swift in Sources */,

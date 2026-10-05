@@ -42,8 +42,10 @@ public final class LightMap {
     private let verticesSize: Int
     private var buffer: MTLBuffer?
     private var contents: UnsafeMutableRawPointer?
-    private var lightCount = 0
-    private var vertexCount = 0
+    /// Lights added since `begin()`; a readout for demos and tools.
+    public private(set) var lightCount = 0
+    /// Fan vertices written since `begin()`.
+    public private(set) var vertexCount = 0
     private var hasBegun = false
     /// `commit` ran since the last `begin`: the texture holds this frame's lights.
     private var isCommitted = false
