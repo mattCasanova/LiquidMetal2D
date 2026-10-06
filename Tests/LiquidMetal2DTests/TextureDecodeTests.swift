@@ -41,6 +41,29 @@ final class TextureDecodeTests: XCTestCase {
         }
     }
 
+    /// A `CGImage` registered through the renderer's public `addTexture`
+    /// draws with the same colours as a bundle PNG: the path a tool uses for
+    /// images that live outside the bundle.
+    func testAddTextureFromACGImageDrawsItsColours() throws {
+        _ = try ShaderTestSupport.makeDevice()
+        let renderer = DefaultRenderer(parentView: PlatformView(), maxObjects: 4)
+        let png = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("Demo/LiquidMetal2D-Demo/playerShip1_orange.png")
+        let cgImage = try XCTUnwrap(Texture.loadCGImage(path: png.path), "the demo's ship PNG")
+        let textureID = try XCTUnwrap(renderer.addTexture(cgImage))
+        let shader = AlphaBlendShader(renderCore: renderer.renderCore, maxObjects: 4)
+        let ship = OffscreenRenderTests.makeObject(position: Vec2(0, 0), scale: Vec2(48, 64))
+        ship.add(AlphaBlendComponent(parent: ship, textureID: textureID))
+
+        let image = try OffscreenRenderTests.render(shader, objects: [ship], renderCore: renderer.renderCore)
+
+        let pixel = image.pixel(at: Vec2(-24 + 20.5 / 75 * 48, 32 - 70.5 / 99 * 64))
+        XCTAssertTrue(pixel.x > pixel.y && pixel.y > pixel.z, "orange is r > g > b, got \(pixel)")
+        XCTAssertEqual(Int(pixel.x), 222, accuracy: 40, "\(pixel)")
+        XCTAssertEqual(Int(pixel.w), 255)
+    }
+
     /// The same ship loaded mipmapped (as the demo loads it) and drawn at a
     /// quarter of its size, so the sampler reads a generated mip level.
     func testMipmappedPngTextureKeepsItsColorsWhenSmall() throws {

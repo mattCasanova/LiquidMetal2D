@@ -105,6 +105,17 @@ open class DefaultRenderer: Renderer {
         return renderCore.textureManager.loadTextures(items, completion: completion)
     }
 
+    /// Registers `image` as a texture, decoded premultiplied like a PNG from
+    /// the bundle, and returns its id. For images that live outside the
+    /// bundle: a tool's part images, a file the player picked. Synchronous;
+    /// nil when Metal could not make the texture. Unload it like any other.
+    public func addTexture(_ image: CGImage, isMipmapped: Bool = false) -> Int? {
+        guard let texture = Texture.makeTexture(
+            from: image, isMipmapped: isMipmapped, device: renderCore.device, commandQueue: renderCore.commandQueue)
+        else { return nil }
+        return renderCore.textureManager.addTexture(texture)
+    }
+
     public func unloadTexture(textureId: Int) {
         renderCore.textureManager.unloadTexture(textureId: textureId)
     }
