@@ -75,10 +75,15 @@ public final class LightMap {
     /// changed. False means no buffer was free in time: skip the lights this
     /// frame, as ``Renderer/beginPass()`` does for the scene.
     public func begin() -> Bool {
-        guard bufferProvider.wait() else { return false }
-        let buffer = bufferProvider.nextBuffer()
-        self.buffer = buffer
-        contents = buffer.contents()
+        assert(!hasBegun, "LightMap.begin() twice without commit(): commit() before the scene's pass")
+        // A begin() with no commit() still holds its buffer, which never
+        // reached the GPU: reuse it rather than take (and leak) another.
+        if !hasBegun {
+            guard bufferProvider.wait() else { return false }
+            let buffer = bufferProvider.nextBuffer()
+            self.buffer = buffer
+            contents = buffer.contents()
+        }
         lightCount = 0
         vertexCount = 0
         hasBegun = true
@@ -92,15 +97,28 @@ public final class LightMap {
 
     /// Adds a light. `outline` is its shape, counter-clockwise around the
     /// light (a ``VisibilityPolygon``'s points, closed for an all-round
-    /// light, open for a cone); nil draws the plain pool or cone. Past
-    /// `maxLights` or `maxVertices` the light is dropped (an assert in Debug).
+    /// light, open for a cone); nil draws the plain pool or cone. A light
+    /// costs 3 vertices per outline point: a plain pool 144, a shadowed
+    /// light 3 × (48 + 3 per wall corner in reach). Past `maxLights` or
+    /// `maxVertices` the light is dropped (an assert in Debug). A `radius`
+    /// of 0 is a light turned off; a negative radius, a `falloff` of 0 or
+    /// less, or a `halfAngle` outside (0, π] is a programmer error.
     public func add(_ light: Light, outline: [Vec2]? = nil) {
         assert(hasBegun, "LightMap.add before begin()")
         guard hasBegun, let contents else { return }
+        assert(light.radius >= 0 && light.falloff > 0 && light.halfAngle > 0 && light.halfAngle <= .pi,
+               "LightMap.add: a light needs radius ≥ 0, falloff > 0 and halfAngle in (0, π]: \(light)")
+        guard light.radius > 0, light.falloff > 0, light.halfAngle > 0, light.halfAngle <= .pi else { return }
         assert(lightCount < maxLights, "LightMap: more than \(maxLights) lights; raise maxLights")
         guard lightCount < maxLights else { return }
 
-        let segments = outline.map { light.isCone ? $0.count - 1 : $0.count } ?? Self.fanSegments(for: light)
+        let segments: Int
+        if let outline {
+            assert(outline.count >= 2, "LightMap.add: an outline needs 2 points or more; compute it first")
+            segments = light.isCone ? outline.count - 1 : outline.count
+        } else {
+            segments = Self.fanSegments(for: light)
+        }
         guard segments > 0 else { return }
         assert(vertexCount + segments * 3 <= maxVertices, "LightMap: past \(maxVertices) vertices; raise maxVertices")
         guard vertexCount + segments * 3 <= maxVertices else { return }
@@ -129,7 +147,9 @@ public final class LightMap {
 
     /// Draws this frame's lights into the texture on their own command
     /// buffer and commits it. Call before the scene's pass. `viewProjection`
-    /// nil uses the perspective projection and camera, as `usePerspective` does.
+    /// nil uses the perspective projection and camera, as `usePerspective`
+    /// does; a scene drawn with `useOrthographic` passes
+    /// `renderCore.orthographic.make()`.
     public func commit(viewProjection: Mat4? = nil) {
         assert(hasBegun, "LightMap.commit before begin()")
         guard hasBegun, let buffer else { return }
@@ -184,7 +204,7 @@ public final class LightMap {
 
     // MARK: - Shapes
 
-    /// A pool is a 48-gon; a cone an arc of steps the same angular size (at
+    /// A pool is a 48-gon; a cone an arc of equal steps about π/48 wide (at
     /// least 4), open at the back.
     private static func fanSegments(for light: Light) -> Int {
         guard light.isCone else { return spokes }
@@ -203,9 +223,11 @@ public final class LightMap {
     }
 
     private static func uniform(for light: Light) -> LightUniform {
-        let cosHalfAngle: Float = light.isCone ? cos(light.halfAngle) : -1
-        // The fade needs a band: with no softness the edge is a hard step.
-        let inner = light.isCone ? max(cos(max(light.halfAngle - light.edgeSoftness, 0)), cosHalfAngle + 1e-4) : 1
+        // The fade needs a band below 1: with no softness the edge is a hard
+        // step, and a hairline cone must still reach full brightness on its axis.
+        let cosHalfAngle: Float = light.isCone ? min(cos(light.halfAngle), 1 - 2e-4) : -1
+        let inner: Float = light.isCone
+            ? min(max(cos(max(light.halfAngle - light.edgeSoftness, 0)), cosHalfAngle + 1e-4), 1) : 1
         return LightUniform(
             color: Vec4(light.color * light.intensity, 0),
             center: light.position, radius: light.radius, falloff: light.falloff,

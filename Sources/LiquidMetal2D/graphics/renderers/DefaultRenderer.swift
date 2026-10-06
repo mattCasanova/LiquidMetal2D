@@ -246,8 +246,9 @@ open class DefaultRenderer: Renderer {
         }
         currentShader?.flush(pass: pass)
         lightMap.composite(on: pass)
-        // The composite changed the encoder's pipeline: the next submit must bind again.
-        currentShader = nil
+        // The composite changed the encoder's state: bind the active shader
+        // again so later submits and manual draws still reach the GPU.
+        currentShader?.bind(pass: pass, projectionBuffer: projectionBuffer)
     }
 
     open func endPass() {

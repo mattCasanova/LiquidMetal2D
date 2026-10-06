@@ -34,7 +34,8 @@ final class LightMapTests: XCTestCase {
         let image = try Self.readback(lightMap, renderCore: renderCore)
 
         Self.assertNear(image.pixel(at: Vec2(0.5, 0.5)), Vec3(repeating: 1 - 0.707 / 16 + 0.1), 0.03, "centre")
-        Self.assertNear(image.pixel(at: Vec2(8.5, 0.5)), Vec3(repeating: 0.5 + 0.1), 0.05, "half way")
+        // The pixel centre is 8.515 from the light: 1 − 8.515 / 16 + 0.1.
+        Self.assertNear(image.pixel(at: Vec2(8.5, 0.5)), Vec3(repeating: 0.568), 0.005, "half way")
         Self.assertNear(image.pixel(at: Vec2(17.5, 0.5)), Vec3(repeating: 0.1), 0.002, "past the radius")
     }
 
@@ -95,6 +96,83 @@ final class LightMapTests: XCTestCase {
         let middle = image.pixel(at: Vec2(8.5, 0.5)).x
         XCTAssertGreaterThan(inTheFade, 0.02, "fading, not off")
         XCTAssertLessThan(inTheFade, middle - 0.02, "fading, not full")
+    }
+
+    /// Off the origin and pointing up, so a wrong sign on either axis shows.
+    func testAConePointingUpLightsOnlyUp() throws {
+        let (renderCore, lightMap) = try makeLightMap()
+        var cone = Light(position: Vec2(2, -3), radius: 16, color: Vec3(1, 1, 1))
+        cone.falloff = 1
+        cone.direction = .pi / 2
+        cone.halfAngle = 0.6
+        XCTAssertTrue(lightMap.begin())
+        lightMap.add(cone)
+        lightMap.commit(viewProjection: Self.ortho)
+
+        let image = try Self.readback(lightMap, renderCore: renderCore)
+
+        XCTAssertGreaterThan(image.pixel(at: Vec2(2.5, 5.5)).x, 0.3, "up from the light")
+        XCTAssertEqual(image.pixel(at: Vec2(2.5, -11.5)).x, 0, accuracy: 1e-3, "down from it")
+        XCTAssertEqual(image.pixel(at: Vec2(10.5, -2.5)).x, 0, accuracy: 1e-3, "off to the right")
+    }
+
+    /// A hairline cone still reaches full brightness on its axis: the fade
+    /// band must stay below 1.
+    func testAHairlineConeIsFullBrightOnItsAxis() throws {
+        let (renderCore, lightMap) = try makeLightMap()
+        var cone = Light(position: Vec2(0.5, 0.5), radius: 16, color: Vec3(1, 1, 1))
+        cone.falloff = 1
+        cone.halfAngle = 0.01
+        XCTAssertTrue(lightMap.begin())
+        lightMap.add(cone)
+        lightMap.commit(viewProjection: Self.ortho)
+
+        let onAxis = try Self.readback(lightMap, renderCore: renderCore).pixel(at: Vec2(4.5, 0.5)).x
+
+        XCTAssertEqual(onAxis, 0.75, accuracy: 0.03, "4 units down a 16 unit linear falloff")
+    }
+
+    /// Lights sit at a world z and go through the view-projection: one
+    /// outside the projection's depth range is clipped away.
+    func testALightOutsideTheDepthRangeDrawsNothing() throws {
+        let (renderCore, lightMap) = try makeLightMap()
+        var light = Light(position: Vec2(0, 0), radius: 16, color: Vec3(1, 1, 1))
+        light.z = 200
+        XCTAssertTrue(lightMap.begin())
+        lightMap.add(light)
+        lightMap.commit(viewProjection: Self.ortho)
+
+        let image = try Self.readback(lightMap, renderCore: renderCore)
+
+        XCTAssertEqual(image.pixel(at: Vec2(0.5, 0.5)).x, 0, accuracy: 1e-3)
+    }
+
+    func testRadiusZeroIsALightTurnedOff() throws {
+        let (renderCore, lightMap) = try makeLightMap()
+        var visibility = VisibilityPolygon()
+        visibility.compute(from: Vec2(), radius: 0, walls: [])
+        XCTAssertTrue(visibility.points.isEmpty)
+        XCTAssertTrue(lightMap.begin())
+        lightMap.add(Light(position: Vec2(0, 0), radius: 0, color: Vec3(1, 1, 1)))
+        lightMap.add(Light(position: Vec2(0, 0), radius: 0, color: Vec3(1, 1, 1)), outline: visibility.points)
+        lightMap.commit(viewProjection: Self.ortho)
+
+        XCTAssertEqual(lightMap.lightCount, 0)
+        XCTAssertEqual(try Self.readback(lightMap, renderCore: renderCore).pixel(at: Vec2(0.5, 0.5)).x, 0)
+    }
+
+    /// Every frame's buffer comes back when its command buffer completes,
+    /// lights or no lights; the provider holds only three.
+    func testEveryFrameGetsABuffer() throws {
+        let (renderCore, lightMap) = try makeLightMap()
+        for frame in 0..<7 {
+            XCTAssertTrue(lightMap.begin(), "frame \(frame)")
+            if frame % 2 == 0 {
+                lightMap.add(Light(position: Vec2(0, 0), radius: 8, color: Vec3(1, 1, 1)))
+            }
+            lightMap.commit(viewProjection: Self.ortho)
+            _ = try Self.readback(lightMap, renderCore: renderCore)
+        }
     }
 
     func testAVisibilityOutlineCastsAShadow() throws {
@@ -183,59 +261,6 @@ final class LightMapTests: XCTestCase {
         XCTAssertGreaterThan(plain, 0.3)
     }
 
-    // MARK: - Composite, through DefaultRenderer
-
-    func testCompositeMultipliesTheSceneByTheLightMap() throws {
-        let (renderer, lightMap) = try makeRenderer()
-        lightMap.ambient = Vec3(0.5, 0.5, 0.5)
-        XCTAssertTrue(lightMap.begin())
-        lightMap.commit(viewProjection: Self.ortho)
-        XCTAssertTrue(renderer.beginPass())
-        renderer.useOrthographic()
-        renderer.submit(objects: [Self.whiteSprite(renderer, at: Vec2(0, 0), size: Vec2(64, 64))])
-
-        renderer.composite(lightMap)
-        renderer.endPass()
-
-        let image = try Self.readScene()
-        Self.assertByte(image.pixel(at: Vec2(0.5, 0.5)), 128, "the middle")
-        Self.assertByte(image.pixel(at: Vec2(-31.5, 31.5)), 128, "a corner")
-    }
-
-    func testCompositeLightsTheMiddleAndLeavesTheCornersDark() throws {
-        let (renderer, lightMap) = try makeRenderer()
-        XCTAssertTrue(lightMap.begin())
-        lightMap.add(Light(position: Vec2(0, 0), radius: 20, color: Vec3(1, 1, 1)))
-        lightMap.commit(viewProjection: Self.ortho)
-        XCTAssertTrue(renderer.beginPass())
-        renderer.useOrthographic()
-        renderer.submit(objects: [Self.whiteSprite(renderer, at: Vec2(0, 0), size: Vec2(64, 64))])
-
-        renderer.composite(lightMap)
-        renderer.endPass()
-
-        let image = try Self.readScene()
-        XCTAssertGreaterThan(image.pixel(at: Vec2(0.5, 0.5)).x, 200, "lit in the middle")
-        XCTAssertEqual(image.pixel(at: Vec2(-31.5, 31.5)).x, 0, "dark in the corner")
-    }
-
-    func testWhatIsSubmittedAfterTheCompositeStaysBright() throws {
-        let (renderer, lightMap) = try makeRenderer()
-        XCTAssertTrue(lightMap.begin())
-        lightMap.commit(viewProjection: Self.ortho)
-        XCTAssertTrue(renderer.beginPass())
-        renderer.useOrthographic()
-        renderer.submit(objects: [Self.whiteSprite(renderer, at: Vec2(-16, 0), size: Vec2(32, 64))])
-        renderer.composite(lightMap)
-
-        renderer.submit(objects: [Self.whiteSprite(renderer, at: Vec2(16, 0), size: Vec2(32, 64))])
-        renderer.endPass()
-
-        let image = try Self.readScene()
-        XCTAssertEqual(image.pixel(at: Vec2(-16.5, 0.5)).x, 0, "the scene, under a black light map")
-        XCTAssertEqual(image.pixel(at: Vec2(16.5, 0.5)).x, 255, "emissive: drawn after the composite")
-    }
-
     // MARK: - Helpers
 
     /// A 64×64 render core and a full-resolution light map on it.
@@ -243,51 +268,6 @@ final class LightMapTests: XCTestCase {
         let renderCore = try ShaderTestSupport.makeRenderCore()
         renderCore.resize(scale: 1, layerSize: CGSize(width: 64, height: 64))
         return (renderCore, LightMap(renderCore: renderCore, maxLights: 8, maxVertices: 1200, resolutionScale: 1))
-    }
-
-    /// A `DefaultRenderer` drawing into a readable 64×64 target, with an
-    /// orthographic projection of one world unit per pixel, and a
-    /// full-resolution light map on it.
-    private func makeRenderer() throws -> (DefaultRenderer, LightMap) {
-        _ = try ShaderTestSupport.makeDevice()
-        let renderer = OffscreenRenderer(parentView: PlatformView(), maxObjects: 4)
-        renderer.renderCore.resize(scale: 1, layerSize: CGSize(width: 64, height: 64))
-        renderer.setOrthographic(left: -32, right: 32, bottom: -32, top: 32, nearZ: -100, farZ: 100)
-        let descriptor = MTLTextureDescriptor.texture2DDescriptor(
-            pixelFormat: renderer.renderCore.layer.pixelFormat, width: 64, height: 64, mipmapped: false)
-        descriptor.usage = [.renderTarget, .shaderRead]
-        descriptor.storageMode = .shared
-        let target = try XCTUnwrap(renderer.renderCore.device.makeTexture(descriptor: descriptor))
-        OffscreenRenderPass.target = target
-        let lightMap = renderer.makeLightMap(maxLights: 8, maxVertices: 1200, resolutionScale: 1)
-        return (renderer, lightMap)
-    }
-
-    private static func whiteSprite(_ renderer: DefaultRenderer, at position: Vec2, size: Vec2) -> GameObj {
-        let sprite = GameObj()
-        sprite.position = position
-        sprite.scale = size
-        sprite.add(AlphaBlendComponent(parent: sprite, textureID: renderer.defaultTextureId))
-        return sprite
-    }
-
-    /// Waits for the GPU, then reads the scene target back as bytes.
-    private static func readScene() throws -> OffscreenRenderTests.Image {
-        defer { OffscreenRenderPass.target = nil }
-        let target = try XCTUnwrap(OffscreenRenderPass.target, "no target was set")
-        let finished = try XCTUnwrap(OffscreenRenderPass.lastPass, "no pass was begun")
-        XCTAssertEqual(finished.wait(timeout: .now() + 5), .success, "the GPU never finished the pass")
-        var bytes = [UInt8](repeating: 0, count: 64 * 64 * 4)
-        target.getBytes(&bytes, bytesPerRow: 64 * 4, from: MTLRegionMake2D(0, 0, 64, 64), mipmapLevel: 0)
-        return OffscreenRenderTests.Image(bytes: bytes)
-    }
-
-    private static func assertByte(
-        _ pixel: SIMD4<UInt8>, _ expected: Int, _ message: String, file: StaticString = #filePath, line: UInt = #line
-    ) {
-        for channel in 0..<3 {
-            XCTAssertEqual(Int(pixel[channel]), expected, accuracy: 1, "\(message): \(pixel)", file: file, line: line)
-        }
     }
 
     /// Copies the light texture into a shared buffer and unpacks its halves.
@@ -306,9 +286,22 @@ final class LightMapTests: XCTestCase {
         commandBuffer.commit()
         commandBuffer.waitUntilCompleted()
         let count = texture.width * texture.height * 4
-        let halves = buffer.contents().bindMemory(to: Float16.self, capacity: count)
-        let values = (0..<count).map { Float(halves[$0]) }
+        let halves = buffer.contents().bindMemory(to: UInt16.self, capacity: count)
+        let values = (0..<count).map { Self.float(fromHalf: halves[$0]) }
         return LightImage(width: texture.width, height: texture.height, values: values)
+    }
+
+    /// IEEE half to float by hand: `Float16` is unavailable on Intel Macs,
+    /// and it would take the whole test target with it.
+    static func float(fromHalf bits: UInt16) -> Float {
+        let sign: Float = bits & 0x8000 == 0 ? 1 : -1
+        let exponent = Int((bits >> 10) & 0x1F)
+        let mantissa = Float(bits & 0x3FF)
+        switch exponent {
+        case 0: return sign * mantissa * Float(2).power(-24)
+        case 31: return mantissa == 0 ? sign * .infinity : .nan
+        default: return sign * (1 + mantissa / 1024) * Float(2).power(exponent - 15)
+        }
     }
 
     static func assertNear(
@@ -320,6 +313,10 @@ final class LightMapTests: XCTestCase {
                            "\(message) channel \(channel) of \(pixel)", file: file, line: line)
         }
     }
+}
+
+private extension Float {
+    func power(_ exponent: Int) -> Float { pow(self, Float(exponent)) }
 }
 
 /// A light texture read back as floats, top row first.
@@ -336,17 +333,5 @@ struct LightImage {
         let row = Int((Float(height) / 2 - p.y).rounded(.down))
         let index = (row * width + column) * 4
         return Vec3(values[index], values[index + 1], values[index + 2])
-    }
-}
-
-/// A renderer whose passes draw into `OffscreenRenderPass.target`.
-@MainActor
-private final class OffscreenRenderer: DefaultRenderer {
-    override func makeRenderPass() -> RenderPass? {
-        guard let pass = OffscreenRenderPass(renderCore: renderCore) else { return nil }
-        let finished = DispatchSemaphore(value: 0)
-        pass.addCompletedHandler { _ in finished.signal() }
-        OffscreenRenderPass.lastPass = finished
-        return pass
     }
 }

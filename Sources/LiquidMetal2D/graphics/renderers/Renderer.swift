@@ -86,8 +86,8 @@ public protocol Renderer: AnyObject {
     func makeLightMap(maxLights: Int, maxVertices: Int, resolutionScale: Float) -> LightMap
 
     /// Multiplies `lightMap` over everything drawn so far in this pass.
-    /// Flushes the active shader first; the next `submit` rebinds, and what
-    /// it draws is not darkened (emissive). `lightMap` must have been
+    /// Flushes the active shader first and keeps it bound; what is submitted
+    /// or drawn after is not darkened (emissive). `lightMap` must have been
     /// committed this frame, before `beginPass`.
     func composite(_ lightMap: LightMap)
 

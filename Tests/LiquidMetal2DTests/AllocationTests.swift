@@ -148,20 +148,32 @@ final class AllocationTests: XCTestCase {
         try requireOptimizedBuild()
         let renderCore = try ShaderTestSupport.makeRenderCore()
         renderCore.resize(scale: 1, layerSize: CGSize(width: 64, height: 64))
-        let lightMap = LightMap(renderCore: renderCore, maxLights: 16, maxVertices: 2000, resolutionScale: 1)
+        let lightMap = LightMap(renderCore: renderCore, maxLights: 16, maxVertices: 4000, resolutionScale: 1)
         var lights: [Light] = []
         for i in 0..<10 {
             var light = Light(position: Vec2(Float(i) * 3 - 15, 0), radius: 8, color: Vec3(1, 0.5, 0.2))
             if i % 2 == 0 { light.halfAngle = 0.5 }
             lights.append(light)
         }
+        var walls: [LineSegment] = []
+        LineSegment.appendEdges(ofCenter: Vec2(0, 6), width: 40, height: 4, to: &walls)
+        var polygon = VisibilityPolygon()
         var total = 0
 
         for _ in 0..<3 {
             XCTAssertTrue(lightMap.begin())
             total += withExtendedLifetime(renderCore) {
                 AllocationCounter.count {
-                    for light in lights { lightMap.add(light) }
+                    for (i, light) in lights.enumerated() {
+                        // Every third light is shadowed: the outline path must not allocate either.
+                        if i % 3 == 0 {
+                            polygon.compute(from: light.position, radius: light.radius, walls: walls,
+                                            direction: light.direction, halfAngle: light.halfAngle)
+                            lightMap.add(light, outline: polygon.points)
+                        } else {
+                            lightMap.add(light)
+                        }
+                    }
                 }
             }
             lightMap.commit(viewProjection: Mat4.makeOrthographic(

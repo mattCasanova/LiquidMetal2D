@@ -18,6 +18,11 @@ import Foundation
 /// two edges), each shortened to the nearest wall it crosses. Points come
 /// out counter-clockwise. The buffers keep their capacity, so a steady
 /// frame allocates nothing. Pure math, no `@MainActor`.
+///
+/// A light on a wall's line (a lamp on a box's edge, a guard standing
+/// against a wall) sees only the wall's right side: counter-clockwise walls,
+/// as ``LineSegment/appendEdges(ofCenter:width:height:to:)`` makes them,
+/// keep the inside of their box dark. A lone wall is one-sided there.
 public struct VisibilityPolygon {
     /// The outline from the last ``compute(from:radius:walls:direction:halfAngle:)``,
     /// counter-clockwise by angle. Closed for an all-round light; for a cone
@@ -26,11 +31,26 @@ public struct VisibilityPolygon {
 
     /// Angles relative to the sweep's start, in `[0, 2π)`, sorted before casting.
     private var angles: [Float]
-    /// The walls within `radius` of the origin this call.
+    /// The walls within `radius` of the origin this call, not counting those it sits on.
     private var wallsInRange: [LineSegment]
+    /// The walls the origin sits on: they block by their winding, not by a ray cast.
+    private var touchingWalls: [TouchingWall]
 
     private static let spokes = 48
     private static let cornerNudge: Float = 1e-4
+    /// Closer than this to a wall's line counts as on it.
+    private static let touchDistance: Float = 1e-3
+    /// A ray this close to running along the wall is not blocked by it:
+    /// which side float noise puts it on is luck, and a sliver along the
+    /// wall's face never shows.
+    private static let grazing: Float = 1e-5
+
+    private struct TouchingWall {
+        /// Unit vector from start to end.
+        var edge: Vec2
+        var atStart: Bool
+        var atEnd: Bool
+    }
 
     public init(capacity: Int = 512) {
         points = []
@@ -39,27 +59,36 @@ public struct VisibilityPolygon {
         angles.reserveCapacity(capacity)
         wallsInRange = []
         wallsInRange.reserveCapacity(64)
+        touchingWalls = []
+        touchingWalls.reserveCapacity(16)
     }
 
     /// Recomputes ``points`` for a light at `origin` reaching `radius`.
     /// `direction` and `halfAngle` (radians) make it a cone; `halfAngle`
-    /// `.pi`, the default, is all round. `radius` must be positive and
-    /// `halfAngle` in `(0, π]`: anything else is a programmer error.
+    /// `.pi`, the default, is all round. A `radius` of 0 is a light turned
+    /// off: no points. A negative radius or a `halfAngle` outside `(0, π]`
+    /// is a programmer error (an assert; no points in Release).
     public mutating func compute(
         from origin: Vec2, radius: Float, walls: [LineSegment], direction: Float = 0, halfAngle: Float = .pi
     ) {
-        precondition(radius > 0, "VisibilityPolygon: radius must be positive, got \(radius)")
-        precondition(halfAngle > 0 && halfAngle <= .pi, "VisibilityPolygon: halfAngle must be in (0, π]")
+        assert(radius >= 0, "VisibilityPolygon: radius must not be negative, got \(radius)")
+        assert(halfAngle > 0 && halfAngle <= .pi, "VisibilityPolygon: halfAngle must be in (0, π], got \(halfAngle)")
         points.removeAll(keepingCapacity: true)
         angles.removeAll(keepingCapacity: true)
         wallsInRange.removeAll(keepingCapacity: true)
+        touchingWalls.removeAll(keepingCapacity: true)
+        guard radius > 0, halfAngle > 0, halfAngle <= .pi else { return }
 
         let isCone = halfAngle < .pi
         let sweepStart = isCone ? direction - halfAngle : 0
         let sweepWidth = isCone ? 2 * halfAngle : 2 * Float.pi
 
         for wall in walls where wall.start != wall.end && Self.isInRange(wall, origin: origin, radius: radius) {
-            wallsInRange.append(wall)
+            if let touching = Self.touch(of: wall, at: origin) {
+                touchingWalls.append(touching)
+            } else {
+                wallsInRange.append(wall)
+            }
             addCornerAngles(of: wall.start, origin: origin, radius: radius, sweepStart: sweepStart, width: sweepWidth)
             addCornerAngles(of: wall.end, origin: origin, radius: radius, sweepStart: sweepStart, width: sweepWidth)
         }
@@ -79,14 +108,45 @@ public struct VisibilityPolygon {
             let angle = sweepStart + relative
             let ray = Vec2(cos(angle), sin(angle))
             var distance = radius
-            for wall in wallsInRange {
-                if let hit = Intersect.raySegment(origin: origin, direction: ray, start: wall.start, end: wall.end),
-                   hit < distance {
-                    distance = hit
+            if isBlockedAtOrigin(ray) {
+                distance = 0
+            } else {
+                for wall in wallsInRange {
+                    if let hit = Intersect.raySegment(origin: origin, direction: ray, start: wall.start, end: wall.end),
+                       hit < distance {
+                        distance = hit
+                    }
                 }
             }
             points.append(origin + ray * distance)
         }
+    }
+
+    /// The wall as one the origin sits on, or nil when it doesn't. A ray
+    /// cast from a point on a wall's line hits it at distance 0 whichever
+    /// way it goes, so such walls block by their winding instead.
+    private static func touch(of wall: LineSegment, at origin: Vec2) -> TouchingWall? {
+        let edge = wall.end - wall.start
+        let length = edge.length
+        let along = simd_dot(origin - wall.start, edge) / length
+        let fraction = min(max(along / length, 0), 1)
+        let closest = wall.start + edge * fraction
+        guard (origin - closest).lengthSquared <= touchDistance * touchDistance else { return nil }
+        return TouchingWall(
+            edge: edge / length, atStart: along <= touchDistance, atEnd: length - along <= touchDistance)
+    }
+
+    /// A wall the origin sits on blocks the rays heading to its left, the
+    /// inside of a counter-clockwise box; at an endpoint only those that
+    /// also head along the wall's span.
+    private func isBlockedAtOrigin(_ ray: Vec2) -> Bool {
+        for wall in touchingWalls where wall.edge.cross(ray) > Self.grazing {
+            let along = simd_dot(ray, wall.edge)
+            if wall.atStart && along <= 0 { continue }
+            if wall.atEnd && along >= 0 { continue }
+            return true
+        }
+        return false
     }
 
     /// In-place heapsort. The standard library's `sort()` is a merge sort
