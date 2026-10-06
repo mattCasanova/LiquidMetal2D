@@ -7,4 +7,7 @@
    <FileRef
       location = "group:Demo/LiquidMetal2D-Demo.xcodeproj">
    </FileRef>
+   <FileRef
+      location = "group:Tools/Motionator/MotionatorKit">
+   </FileRef>
 </Workspace>
