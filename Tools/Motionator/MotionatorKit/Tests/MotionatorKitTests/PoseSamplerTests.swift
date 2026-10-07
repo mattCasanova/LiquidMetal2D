@@ -13,6 +13,8 @@ final class PoseSamplerTests: XCTestCase {
 
         XCTAssertEqual(PoseSampler.bone(near: middle + Vec2(0.05, 0), rig: rig, world: world, tolerance: 0.2), shin)
         XCTAssertNil(PoseSampler.bone(near: Vec2(100, 100), rig: rig, world: world, tolerance: 0.2))
+        let stacked = PoseSampler.bones(near: middle, rig: rig, world: world, tolerance: 0.2)
+        XCTAssertEqual(stacked, [shin, try rig.boneIndex(named: "shinFar")], "the far shin lies under the near one")
     }
 
     func testAChainTipIsAHandOrFootNotTheTorso() throws {

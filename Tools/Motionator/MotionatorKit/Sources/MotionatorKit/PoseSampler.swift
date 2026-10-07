@@ -41,17 +41,22 @@ public enum PoseSampler {
     public static func bone(
         near point: Vec2, rig: SkeletonDefinition, world: [RigidTransform2D], tolerance: Float
     ) -> Int? {
-        var best: (index: Int, distance: Float)?
+        bones(near: point, rig: rig, world: world, tolerance: tolerance).first
+    }
+
+    /// Every bone within `tolerance` of `point`, nearest first, the one
+    /// drawn on top first among equals: what a click can cycle through.
+    public static func bones(
+        near point: Vec2, rig: SkeletonDefinition, world: [RigidTransform2D], tolerance: Float
+    ) -> [Int] {
+        var hits: [(index: Int, distance: Float)] = []
         for index in rig.bones.indices {
             let distance = distanceToSegment(
                 point, joint(of: index, world: world), tip(of: index, rig: rig, world: world))
-            guard distance <= tolerance else { continue }
-            if let current = best, !isNearer(distance, index, than: current.distance, current.index, rig: rig) {
-                continue
-            }
-            best = (index, distance)
+            if distance <= tolerance { hits.append((index, distance)) }
         }
-        return best?.index
+        hits.sort { isNearer($0.distance, $0.index, than: $1.distance, $1.index, rig: rig) }
+        return hits.map(\.index)
     }
 
     /// A chain whose tip (a hand, a foot, the top of the head) is within

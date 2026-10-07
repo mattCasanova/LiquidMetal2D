@@ -36,6 +36,9 @@ final class EditorScene: DefaultScene {
     /// The rig as the current drag has it, shown but not yet in the document.
     private var draftRig: SkeletonDefinition?
     private var lastPointer: Vec2?
+    /// The bones under the last mouse-down and the one it chose, so a click
+    /// with no movement can move the selection to the next one down.
+    private var clickStack: (bones: [Int], chosen: Int)?
 
     private static let boneColour = Vec4(1, 1, 1, 0.55)
     private static let selectedColour = Vec4(1, 0.62, 0.2, 1)
@@ -127,14 +130,18 @@ final class EditorScene: DefaultScene {
         renderer.setCamera(point: Vec3(session.cameraCentre.x, session.cameraCentre.y, session.cameraDistance))
     }
 
-    /// A bone under the pointer starts an edit in Setup mode; empty space pans.
+    /// A bone under the pointer starts an edit in Setup mode; empty space
+    /// pans. The selected bone keeps the drag when it is under the pointer,
+    /// even beneath others, so a bone chosen in the sidebar can be moved.
     private func beginDrag(at point: Vec2, rig: SkeletonDefinition) -> Drag {
         let session = editor.session
+        clickStack = nil
         guard session.mode == .setup else { return .pan }
         let world = RigEditor.restWorld(of: rig)
-        guard let bone = PoseSampler.bone(near: point, rig: rig, world: world, tolerance: hitTolerance) else {
-            return .pan
-        }
+        let stack = PoseSampler.bones(near: point, rig: rig, world: world, tolerance: hitTolerance)
+        guard let top = stack.first else { return .pan }
+        let bone = session.selectedBone.flatMap { stack.contains($0) ? $0 : nil } ?? top
+        clickStack = (stack, bone)
         session.selection = .bone(bone)
         if input.isPressed(.command) {
             return .translate(bone, startRest: rig.bones[bone].rest, from: point)
@@ -181,7 +188,10 @@ final class EditorScene: DefaultScene {
             draftRig = nil
             lastPointer = nil
         }
-        guard let drag, let draft = draftRig, draft != editor.document.character.rig else { return }
+        guard let drag, let draft = draftRig, draft != editor.document.character.rig else {
+            cycleSelection()
+            return
+        }
         let name: String
         switch drag {
         case .pan: return
@@ -194,6 +204,13 @@ final class EditorScene: DefaultScene {
             character.rig = draft
             return character
         }, named: name, undoManager: editor.session.undoManager)
+    }
+
+    /// A click that moved nothing on a stack of bones selects the next one down.
+    private func cycleSelection() {
+        guard let (stack, chosen) = clickStack, stack.count > 1,
+              let position = stack.firstIndex(of: chosen) else { return }
+        editor.session.selection = .bone(stack[(position + 1) % stack.count])
     }
 
     /// A few pixels, in world units at the current zoom.
