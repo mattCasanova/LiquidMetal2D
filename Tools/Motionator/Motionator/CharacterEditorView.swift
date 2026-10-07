@@ -5,6 +5,7 @@
 //  Created by Matt Casanova on 10/7/26.
 //
 
+import AppKit
 import LiquidMetal2D
 import MotionatorKit
 import SwiftUI
@@ -17,6 +18,8 @@ struct CharacterEditorView: View {
     @State private var session = EditorSession()
     @State private var isImportingParts = false
     @State private var isImportingReference = false
+    @State private var timelineHeight: CGFloat = 260
+    @State private var timelineHeightAtDragStart: CGFloat?
     @Environment(\.undoManager) private var undoManager
 
     var body: some View {
@@ -24,20 +27,24 @@ struct CharacterEditorView: View {
             sidebar
                 .navigationSplitViewColumnWidth(min: 180, ideal: 220)
         } detail: {
-            VSplitView {
+            // A plain stack with its own divider: SwiftUI's VSplitView throws
+            // inside AppKit's constraint pass when it asks the engine's view
+            // for a size (seen 2026-10-08 on every divider drag).
+            VStack(spacing: 0) {
                 ViewportView(document: document, session: session)
                     .ignoresSafeArea()
                     .dropDestination(for: URL.self) { urls, _ in
                         importParts(from: urls)
                         return true
                     }
-                    .frame(minHeight: 240)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 if session.mode == .animate {
+                    timelineDivider
                     VStack(spacing: 0) {
                         TransportBar(document: document, session: session)
                         TimelineView(document: document, session: session)
                     }
-                    .frame(minHeight: 160, idealHeight: 260)
+                    .frame(height: timelineHeight)
                 }
             }
         }
@@ -62,6 +69,23 @@ struct CharacterEditorView: View {
         }
         .onAppear { session.undoManager = undoManager }
         .frame(minWidth: 900, minHeight: 540)
+    }
+
+    /// A thin bar the timeline's height is dragged by.
+    private var timelineDivider: some View {
+        Rectangle()
+            .fill(Color(white: 0.25))
+            .frame(height: 5)
+            .overlay(Rectangle().fill(Color(white: 0.4)).frame(width: 40, height: 1))
+            .contentShape(Rectangle())
+            .onHover { inside in
+                if inside { NSCursor.resizeUpDown.push() } else { NSCursor.pop() }
+            }
+            .gesture(DragGesture(minimumDistance: 1).onChanged { value in
+                let start = timelineHeightAtDragStart ?? timelineHeight
+                timelineHeightAtDragStart = start
+                timelineHeight = min(600, max(120, start - value.translation.height))
+            }.onEnded { _ in timelineHeightAtDragStart = nil })
     }
 
     // MARK: - Toolbar
