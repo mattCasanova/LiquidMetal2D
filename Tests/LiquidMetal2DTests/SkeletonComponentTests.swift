@@ -108,6 +108,25 @@ final class SkeletonComponentTests: XCTestCase {
         XCTAssertEqual(skeleton.parts[0].rotation, 90 * degree, accuracy: epsilon)
     }
 
+    /// A tool hands the component a pose it sampled itself; the parts follow
+    /// it at once, and the next update goes back to the animator.
+    func testPlacePoseBypassesTheAnimator() throws {
+        let root = makeRoot()
+        let rig = makeOneBoneRig()
+        let skeleton = try SkeletonComponent(parent: root, definition: rig, defaultTextureID: 0)
+        var pose = Pose(restOf: rig)
+        pose.local[0].rotation = 90 * degree
+
+        skeleton.place(pose: pose)
+
+        assertEqual(skeleton.parts[0].position, Vec2(10, 6))
+        XCTAssertEqual(skeleton.parts[0].rotation, 90 * degree, accuracy: epsilon)
+        XCTAssertEqual(skeleton.worldTransform(ofBone: 0).rotation, 90 * degree, accuracy: epsilon)
+
+        skeleton.update(dt: 0)
+        assertEqual(skeleton.parts[0].position, Vec2(11, 5))  // back at rest: nothing is playing
+    }
+
     func testWorldTransformOfBoneGivesTheTip() throws {
         let root = makeRoot()
         let rig = SkeletonDefinition(

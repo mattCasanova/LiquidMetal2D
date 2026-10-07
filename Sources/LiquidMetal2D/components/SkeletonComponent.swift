@@ -133,6 +133,16 @@ public final class SkeletonComponent: Component {
 
     // MARK: - Placement
 
+    /// Places the parts from `pose` right now, bypassing the animator and
+    /// the IK constraints: for a tool that samples or edits poses itself.
+    /// The next ``update(dt:)`` places them from the animator again.
+    public func place(pose: Pose) {
+        precondition(pose.local.count == definition.bones.count,
+                     "Pose has \(pose.local.count) bones; the rig has \(definition.bones.count)")
+        SkeletonSolver.solveWorld(definition: definition, pose: pose, root: .identity, into: &boneWorld)
+        layOutParts()
+    }
+
     private func placeParts() {
         if ikConstraints.isEmpty {
             SkeletonSolver.solveWorld(
@@ -140,7 +150,11 @@ public final class SkeletonComponent: Component {
         } else {
             solveWithIK()
         }
+        layOutParts()
+    }
 
+    /// Every part at its bone's place in `boneWorld`.
+    private func layOutParts() {
         for (index, attachment) in definition.attachments.enumerated() {
             let part = parts[index]
             let bone = boneWorld[attachment.bone]
