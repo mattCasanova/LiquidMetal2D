@@ -149,6 +149,85 @@ public enum ClipEditor {
         }
     }
 
+    /// Copies the keys `delta` later (or earlier), replacing what they land on.
+    public static func duplicatingKeys(_ clip: AnimationClip, _ keys: Set<KeyRef>, by delta: Float) -> AnimationClip {
+        var clip = clip
+        for ref in keys {
+            guard let found = key(in: clip, ref) else { continue }
+            let time = GameMath.clamp(value: ref.time + delta, low: 0, high: clip.duration)
+            clip = settingKey(clip, bone: ref.bone, time: time, value: found.value, easing: found.easing)
+        }
+        return clip
+    }
+
+    /// Every time that has a key, sorted, without repeats.
+    public static func keyTimes(in clip: AnimationClip) -> [Float] {
+        var times: [Float] = []
+        for ref in allKeys(in: clip) where !times.contains(where: { isSameTime($0, ref.time) }) {
+            times.append(ref.time)
+        }
+        return times.sorted()
+    }
+
+    /// The nearest key time strictly before `time`, if any.
+    public static func keyTime(in clip: AnimationClip, before time: Float) -> Float? {
+        keyTimes(in: clip).last { $0 < time - timeTolerance }
+    }
+
+    /// The nearest key time strictly after `time`, if any.
+    public static func keyTime(in clip: AnimationClip, after time: Float) -> Float? {
+        keyTimes(in: clip).first { $0 > time + timeTolerance }
+    }
+
+    /// `time` rounded to the nearest frame at `fps`; nil fps leaves it alone.
+    public static func snapped(_ time: Float, fps: Int?) -> Float {
+        guard let fps, fps > 0 else { return time }
+        return (time * Float(fps)).rounded() / Float(fps)
+    }
+
+    /// A pose before and after an edit.
+    public struct PoseChange: Sendable {
+        public var from: Pose
+        public var to: Pose
+
+        public init(from: Pose, to: Pose) {
+            self.from = from
+            self.to = to
+        }
+    }
+
+    /// Keys every channel of `bone` that `change` moved, at `time`: what
+    /// auto-key writes when a drag ends. Nothing moved, nothing written.
+    public static func keying(
+        _ clip: AnimationClip, bone index: Int, change: PoseChange, rig: SkeletonDefinition, at time: Float
+    ) -> AnimationClip {
+        var clip = clip
+        let name = rig.bones[index].name
+        let old = change.from.local[index]
+        let new = change.to.local[index]
+        if abs(new.rotation - old.rotation) > 1e-6 {
+            clip = settingKey(clip, bone: name, time: time, value: .rotation(new.rotation))
+        }
+        if simd_length(new.position - old.position) > 1e-6 {
+            clip = settingKey(clip, bone: name, time: time, value: .position(new.position))
+        }
+        return clip
+    }
+
+    /// Keys `bone`'s rotation (and its position when it is off rest or the
+    /// track already keys it) from `pose` at `time`: a manual key.
+    public static func keyingBone(
+        _ clip: AnimationClip, bone index: Int, pose: Pose, rig: SkeletonDefinition, at time: Float
+    ) -> AnimationClip {
+        let name = rig.bones[index].name
+        var clip = settingKey(clip, bone: name, time: time, value: .rotation(pose.local[index].rotation))
+        let keysPosition = clip.tracks.first { $0.bone == name }.map { !$0.position.isEmpty } ?? false
+        if keysPosition || simd_length(pose.local[index].position - rig.bones[index].rest.position) > 1e-6 {
+            clip = settingKey(clip, bone: name, time: time, value: .position(pose.local[index].position))
+        }
+        return clip
+    }
+
     // MARK: - Poses
 
     /// The clip's pose at `time`, as the engine would play it.

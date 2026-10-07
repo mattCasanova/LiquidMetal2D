@@ -117,6 +117,62 @@ final class ClipEditorTests: XCTestCase {
         XCTAssertEqual(clip.events.map(\.name), ["step", "slash"])
     }
 
+    func testKeyTimesAndNeighbours() throws {
+        let walk = try Fixtures.walk()
+        XCTAssertEqual(ClipEditor.keyTimes(in: walk), [0, 0.25, 0.5, 0.75, 1])
+        XCTAssertEqual(ClipEditor.keyTime(in: walk, before: 0.5), 0.25)
+        XCTAssertEqual(ClipEditor.keyTime(in: walk, after: 0.5), 0.75)
+        XCTAssertNil(ClipEditor.keyTime(in: walk, before: 0))
+        XCTAssertNil(ClipEditor.keyTime(in: walk, after: 1))
+    }
+
+    func testSnappingToAFrameGrid() {
+        XCTAssertEqual(ClipEditor.snapped(0.1234, fps: 24), 3 / 24, accuracy: 1e-6)
+        XCTAssertEqual(ClipEditor.snapped(0.1234, fps: nil), 0.1234)
+        XCTAssertEqual(ClipEditor.snapped(0.4999, fps: 30), 0.5, accuracy: 1e-6)
+    }
+
+    func testKeyingWritesOnlyTheChannelsThatMoved() throws {
+        let rig = Fixtures.twoBones()
+        let empty = AnimationClip(name: "pose", duration: 1, loops: false, tracks: [])
+        let old = Pose(restOf: rig)
+        var new = old
+        new.local[1].rotation += 0.4
+
+        let change = ClipEditor.PoseChange(from: old, to: new)
+        let keyed = ClipEditor.keying(empty, bone: 1, change: change, rig: rig, at: 0.5)
+        XCTAssertEqual(keyed.tracks.count, 1)
+        XCTAssertEqual(keyed.tracks[0].bone, "lower")
+        XCTAssertEqual(keyed.tracks[0].rotation.map(\.time), [0.5])
+        XCTAssertTrue(keyed.tracks[0].position.isEmpty)
+
+        let same = ClipEditor.keying(empty, bone: 0, change: change, rig: rig, at: 0.5)
+        XCTAssertTrue(same.tracks.isEmpty, "the upper bone did not move")
+    }
+
+    func testKeyingABoneByHandTakesItsRotationAndPositionWhenOffRest() throws {
+        let rig = Fixtures.twoBones()
+        let empty = AnimationClip(name: "pose", duration: 1, loops: false, tracks: [])
+        var pose = Pose(restOf: rig)
+        pose.local[0].rotation = 1
+        let rotated = ClipEditor.keyingBone(empty, bone: 0, pose: pose, rig: rig, at: 0.25)
+        XCTAssertEqual(rotated.tracks[0].rotation.count, 1)
+        XCTAssertTrue(rotated.tracks[0].position.isEmpty, "at its rest position: no position key")
+
+        pose.local[0].position.x += 1
+        let moved = ClipEditor.keyingBone(empty, bone: 0, pose: pose, rig: rig, at: 0.25)
+        XCTAssertEqual(moved.tracks[0].position.count, 1)
+    }
+
+    func testDuplicatingKeysCopiesThemLater() throws {
+        let walk = try Fixtures.walk()
+        let key = KeyRef(bone: "thighNear", channel: .rotation, time: 0.5)
+        let clip = ClipEditor.duplicatingKeys(walk, [key], by: 0.25)
+        XCTAssertEqual(try XCTUnwrap(track(clip, "thighNear")).rotation.map(\.time), [0, 0.5, 0.75, 1])
+        let copy = KeyRef(bone: "thighNear", channel: .rotation, time: 0.75)
+        XCTAssertEqual(try XCTUnwrap(ClipEditor.key(in: clip, copy)).value, .rotation(-2.0943952))
+    }
+
     func testKeysAtATimeAndEasing() throws {
         let walk = try Fixtures.walk()
         let atHalf = ClipEditor.keys(in: walk, at: 0.5)

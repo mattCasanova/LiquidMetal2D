@@ -21,9 +21,12 @@ struct InspectorView: View {
             if let problem = session.problem {
                 Text(problem).foregroundStyle(.red).font(.callout)
             }
+            if session.mode == .animate {
+                animateSections
+            }
             switch session.selection {
             case .bone(let index) where document.character.rig.bones.indices.contains(index):
-                boneFields(index)
+                if session.mode == .animate { poseFields(index) } else { boneFields(index) }
             case .attachment(let index) where document.character.rig.attachments.indices.contains(index):
                 attachmentFields(index)
             default:
@@ -31,9 +34,122 @@ struct InspectorView: View {
             }
             Section("Import") {
                 TextField("Pixels per unit", value: Bindable(session).pixelsPerUnit, format: .number)
+                if session.referenceImage != nil {
+                    Slider(value: Bindable(session).referenceOpacity, in: 0...1) { Text("Reference opacity") }
+                    Button("Remove Reference") { session.referenceImage = nil }
+                }
             }
         }
         .formStyle(.grouped)
+    }
+
+    // MARK: - Animate
+
+    private var clip: AnimationClip? { session.clip(in: document.character) }
+
+    @ViewBuilder
+    private var animateSections: some View {
+        if let clip, !session.selectedKeys.isEmpty {
+            let keys = session.selectedKeys
+            Section(keys.count == 1 ? "Key" : "\(keys.count) keys") {
+                if keys.count == 1, let key = keys.first, let found = ClipEditor.key(in: clip, key) {
+                    Text("\(key.bone), \(key.channel == .rotation ? "rotation" : "position")")
+                    TextField("Time", value: Binding(get: { key.time }, set: { time in
+                        let delta = ClipEditor.snapped(time, fps: session.fps) - key.time
+                        guard abs(delta) > 1e-5 else { return }
+                        replace(ClipEditor.movingKeys(clip, [key], by: delta), named: "Move Key")
+                        session.selectedKeys = [KeyRef(bone: key.bone, channel: key.channel, time: key.time + delta)]
+                    }), format: .number.precision(.fractionLength(0...3)))
+                    keyValueFields(key, found.value, clip: clip)
+                }
+                Picker("Easing", selection: Binding(get: {
+                    keys.count == 1 ? keys.first.flatMap { ClipEditor.key(in: clip, $0)?.easing } ?? .linear : .linear
+                }, set: { easing in
+                    replace(ClipEditor.settingEasing(clip, keys, to: easing), named: "Set Easing")
+                })) {
+                    ForEach(EasingType.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                }
+                Button("Delete \(keys.count == 1 ? "Key" : "Keys")", role: .destructive) {
+                    replace(ClipEditor.removingKeys(clip, keys), named: "Delete Keys")
+                    session.selectedKeys = []
+                }
+            }
+        }
+        if let clip, let index = session.selectedEvent, clip.events.indices.contains(index) {
+            let event = clip.events[index]
+            Section("Event") {
+                TextField("Name", text: Binding(get: { event.name }, set: { name in
+                    guard !name.isEmpty, name != event.name else { return }
+                    replace(ClipEditor.renamingEvent(clip, at: index, to: name), named: "Rename Event")
+                }))
+                TextField("Time", value: Binding(get: { event.time }, set: { time in
+                    replace(ClipEditor.movingEvent(clip, at: index, to: ClipEditor.snapped(time, fps: session.fps)),
+                            named: "Move Event")
+                }), format: .number.precision(.fractionLength(0...3)))
+                Button("Delete Event", role: .destructive) {
+                    replace(ClipEditor.removingEvent(clip, at: index), named: "Delete Event")
+                    session.selectedEvent = nil
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func keyValueFields(_ key: KeyRef, _ value: ClipEditor.KeyValue, clip: AnimationClip) -> some View {
+        switch value {
+        case .rotation(let radians):
+            TextField("Angle (degrees)", value: Binding(get: { radians * 180 / .pi }, set: { degrees in
+                let value = ClipEditor.KeyValue.rotation(degrees * .pi / 180)
+                replace(ClipEditor.settingKey(clip, bone: key.bone, time: key.time, value: value), named: "Edit Key")
+            }), format: .number.precision(.fractionLength(0...1)))
+        case .position(let position):
+            TextField("X", value: Binding(get: { position.x }, set: { x in
+                let value = ClipEditor.KeyValue.position(Vec2(x, position.y))
+                replace(ClipEditor.settingKey(clip, bone: key.bone, time: key.time, value: value), named: "Edit Key")
+            }), format: .number.precision(.fractionLength(0...3)))
+            TextField("Y", value: Binding(get: { position.y }, set: { y in
+                let value = ClipEditor.KeyValue.position(Vec2(position.x, y))
+                replace(ClipEditor.settingKey(clip, bone: key.bone, time: key.time, value: value), named: "Edit Key")
+            }), format: .number.precision(.fractionLength(0...3)))
+        }
+    }
+
+    /// The bone's pose at the playhead; a change writes a key there.
+    @ViewBuilder
+    private func poseFields(_ index: Int) -> some View {
+        let rig = document.character.rig
+        let bone = rig.bones[index]
+        if let clip, let pose = try? ClipEditor.pose(of: clip, rig: rig, at: session.playhead) {
+            let local = pose.local[index]
+            Section("\(bone.name) at \(String(format: "%.3f", session.playhead)) s") {
+                TextField("Angle (degrees)", value: Binding(get: { local.rotation * 180 / .pi }, set: { degrees in
+                    let radians = degrees * .pi / 180
+                    guard abs(radians - local.rotation) > 1e-6 else { return }
+                    let value = ClipEditor.KeyValue.rotation(radians)
+                    replace(ClipEditor.settingKey(clip, bone: bone.name, time: session.playhead, value: value),
+                            named: "Key Bone")
+                }), format: .number.precision(.fractionLength(0...1)))
+                TextField("X", value: Binding(get: { local.position.x }, set: { x in
+                    replace(ClipEditor.settingKey(clip, bone: bone.name, time: session.playhead,
+                                                  value: .position(Vec2(x, local.position.y))), named: "Key Bone")
+                }), format: .number.precision(.fractionLength(0...3)))
+                TextField("Y", value: Binding(get: { local.position.y }, set: { y in
+                    replace(ClipEditor.settingKey(clip, bone: bone.name, time: session.playhead,
+                                                  value: .position(Vec2(local.position.x, y))), named: "Key Bone")
+                }), format: .number.precision(.fractionLength(0...3)))
+                Text("Edits here key the bone at the playhead.").font(.caption).foregroundStyle(.secondary)
+            }
+        } else {
+            Text("No clip selected").foregroundStyle(.secondary)
+        }
+    }
+
+    private func replace(_ edited: AnimationClip, named name: String) {
+        edit(name) { character in
+            if let index = character.clips.firstIndex(where: { $0.name == edited.name }) {
+                character.clips[index] = edited
+            }
+        }
     }
 
     // MARK: - Bone

@@ -37,15 +37,29 @@ engine repo and builds against the engine in this checkout: no tags, no version 
     toolbar. Every edit goes through one `edit(name) { character in … }` helper that calls `RigEditor` and
     shows a refused edit's reason in the inspector
   - `InspectorView` — the selected bone's name, parent, length and rest pose (degrees shown, radians stored)
-    or the selected part's name, bone, image, tint, size, offset and angle; number fields commit on Return or
-    focus loss, one undo step each
-  - `EditorViewController` / `EditorServices` / `EditorScene` — the engine for one window, as the demo wires it.
-    The scene draws the rig from a `SkeletonComponent` it rebuilds whenever the rig it shows changes, a unit
-    grid, and an overlay of bone lines and joint dots (the selection in orange). Pan by dragging empty space,
-    zoom by scroll. In Setup mode a click on a bone selects it and a drag edits its rest pose: plain drag
-    rotates it to point at the pointer, Command-drag moves it, Option-drag sets its length; the drag shows a
-    draft rig and commits one undo step when the button goes up. The scene owns the figure's root `GameObj`
-    (components hold it unowned)
+    or the selected part's name, bone, image, tint, size, offset and angle; in Animate mode the selected keys
+    (time, value, easing, delete), the selected event, and the selected bone's pose at the playhead (editing
+    it keys the bone there); number fields commit on Return or focus loss, one undo step each
+  - `EditorViewController` / `EditorServices` / `EditorScene` (+`Pointer`, +`Overlay`) — the engine for one
+    window, as the demo wires it. The scene draws the rig from a `SkeletonComponent` it rebuilds whenever the
+    rig it shows changes, placing the parts with `place(pose:)` (its animator is never used), a unit grid, and
+    an overlay of bone lines and joint dots (the selection in orange, bones pending a key in deeper orange).
+    Pan by dragging empty space, zoom by scroll. **Setup mode:** a click on a bone selects it and a drag edits
+    its rest pose: plain drag rotates it to point at the pointer, Command-drag moves it, Option-drag sets its
+    length. **Animate mode:** the clip's pose at the playhead; a drag rotates the bone, Command-drag moves it,
+    a drag on the ring at a hand, foot or head reaches with two-bone IK (Option flips the bend); with auto-key
+    on the changed channels are keyed at the playhead when the button goes up, with it off the edit is kept as
+    scratch and the bones go orange until Key (K) writes them or the playhead moves. Onion skins are two more
+    skeletons at the previous and next key times, red and green. The reference image is a quad behind
+    everything. A drag shows a draft and commits one undo step on release. The scene owns the figures' roots
+    (components hold them unowned)
+  - `TransportBar` — clip picker (new, delete), start, step, play (Space), end, time, length, loop, snap
+    (free, 24, 30, 60 fps), auto-key, Key, onion skins
+  - `TimelineView` (+`Drawing`, +`Gestures`; `TimelineLayout` is the pure geometry, tested) — a row per bone,
+    a diamond per key time, an events row, the ruler with the playhead and the clip's end. Click the ruler to
+    scrub, drag diamonds to move keys (Shift adds to the selection, Option copies), drag empty space to
+    box-select, double-click a row to key that bone at that time, double-click the events row to add an event,
+    drag the clip's end for its length, right-click for easing and delete
   - `MotionatorTests` — XCTest with the app as host; `SWIFT_DEFAULT_ACTOR_ISOLATION` is off for the test target
     (it makes XCTest's inherited initialisers main-actor bound and the target fails to compile)
 - `Examples/StickFigure.character` — the demo's stick figure packed by `motionator pack`; open it in the app

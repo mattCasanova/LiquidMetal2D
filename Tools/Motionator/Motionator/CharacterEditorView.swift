@@ -16,6 +16,7 @@ struct CharacterEditorView: View {
     @ObservedObject var document: CharacterDocument
     @State private var session = EditorSession()
     @State private var isImportingParts = false
+    @State private var isImportingReference = false
     @Environment(\.undoManager) private var undoManager
 
     var body: some View {
@@ -23,12 +24,22 @@ struct CharacterEditorView: View {
             sidebar
                 .navigationSplitViewColumnWidth(min: 180, ideal: 220)
         } detail: {
-            ViewportView(document: document, session: session)
-                .ignoresSafeArea()
-                .dropDestination(for: URL.self) { urls, _ in
-                    importParts(from: urls)
-                    return true
+            VSplitView {
+                ViewportView(document: document, session: session)
+                    .ignoresSafeArea()
+                    .dropDestination(for: URL.self) { urls, _ in
+                        importParts(from: urls)
+                        return true
+                    }
+                    .frame(minHeight: 240)
+                if session.mode == .animate {
+                    VStack(spacing: 0) {
+                        TransportBar(document: document, session: session)
+                        TimelineView(document: document, session: session)
+                    }
+                    .frame(minHeight: 160, idealHeight: 260)
                 }
+            }
         }
         .inspector(isPresented: $session.isInspectorShown) {
             InspectorView(document: document, session: session)
@@ -37,6 +48,17 @@ struct CharacterEditorView: View {
         .toolbar { toolbar }
         .fileImporter(isPresented: $isImportingParts, allowedContentTypes: [.png], allowsMultipleSelection: true) {
             if case .success(let urls) = $0 { importParts(from: urls) }
+        }
+        .fileImporter(isPresented: $isImportingReference, allowedContentTypes: [.image]) {
+            if case .success(let url) = $0 {
+                let granted = url.startAccessingSecurityScopedResource()
+                defer { if granted { url.stopAccessingSecurityScopedResource() } }
+                session.referenceImage = try? Data(contentsOf: url)
+            }
+        }
+        .onChange(of: session.mode) { _, mode in
+            if mode == .animate, session.clipName == nil { session.clipName = document.character.clips.first?.name }
+            session.selectedKeys = []
         }
         .onAppear { session.undoManager = undoManager }
         .frame(minWidth: 900, minHeight: 540)
@@ -61,6 +83,8 @@ struct CharacterEditorView: View {
                 .disabled(session.selection == nil)
         }
         ToolbarItemGroup {
+            Button("Reference…", systemImage: "photo.on.rectangle") { isImportingReference = true }
+                .help("A picture behind the viewport to pose against")
             Toggle("Grid", systemImage: "grid", isOn: $session.showGrid)
             Button("Fit", systemImage: "arrow.up.left.and.arrow.down.right") { fitCamera() }
                 .help("Centre the character and zoom to fit")
@@ -98,10 +122,21 @@ struct CharacterEditorView: View {
             Section("Clips") {
                 ForEach(document.character.clips, id: \.name) { clip in
                     Label(clip.name, systemImage: "film")
+                        .foregroundStyle(isCurrent(clip) ? Color.accentColor : Color.primary)
+                        .onTapGesture {
+                            session.mode = .animate
+                            session.clipName = clip.name
+                            session.playhead = 0
+                            session.selectedKeys = []
+                        }
                 }
             }
         }
         .onDeleteCommand { deleteSelection() }
+    }
+
+    private func isCurrent(_ clip: AnimationClip) -> Bool {
+        session.mode == .animate && session.clip(in: document.character)?.name == clip.name
     }
 
     private func depth(of bone: Int) -> Int {

@@ -5,44 +5,68 @@
 //  Created by Matt Casanova on 10/7/26.
 //
 
+import Foundation
 import LiquidMetal2D
 import MotionatorKit
 
-/// The viewport: the character, a grid, and the bones drawn over it. Pan
-/// by dragging empty space, zoom by scroll. In Setup mode a click selects
-/// the nearest bone and a drag edits its rest pose: plain drag rotates it
-/// to point at the pointer, Command-drag moves it, Option-drag sets its
-/// length. Each drag is one undo step, committed when the button goes up.
-/// Reads the document and the session every frame.
+/// The viewport. Setup mode shows the rig at rest; a drag edits a bone's
+/// rest pose (rotate, Command moves, Option sets the length). Animate mode
+/// shows the clip's pose at the playhead; a drag edits the pose (rotate,
+/// Command moves, a drag on a hand or foot ring bends the chain with IK)
+/// and, with auto-key on, writes keys when the button goes up. Onion skins
+/// show the poses at the previous and next key times. Each drag is one undo
+/// step. Pan by dragging empty space, zoom by scroll. Reads the document and
+/// the session every frame. The pointer handling is in `EditorScene+Pointer`,
+/// the drawing in `EditorScene+Overlay`.
 final class EditorScene: DefaultScene {
     override static var sceneType: any SceneType { EditorSceneType.editor }
 
-    private enum Drag {
+    enum Drag {
         case pan
-        case rotate(Int)
-        case translate(Int, startRest: RigidTransform2D, from: Vec2)
-        case length(Int)
+        case restRotate(Int)
+        case restTranslate(Int, startRest: RigidTransform2D, from: Vec2)
+        case restLength(Int)
+        case poseRotate(Int)
+        case poseTranslate(Int, from: Vec2)
+        case poseReach(IKChain, bendPositive: Bool)
     }
 
-    private var editor: EditorServices!
-    private var figureRoot: GameObj?
-    private var figure: SkeletonComponent?
-    private var builtRig: SkeletonDefinition?
-    private var textureIDs: [String: Int] = [:]
-    private var gridLines: [GameObj] = []
-    private var boneLines: [GameObj] = []
-    private var jointDots: [GameObj] = []
-    private var drag: Drag?
-    /// The rig as the current drag has it, shown but not yet in the document.
-    private var draftRig: SkeletonDefinition?
-    private var lastPointer: Vec2?
-    /// The bones under the last mouse-down and the one it chose, so a click
-    /// with no movement can move the selection to the next one down.
-    private var clickStack: (bones: [Int], chosen: Int)?
+    /// A skeleton and the root that owns it (components hold the root unowned).
+    struct Figure {
+        let root: GameObj
+        let skeleton: SkeletonComponent
+    }
 
-    private static let boneColour = Vec4(1, 1, 1, 0.55)
-    private static let selectedColour = Vec4(1, 0.62, 0.2, 1)
-    private static let jointColour = Vec4(0.6, 0.85, 1, 0.9)
+    struct CachedClip {
+        let version: Int
+        let name: String
+        let clip: ResolvedClip
+    }
+
+    var editor: EditorServices!
+    var figure: Figure?
+    var ghosts: [Figure] = []
+    var builtRig: SkeletonDefinition?
+    var textureIDs: [String: Int] = [:]
+    var gridLines: [GameObj] = []
+    var boneLines: [GameObj] = []
+    var jointDots: [GameObj] = []
+    var reachRings: [GameObj] = []
+    var reference: GameObj?
+    var referenceData: Data?
+    var drag: Drag?
+    /// The rig as the current Setup drag has it, shown but not yet in the document.
+    var draftRig: SkeletonDefinition?
+    /// The pose as the current Animate drag has it, and the pose it started from.
+    var draftPose: Pose?
+    var dragStartPose: Pose?
+    /// Edits made with auto-key off, kept until Key writes them or the playhead moves.
+    var scratchPose: Pose?
+    var scratchBones: Set<Int> = []
+    var lastPlayhead: Float = 0
+    var lastPointer: Vec2?
+    var clickStack: (bones: [Int], chosen: Int)?
+    var resolvedClip: CachedClip?
 
     override func initialize(services: SceneServices) {
         super.initialize(services: services)
@@ -55,22 +79,106 @@ final class EditorScene: DefaultScene {
     }
 
     override func update(dt: Float) {
+        let session = editor.session
         let rig = draftRig ?? editor.document.character.rig
         rebuildIfNeeded(rig)
-        handlePointer(rig)
-        let shown = draftRig ?? editor.document.character.rig
-        layOutOverlay(shown)
-        figure?.update(dt: 0)
+        advancePlayhead(dt)
+        if session.wantsKey { writePendingKeys() }
+        let pose = currentPose(rig)
+        handlePointer(rig, pose: pose)
+        let shownRig = draftRig ?? editor.document.character.rig
+        let shownPose = draftPose ?? currentPose(shownRig)
+        figure?.skeleton.place(pose: shownPose)
+        layOutGhosts(shownRig)
+        layOutOverlay(shownRig, pose: shownPose)
+        layOutReference()
     }
 
     override func draw() {
         guard renderer.beginPass() else { return }
         renderer.usePerspective()
+        if let reference { renderer.submit(objects: [reference]) }
         if editor.session.showGrid { renderer.submit(objects: gridLines) }
-        if let figure { renderer.submit(objects: figure.parts) }
+        for ghost in ghosts { renderer.submit(objects: ghost.skeleton.parts) }
+        if let figure { renderer.submit(objects: figure.skeleton.parts) }
         renderer.submit(objects: boneLines)
         renderer.submit(objects: jointDots)
+        renderer.submit(objects: reachRings)
         renderer.endPass()
+    }
+
+    // MARK: - Poses
+
+    /// Rest in Setup mode; in Animate mode the clip at the playhead with the
+    /// scratch edits (auto-key off) on top.
+    func currentPose(_ rig: SkeletonDefinition) -> Pose {
+        let session = editor.session
+        var pose = Pose(restOf: rig)
+        guard session.mode == .animate, let clip = session.clip(in: editor.document.character) else { return pose }
+        if let resolved = resolved(clip, for: rig) {
+            resolved.sample(at: session.playhead, definition: rig, into: &pose)
+        }
+        if let scratch = scratchPose, scratch.local.count == pose.local.count {
+            for bone in scratchBones where bone < pose.local.count { pose.local[bone] = scratch.local[bone] }
+        }
+        return pose
+    }
+
+    func resolved(_ clip: AnimationClip, for rig: SkeletonDefinition) -> ResolvedClip? {
+        let version = editor.document.version
+        if let cached = resolvedClip, cached.version == version, cached.name == clip.name { return cached.clip }
+        guard let resolved = try? clip.resolved(for: rig) else { return nil }
+        resolvedClip = CachedClip(version: version, name: clip.name, clip: resolved)
+        return resolved
+    }
+
+    private func advancePlayhead(_ dt: Float) {
+        let session = editor.session
+        guard session.mode == .animate, let clip = session.clip(in: editor.document.character) else { return }
+        if session.isPlaying {
+            var time = session.playhead + dt
+            if clip.loops {
+                time = GameMath.wrap(value: time, low: 0, high: clip.duration)
+            } else if time >= clip.duration {
+                time = clip.duration
+                session.isPlaying = false
+            }
+            session.playhead = time
+        }
+        if session.playhead != lastPlayhead {
+            lastPlayhead = session.playhead
+            clearScratch()
+        }
+    }
+
+    func clearScratch() {
+        scratchPose = nil
+        scratchBones = []
+        if !editor.session.pendingBones.isEmpty { editor.session.pendingBones = [] }
+    }
+
+    /// The Key button: writes the scratch bones' channels at the playhead.
+    private func writePendingKeys() {
+        let session = editor.session
+        session.wantsKey = false
+        guard let scratch = scratchPose, let clip = session.clip(in: editor.document.character) else { return }
+        let rig = editor.document.character.rig
+        var keyed = clip
+        for bone in scratchBones.sorted() {
+            keyed = ClipEditor.keyingBone(keyed, bone: bone, pose: scratch, rig: rig, at: session.playhead)
+        }
+        replaceClip(keyed, named: "Key Pose")
+        clearScratch()
+    }
+
+    func replaceClip(_ clip: AnimationClip, named name: String) {
+        editor.document.apply({ character in
+            var character = character
+            if let index = character.clips.firstIndex(where: { $0.name == clip.name }) {
+                character.clips[index] = clip
+            }
+            return character
+        }, named: name, undoManager: editor.session.undoManager)
     }
 
     // MARK: - The figure
@@ -79,20 +187,25 @@ final class EditorScene: DefaultScene {
         guard rig != builtRig else { return }
         let character = editor.document.character
         loadTextures(of: character)
-        let root = GameObj()
         do {
-            let skeleton = try SkeletonComponent(
-                parent: root, definition: rig, defaultTextureID: renderer.defaultTextureId, textureIDs: textureIDs)
-            root.add(skeleton)
-            figureRoot = root
-            figure = skeleton
+            figure = try makeFigure(rig)
+            ghosts = [try makeFigure(rig), try makeFigure(rig)]
             builtRig = rig
+            resolvedClip = nil
         } catch {
             // A rig mid-edit may not validate; keep showing the last good one.
             #if DEBUG
             print("EditorScene: the rig does not draw yet: \(error)")
             #endif
         }
+    }
+
+    private func makeFigure(_ rig: SkeletonDefinition) throws -> Figure {
+        let root = GameObj()
+        let skeleton = try SkeletonComponent(
+            parent: root, definition: rig, defaultTextureID: renderer.defaultTextureId, textureIDs: textureIDs)
+        root.add(skeleton)
+        return Figure(root: root, skeleton: skeleton)
     }
 
     /// Every texture the rig names, loaded once per image; missing images draw white.
@@ -105,183 +218,6 @@ final class EditorScene: DefaultScene {
             } else {
                 textureIDs[name] = renderer.defaultTextureId
             }
-        }
-    }
-
-    // MARK: - Pointer
-
-    private func handlePointer(_ rig: SkeletonDefinition) {
-        let session = editor.session
-        let scroll = input.pointer.scrollDelta.y
-        if scroll != 0 {
-            session.cameraDistance = GameMath.clamp(
-                value: session.cameraDistance * pow(1.05, -scroll), low: 2, high: 400)
-        }
-        let world = input.pointerWorld(forZ: 0).map { Vec2($0.x, $0.y) }
-
-        if input.isTriggered(.pointerPrimary), let point = world {
-            drag = beginDrag(at: point, rig: rig)
-            lastPointer = point
-        } else if input.isPressed(.pointerPrimary), let point = world, let drag {
-            continueDrag(drag, to: point, rig: rig)
-        } else if input.isReleased(.pointerPrimary) {
-            endDrag()
-        }
-        renderer.setCamera(point: Vec3(session.cameraCentre.x, session.cameraCentre.y, session.cameraDistance))
-    }
-
-    /// A bone under the pointer starts an edit in Setup mode; empty space
-    /// pans. The selected bone keeps the drag when it is under the pointer,
-    /// even beneath others, so a bone chosen in the sidebar can be moved.
-    private func beginDrag(at point: Vec2, rig: SkeletonDefinition) -> Drag {
-        let session = editor.session
-        clickStack = nil
-        guard session.mode == .setup else { return .pan }
-        let world = RigEditor.restWorld(of: rig)
-        let stack = PoseSampler.bones(near: point, rig: rig, world: world, tolerance: hitTolerance)
-        guard let top = stack.first else { return .pan }
-        let bone = session.selectedBone.flatMap { stack.contains($0) ? $0 : nil } ?? top
-        clickStack = (stack, bone)
-        session.selection = .bone(bone)
-        if input.isPressed(.command) {
-            return .translate(bone, startRest: rig.bones[bone].rest, from: point)
-        }
-        if input.isPressed(.option) { return .length(bone) }
-        return .rotate(bone)
-    }
-
-    private func continueDrag(_ drag: Drag, to point: Vec2, rig: SkeletonDefinition) {
-        let session = editor.session
-        switch drag {
-        case .pan:
-            if let last = lastPointer {
-                session.cameraCentre -= point - last
-                renderer.setCamera(point: Vec3(session.cameraCentre.x, session.cameraCentre.y, session.cameraDistance))
-                // After the camera moved the pointer sits on a new world point: remember that one.
-                lastPointer = input.pointerWorld(forZ: 0).map { Vec2($0.x, $0.y) }
-            }
-        case .rotate(let bone):
-            let world = RigEditor.restWorld(of: rig)
-            var rest = rig.bones[bone].rest
-            rest.rotation = PoseSampler.rotationPointing(bone: bone, at: point, rig: rig, world: world)
-            draftRig = try? RigEditor.settingRest(rig, bone, rest)
-        case .translate(let bone, let startRest, let from):
-            let world = RigEditor.restWorld(of: rig)
-            let parentRotation = rig.bones[bone].parent.map { world[$0].rotation } ?? 0
-            let delta = point - from
-            let local = Vec2(delta.x * cos(-parentRotation) - delta.y * sin(-parentRotation),
-                             delta.x * sin(-parentRotation) + delta.y * cos(-parentRotation))
-            var rest = startRest
-            rest.position = startRest.position + local
-            draftRig = try? RigEditor.settingRest(rig, bone, rest)
-        case .length(let bone):
-            let world = RigEditor.restWorld(of: rig)
-            let length = max(0.05, simd_length(point - PoseSampler.joint(of: bone, world: world)))
-            draftRig = try? RigEditor.settingLength(rig, bone, length)
-        }
-    }
-
-    /// Commits the drag's rig as one undo step.
-    private func endDrag() {
-        defer {
-            drag = nil
-            draftRig = nil
-            lastPointer = nil
-        }
-        guard let drag, let draft = draftRig, draft != editor.document.character.rig else {
-            cycleSelection()
-            return
-        }
-        let name: String
-        switch drag {
-        case .pan: return
-        case .rotate: name = "Rotate Bone"
-        case .translate: name = "Move Bone"
-        case .length: name = "Resize Bone"
-        }
-        editor.document.apply({ character in
-            var character = character
-            character.rig = draft
-            return character
-        }, named: name, undoManager: editor.session.undoManager)
-    }
-
-    /// A click that moved nothing on a stack of bones selects the next one down.
-    private func cycleSelection() {
-        guard let (stack, chosen) = clickStack, stack.count > 1,
-              let position = stack.firstIndex(of: chosen) else { return }
-        editor.session.selection = .bone(stack[(position + 1) % stack.count])
-    }
-
-    /// A few pixels, in world units at the current zoom.
-    private var hitTolerance: Float { editor.session.cameraDistance * 0.02 }
-
-    // MARK: - Overlay
-
-    /// One thin quad per bone from joint to tip and a dot at each joint,
-    /// the selected bone in the accent colour. Objects are reused.
-    private func layOutOverlay(_ rig: SkeletonDefinition) {
-        guard let renderer = renderer as? DefaultRenderer else { return }
-        let session = editor.session
-        let world = RigEditor.restWorld(of: rig)
-        let thickness = session.cameraDistance * 0.004
-        while boneLines.count < rig.bones.count {
-            let line = GameObj()
-            line.add(AlphaBlendComponent(parent: line, textureID: renderer.defaultTextureId))
-            boneLines.append(line)
-            let dot = GameObj()
-            dot.add(AlphaBlendComponent(parent: dot, textureID: renderer.defaultParticleTextureId))
-            jointDots.append(dot)
-        }
-        for (index, line) in boneLines.enumerated() {
-            let dot = jointDots[index]
-            guard index < rig.bones.count else {
-                line.isActive = false
-                dot.isActive = false
-                continue
-            }
-            let bone = rig.bones[index]
-            let joint = world[index].position
-            let tip = world[index].apply(to: Vec2(bone.length, 0))
-            let selected = session.selectedBone == index
-            line.isActive = true
-            line.position = (joint + tip) / 2
-            line.scale = Vec2(bone.length, thickness)
-            line.rotation = world[index].rotation
-            line.zOrder = selected ? 0.52 : 0.5
-            line.get(AlphaBlendComponent.self)?.tintColor = selected ? Self.selectedColour : Self.boneColour
-            dot.isActive = true
-            dot.position = joint
-            dot.scale = Vec2(repeating: thickness * 3.5)
-            dot.zOrder = 0.55
-            dot.get(AlphaBlendComponent.self)?.tintColor = selected ? Self.selectedColour : Self.jointColour
-        }
-    }
-
-    // MARK: - Grid
-
-    /// Thin quads every unit, a brighter pair through the origin.
-    private func buildGrid() {
-        guard let renderer = renderer as? DefaultRenderer else { return }
-        let extent: Float = 40
-        let faint = Vec4(1, 1, 1, 0.06)
-        let axis = Vec4(1, 1, 1, 0.2)
-        for step in -Int(extent)...Int(extent) {
-            let along = Float(step)
-            let vertical = GameObj()
-            vertical.position = Vec2(along, 0)
-            vertical.scale = Vec2(0.02, extent * 2)
-            vertical.zOrder = -0.01
-            vertical.add(AlphaBlendComponent(
-                parent: vertical, textureID: renderer.defaultTextureId, tintColor: step == 0 ? axis : faint))
-            let horizontal = GameObj()
-            horizontal.position = Vec2(0, along)
-            horizontal.scale = Vec2(extent * 2, 0.02)
-            horizontal.zOrder = -0.01
-            horizontal.add(AlphaBlendComponent(
-                parent: horizontal, textureID: renderer.defaultTextureId, tintColor: step == 0 ? axis : faint))
-            gridLines.append(vertical)
-            gridLines.append(horizontal)
         }
     }
 }
