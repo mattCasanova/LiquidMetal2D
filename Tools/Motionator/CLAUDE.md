@@ -22,8 +22,23 @@ engine repo and builds against the engine in this checkout: no tags, no version 
     or one folder up, so the demo's `Animations/` works as is
   - `Tests/MotionatorKitTests` — `swift test` on the host; the GPU tests skip without a Metal device and
     use the demo's stick figure as the fixture
-- The app (`Motionator.xcodeproj`, SwiftUI, `DocumentGroup` over a `.character` package) is Phase B of the
-  design plan and does not exist yet
+- `Motionator.xcodeproj` — the Mac app (SwiftUI, macOS 26, synchronized folders, ad-hoc signed like the demo's
+  Mac build, App Sandbox with user-selected files). Depends on the engine at `../..` and on `MotionatorKit`:
+  - `Motionator/MotionatorApp.swift` — `DocumentGroup` over `CharacterDocument`
+  - `CharacterDocument` — `ReferenceFileDocument` (the old `ObservableObject`, which the protocol requires; not
+    the `@Observable` macro) over a `Character`; reads and writes through `CharacterFiles`; `apply(_:named:undoManager:)`
+    is the one way to edit: it keeps the old value for undo and ticks `version` so the viewport rebuilds. The
+    `.character` type is declared in `Info.plist` (a package UTType) and excluded from the resources phase
+  - `EditorSession` — what isn't saved: mode, selection, camera, grid
+  - `CharacterEditorView` — the window: bones (indented by depth), parts and clips in the sidebar, the
+    viewport in the detail, the mode picker, grid toggle and Fit in the toolbar
+  - `EditorViewController` / `EditorServices` / `EditorScene` — the engine for one window, as the demo wires it;
+    the scene draws the rig at rest from a `SkeletonComponent` it rebuilds whenever `document.version` changes,
+    a unit grid, pan by drag and zoom by scroll into the session's camera. The scene owns the figure's root
+    `GameObj` (components hold it unowned)
+  - `MotionatorTests` — XCTest with the app as host; `SWIFT_DEFAULT_ACTOR_ISOLATION` is off for the test target
+    (it makes XCTest's inherited initialisers main-actor bound and the target fails to compile)
+- `Examples/StickFigure.character` — the demo's stick figure packed by `motionator pack`; open it in the app
 
 ## Build and test
 
@@ -32,6 +47,9 @@ cd Tools/Motionator/MotionatorKit
 swift build
 swift test
 swift run motionator sheet ../../../Demo/LiquidMetal2D-Demo/Animations/stickfigure.rig.json walk --out /tmp/walk.png
+# the app, from the engine root
+xcodebuild -project Tools/Motionator/Motionator.xcodeproj -scheme Motionator -destination 'platform=macOS' \
+  -skipPackagePluginValidation build      # or test
 ```
 
 ## Notes
@@ -45,3 +63,7 @@ swift run motionator sheet ../../../Demo/LiquidMetal2D-Demo/Animations/stickfigu
   for as long as the parts are drawn (`withExtendedLifetime`)
 - Hit tests prefer the bone drawn on top when two coincide (the near and far legs at rest)
 - No third-party dependencies; the command line parses its own arguments
+- Running the built app from a shell: start it as a job (`Motionator.app/Contents/MacOS/Motionator Some.character &`
+  then `wait`), not in a subshell that exits, or it dies with the shell. A document opened by path that way shows
+  as Locked: the sandbox only writes files the user picked in a panel. Launch Services (`open`) is the normal way
+- `Info.plist` is hand-written for the document type; `GENERATE_INFOPLIST_FILE` still adds the usual keys

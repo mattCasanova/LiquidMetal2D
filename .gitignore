@@ -24,3 +24,6 @@ Carthage/Build/
 
 # SwiftPM-generated workspace for opening Package.swift in Xcode
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
+
+# SwiftPM-generated Xcode schemes
+.swiftpm/xcode/xcshareddata/xcschemes/

@@ -187,7 +187,8 @@ public struct ContactSheet: Sendable {
         }
     }
 
-    static func decode(_ data: Data) -> CGImage? {
+    /// The first image in PNG (or any ImageIO) bytes.
+    public static func decode(_ data: Data) -> CGImage? {
         guard let source = CGImageSourceCreateWithData(data as CFData, nil) else { return nil }
         return CGImageSourceCreateImageAtIndex(source, 0, nil)
     }

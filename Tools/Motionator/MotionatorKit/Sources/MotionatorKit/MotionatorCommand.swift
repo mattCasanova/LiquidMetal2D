@@ -17,7 +17,9 @@ public enum MotionatorCommand {
                        [--out file.png]
       motionator info <Hero.character | rig.json>
       motionator validate <Hero.character | rig.json>
+      motionator pack <rig.json> <Hero.character>
     A rig path takes the clips beside it (or in clips/); a clip may be a name or a .clip.json path.
+    pack writes a rig and the clips and images beside it as one .character folder.
     """
 
     public enum ExitCode {
@@ -38,6 +40,7 @@ public enum MotionatorCommand {
             case "sheet": return try sheet(Array(arguments.dropFirst()), out: out, err: err)
             case "info": return try info(Array(arguments.dropFirst()), out: out, err: err)
             case "validate": return try validate(Array(arguments.dropFirst()), out: out, err: err)
+            case "pack": return try pack(Array(arguments.dropFirst()), out: out, err: err)
             default:
                 err("unknown command \(command)\n" + usage)
                 return ExitCode.badArguments
@@ -159,6 +162,16 @@ public enum MotionatorCommand {
         }
         out("ok: \(character.rig.bones.count) bones, \(character.rig.attachments.count) parts, "
             + "\(character.clips.count) clips, \(character.images.count) images")
+        return ExitCode.ok
+    }
+
+    private static func pack(_ arguments: [String], out: (String) -> Void, err: (String) -> Void) throws -> Int32 {
+        guard arguments.count == 2, arguments[0].hasSuffix(CharacterFiles.rigSuffix),
+              arguments[1].hasSuffix("." + CharacterFiles.packageExtension) else { return bad(usage, err) }
+        let character = try load(arguments[0])
+        let url = URL(fileURLWithPath: arguments[1])
+        try CharacterFiles.save(character, to: url)
+        out("wrote \(url.path): \(character.clips.count) clips, \(character.images.count) images")
         return ExitCode.ok
     }
 

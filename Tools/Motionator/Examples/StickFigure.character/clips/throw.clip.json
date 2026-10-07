@@ -1,0 +1,79 @@
+{
+  "duration" : 0.45,
+  "events" : [
+    {
+      "name" : "throw",
+      "time" : 0.18
+    }
+  ],
+  "loops" : false,
+  "name" : "throw",
+  "tracks" : [
+    {
+      "bone" : "upperArmNear",
+      "position" : [
+
+      ],
+      "rotation" : [
+        {
+          "easing" : "easeOutCubic",
+          "time" : 0,
+          "value" : 3.1415927
+        },
+        {
+          "easing" : "easeOutCubic",
+          "time" : 0.12,
+          "value" : 1.9198622
+        },
+        {
+          "easing" : "easeOutCubic",
+          "time" : 0.2,
+          "value" : 4.363323
+        },
+        {
+          "easing" : "easeOutCubic",
+          "time" : 0.32,
+          "value" : 3.6651914
+        },
+        {
+          "easing" : "easeOutCubic",
+          "time" : 0.45,
+          "value" : 3.1415927
+        }
+      ]
+    },
+    {
+      "bone" : "lowerArmNear",
+      "position" : [
+
+      ],
+      "rotation" : [
+        {
+          "easing" : "easeOutCubic",
+          "time" : 0,
+          "value" : 0.34906584
+        },
+        {
+          "easing" : "easeOutCubic",
+          "time" : 0.12,
+          "value" : 0.6981317
+        },
+        {
+          "easing" : "easeOutCubic",
+          "time" : 0.2,
+          "value" : 0.08726646
+        },
+        {
+          "easing" : "easeOutCubic",
+          "time" : 0.32,
+          "value" : 0.34906584
+        },
+        {
+          "easing" : "easeOutCubic",
+          "time" : 0.45,
+          "value" : 0.34906584
+        }
+      ]
+    }
+  ]
+}
