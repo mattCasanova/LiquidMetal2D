@@ -26,4 +26,4 @@ Carthage/Build/
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 
 # SwiftPM-generated Xcode schemes
-.swiftpm/xcode/xcshareddata/xcschemes/
+**/.swiftpm/xcode/xcshareddata/xcschemes/
