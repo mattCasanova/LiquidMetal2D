@@ -168,6 +168,26 @@ public enum RigEditor {
         return rig
     }
 
+    /// Moves attachments within the draw order (a list's move) and renumbers
+    /// every `drawOrder` 0… in the new order. Indices are into
+    /// ``attachmentsByDrawOrder(_:)``.
+    public static func movingAttachments(
+        _ rig: SkeletonDefinition, from source: IndexSet, to destination: Int
+    ) -> SkeletonDefinition {
+        var ordered = attachmentsByDrawOrder(rig)
+        ordered.move(fromOffsets: source, toOffset: destination)
+        var rig = rig
+        for (order, index) in ordered.enumerated() {
+            rig.attachments[index].drawOrder = order
+        }
+        return rig
+    }
+
+    /// Attachment indices sorted by draw order, back to front.
+    public static func attachmentsByDrawOrder(_ rig: SkeletonDefinition) -> [Int] {
+        rig.attachments.indices.sorted { rig.attachments[$0].drawOrder < rig.attachments[$1].drawOrder }
+    }
+
     // MARK: - Helpers
 
     /// Every bone's rest transform in the rig's space.

@@ -8,12 +8,14 @@
 import LiquidMetal2D
 import MotionatorKit
 import SwiftUI
+import UniformTypeIdentifiers
 
-/// The window: bones and clips on the left, the viewport in the middle,
-/// the mode and camera controls in the toolbar.
+/// The window: bones, parts and clips on the left, the viewport in the
+/// middle, the inspector on the right, the mode and camera in the toolbar.
 struct CharacterEditorView: View {
     @ObservedObject var document: CharacterDocument
     @State private var session = EditorSession()
+    @State private var isImportingParts = false
     @Environment(\.undoManager) private var undoManager
 
     var body: some View {
@@ -23,37 +25,74 @@ struct CharacterEditorView: View {
         } detail: {
             ViewportView(document: document, session: session)
                 .ignoresSafeArea()
-        }
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                Picker("Mode", selection: $session.mode) {
-                    ForEach(EditorSession.Mode.allCases) { Text($0.rawValue).tag($0) }
+                .dropDestination(for: URL.self) { urls, _ in
+                    importParts(from: urls)
+                    return true
                 }
-                .pickerStyle(.segmented)
-            }
-            ToolbarItem {
-                Toggle("Grid", systemImage: "grid", isOn: $session.showGrid)
-            }
-            ToolbarItem {
-                Button("Fit", systemImage: "arrow.up.left.and.arrow.down.right") { fitCamera() }
-                    .help("Centre the character and zoom to fit")
-            }
         }
-        .frame(minWidth: 800, minHeight: 500)
+        .inspector(isPresented: $session.isInspectorShown) {
+            InspectorView(document: document, session: session)
+                .inspectorColumnWidth(min: 220, ideal: 260)
+        }
+        .toolbar { toolbar }
+        .fileImporter(isPresented: $isImportingParts, allowedContentTypes: [.png], allowsMultipleSelection: true) {
+            if case .success(let urls) = $0 { importParts(from: urls) }
+        }
+        .onAppear { session.undoManager = undoManager }
+        .frame(minWidth: 900, minHeight: 540)
     }
 
+    // MARK: - Toolbar
+
+    @ToolbarContentBuilder
+    private var toolbar: some ToolbarContent {
+        ToolbarItem(placement: .principal) {
+            Picker("Mode", selection: $session.mode) {
+                ForEach(EditorSession.Mode.allCases) { Text($0.rawValue).tag($0) }
+            }
+            .pickerStyle(.segmented)
+        }
+        ToolbarItemGroup {
+            Button("Add Bone", systemImage: "plus") { addBone() }
+                .help("Add a child of the selected bone (or a root)")
+            Button("Add Part…", systemImage: "photo.badge.plus") { isImportingParts = true }
+                .help("Import PNGs as parts on the selected bone")
+            Button("Delete", systemImage: "trash") { deleteSelection() }
+                .disabled(session.selection == nil)
+        }
+        ToolbarItemGroup {
+            Toggle("Grid", systemImage: "grid", isOn: $session.showGrid)
+            Button("Fit", systemImage: "arrow.up.left.and.arrow.down.right") { fitCamera() }
+                .help("Centre the character and zoom to fit")
+            Toggle("Inspector", systemImage: "sidebar.trailing", isOn: $session.isInspectorShown)
+        }
+    }
+
+    // MARK: - Sidebar
+
     private var sidebar: some View {
-        List(selection: $session.selectedBone) {
+        List(selection: $session.selection) {
             Section("Bones") {
                 ForEach(Array(document.character.rig.bones.enumerated()), id: \.offset) { index, bone in
                     Label(bone.name, systemImage: "line.diagonal")
                         .padding(.leading, CGFloat(depth(of: index)) * 12)
-                        .tag(index)
+                        .tag(EditorSelection.bone(index))
+                        .contextMenu {
+                            Button("Add Child Bone") { addBone(under: index) }
+                            Button("Delete Bone", role: .destructive) { deleteBone(index) }
+                        }
                 }
             }
-            Section("Parts") {
-                ForEach(document.character.rig.attachments, id: \.name) { attachment in
+            Section("Parts (back to front)") {
+                ForEach(RigEditor.attachmentsByDrawOrder(document.character.rig), id: \.self) { index in
+                    let attachment = document.character.rig.attachments[index]
                     Label(attachment.name, systemImage: attachment.textureName == nil ? "square" : "photo")
+                        .tag(EditorSelection.attachment(index))
+                }
+                .onMove { source, destination in
+                    edit("Reorder Parts") {
+                        $0.rig = RigEditor.movingAttachments($0.rig, from: source, to: destination)
+                    }
                 }
             }
             Section("Clips") {
@@ -62,6 +101,7 @@ struct CharacterEditorView: View {
                 }
             }
         }
+        .onDeleteCommand { deleteSelection() }
     }
 
     private func depth(of bone: Int) -> Int {
@@ -72,6 +112,76 @@ struct CharacterEditorView: View {
             parent = document.character.rig.bones[current].parent
         }
         return depth
+    }
+
+    // MARK: - Edits
+
+    /// One undoable change; a refused edit shows its reason in the inspector.
+    private func edit(_ name: String, _ change: (inout Character) throws -> Void) {
+        do {
+            try document.apply({ character in
+                var character = character
+                try change(&character)
+                return character
+            }, named: name, undoManager: undoManager)
+            session.problem = nil
+        } catch {
+            session.problem = "\(error)"
+        }
+    }
+
+    private func addBone(under parent: Int? = nil) {
+        let rig = document.character.rig
+        let parentIndex = parent ?? session.selectedBone
+        var name = "bone"
+        var suffix = 2
+        while rig.bones.contains(where: { $0.name == name }) {
+            name = "bone \(suffix)"
+            suffix += 1
+        }
+        let rest = parentIndex.map { RigidTransform2D(position: Vec2(rig.bones[$0].length, 0)) } ?? .identity
+        edit("Add Bone") {
+            $0.rig = try RigEditor.addingBone($0.rig, named: name, parent: parentIndex, length: 1, rest: rest)
+        }
+        session.selection = .bone(document.character.rig.bones.count - 1)
+    }
+
+    private func deleteBone(_ index: Int) {
+        edit("Delete Bone") { character in
+            (character.rig, character.clips) = try RigEditor.removingBone(character.rig, index, in: character.clips)
+        }
+        session.selection = nil
+    }
+
+    private func deleteSelection() {
+        switch session.selection {
+        case .bone(let index): deleteBone(index)
+        case .attachment(let index):
+            edit("Delete Part") { $0.rig = try RigEditor.removingAttachment($0.rig, index) }
+            session.selection = nil
+        case nil: break
+        }
+    }
+
+    /// Each PNG becomes an image in the document and a part on the selected bone (or the root).
+    private func importParts(from urls: [URL]) {
+        let bone = session.selectedBone ?? 0
+        for url in urls where url.pathExtension.lowercased() == "png" {
+            let granted = url.startAccessingSecurityScopedResource()
+            defer { if granted { url.stopAccessingSecurityScopedResource() } }
+            guard let data = try? Data(contentsOf: url), let image = ContactSheet.decode(data) else {
+                session.problem = "\(url.lastPathComponent) is not a PNG the system can decode"
+                continue
+            }
+            let name = url.deletingPathExtension().lastPathComponent
+            edit("Add Part") { character in
+                character.images[name] = data
+                character.rig = try RigEditor.addingAttachment(
+                    character.rig, image: name, pixelSize: Vec2(Float(image.width), Float(image.height)),
+                    pixelsPerUnit: session.pixelsPerUnit, bone: bone)
+            }
+        }
+        if let last = document.character.rig.attachments.indices.last { session.selection = .attachment(last) }
     }
 
     /// Centres the rest pose and sets the distance from its extent.

@@ -100,6 +100,17 @@ final class RigEditorTests: XCTestCase {
         XCTAssertThrowsError(try RigEditor.addingBone(edited, named: "tip", parent: nil, length: 1, rest: .identity))
     }
 
+    func testMovingAttachmentsRenumbersTheDrawOrder() throws {
+        let rig = try Fixtures.stickFigure().rig
+        let before = RigEditor.attachmentsByDrawOrder(rig)
+        let moved = RigEditor.movingAttachments(rig, from: IndexSet(integer: 0), to: 3)
+
+        let after = RigEditor.attachmentsByDrawOrder(moved)
+        XCTAssertEqual(after, [before[1], before[2], before[0]] + Array(before[3...]), "the first part now draws third")
+        XCTAssertEqual(moved.attachments.map(\.drawOrder).sorted(), Array(0..<rig.attachments.count), "0… again")
+        XCTAssertEqual(moved.attachments.map(\.name), rig.attachments.map(\.name), "the array order is untouched")
+    }
+
     func testInvertedUndoesATransform() {
         let transform = RigidTransform2D(position: Vec2(3, -2), rotation: 0.7)
         let identity = transform.composed(with: transform.inverted)

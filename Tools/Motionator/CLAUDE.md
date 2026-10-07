@@ -29,13 +29,23 @@ engine repo and builds against the engine in this checkout: no tags, no version 
     the `@Observable` macro) over a `Character`; reads and writes through `CharacterFiles`; `apply(_:named:undoManager:)`
     is the one way to edit: it keeps the old value for undo and ticks `version` so the viewport rebuilds. The
     `.character` type is declared in `Info.plist` (a package UTType) and excluded from the resources phase
-  - `EditorSession` — what isn't saved: mode, selection, camera, grid
-  - `CharacterEditorView` — the window: bones (indented by depth), parts and clips in the sidebar, the
-    viewport in the detail, the mode picker, grid toggle and Fit in the toolbar
-  - `EditorViewController` / `EditorServices` / `EditorScene` — the engine for one window, as the demo wires it;
-    the scene draws the rig at rest from a `SkeletonComponent` it rebuilds whenever `document.version` changes,
-    a unit grid, pan by drag and zoom by scroll into the session's camera. The scene owns the figure's root
-    `GameObj` (components hold it unowned)
+  - `EditorSession` — what isn't saved: mode, the selection (`EditorSelection`: a bone or a part), camera,
+    grid, pixels per unit for imports, the last refused edit's reason, the window's undo manager
+  - `CharacterEditorView` — the window: bones (indented by depth, context menu to add a child or delete),
+    parts in draw order (drag to reorder) and clips in the sidebar; the viewport in the detail (PNGs dropped on
+    it become parts); the mode picker, Add Bone, Add Part…, Delete, grid, Fit and the inspector toggle in the
+    toolbar. Every edit goes through one `edit(name) { character in … }` helper that calls `RigEditor` and
+    shows a refused edit's reason in the inspector
+  - `InspectorView` — the selected bone's name, parent, length and rest pose (degrees shown, radians stored)
+    or the selected part's name, bone, image, tint, size, offset and angle; number fields commit on Return or
+    focus loss, one undo step each
+  - `EditorViewController` / `EditorServices` / `EditorScene` — the engine for one window, as the demo wires it.
+    The scene draws the rig from a `SkeletonComponent` it rebuilds whenever the rig it shows changes, a unit
+    grid, and an overlay of bone lines and joint dots (the selection in orange). Pan by dragging empty space,
+    zoom by scroll. In Setup mode a click on a bone selects it and a drag edits its rest pose: plain drag
+    rotates it to point at the pointer, Command-drag moves it, Option-drag sets its length; the drag shows a
+    draft rig and commits one undo step when the button goes up. The scene owns the figure's root `GameObj`
+    (components hold it unowned)
   - `MotionatorTests` — XCTest with the app as host; `SWIFT_DEFAULT_ACTOR_ISOLATION` is off for the test target
     (it makes XCTest's inherited initialisers main-actor bound and the target fails to compile)
 - `Examples/StickFigure.character` — the demo's stick figure packed by `motionator pack`; open it in the app

@@ -59,9 +59,12 @@ final class CharacterDocument: ReferenceFileDocument {
     }
 
     /// Replaces the character with `edit`'s result and registers the old
-    /// value with `undoManager`, so undo and redo are one snapshot each.
-    func apply(_ edit: (Character) -> Character, named name: String, undoManager: UndoManager?) {
-        replace(with: edit(character), named: name, undoManager: undoManager)
+    /// value with `undoManager`, so undo and redo are one snapshot each. An
+    /// edit that throws changes nothing.
+    func apply(
+        _ edit: (Character) throws -> Character, named name: String, undoManager: UndoManager?
+    ) rethrows {
+        replace(with: try edit(character), named: name, undoManager: undoManager)
     }
 
     private func replace(with new: Character, named name: String, undoManager: UndoManager?) {
