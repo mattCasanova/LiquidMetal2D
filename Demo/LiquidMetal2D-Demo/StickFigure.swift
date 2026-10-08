@@ -174,14 +174,23 @@ enum StickFigure {
         BoneTrack(bone: "hips", position: keys.map { Keyframe(time: $0.time, value: Vec2(0, $0.y), easing: easing) })
     }
 
+    /// Standing and breathing: the knees bend forward and straighten once
+    /// every two seconds, the hips dip so the feet stay planted, the spine
+    /// leans in and the head nods with it, the arms hang and sway a little.
+    /// Every main bone is keyed, so the rest pose never shows through.
     private static func idle() -> AnimationClip {
         AnimationClip(name: "idle", duration: 2, loops: true, tracks: [
-            turn("spine", [(0, 0), (1, 2), (2, 0)]),
-            turn("upperArmNear", [(0, 0), (1, 3), (2, 0)]),
-            turn("upperArmFar", [(0, 0), (1, 3), (2, 0)]),
-            turn("lowerArmNear", [(0, 10)]),
-            turn("lowerArmFar", [(0, 10)]),
-            bob([(0, 0), (1, -0.08), (2, 0)]),
+            turn("thighNear", [(0, 0), (1, 14), (2, 0)]),
+            turn("thighFar", [(0, 0), (1, 14), (2, 0)]),
+            turn("shinNear", [(0, 0), (1, -28), (2, 0)]),
+            turn("shinFar", [(0, 0), (1, -28), (2, 0)]),
+            turn("spine", [(0, 0), (1, -3), (2, 0)]),
+            turn("head", [(0, 0), (1, -3), (2, 0)]),
+            turn("upperArmNear", [(0, 0), (1, 5), (2, 0)]),
+            turn("upperArmFar", [(0, 0), (1, 5), (2, 0)]),
+            turn("lowerArmNear", [(0, 8), (1, 14), (2, 8)]),
+            turn("lowerArmFar", [(0, 8), (1, 14), (2, 8)]),
+            bob([(0, 0), (1, -0.12), (2, 0)]),
         ])
     }
 

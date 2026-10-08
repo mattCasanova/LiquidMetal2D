@@ -7,6 +7,98 @@
   "name" : "idle",
   "tracks" : [
     {
+      "bone" : "thighNear",
+      "position" : [
+
+      ],
+      "rotation" : [
+        {
+          "easing" : "easeInOutSine",
+          "time" : 0,
+          "value" : -1.5707964
+        },
+        {
+          "easing" : "easeInOutSine",
+          "time" : 1,
+          "value" : -1.3264502
+        },
+        {
+          "easing" : "easeInOutSine",
+          "time" : 2,
+          "value" : -1.5707964
+        }
+      ]
+    },
+    {
+      "bone" : "thighFar",
+      "position" : [
+
+      ],
+      "rotation" : [
+        {
+          "easing" : "easeInOutSine",
+          "time" : 0,
+          "value" : -1.5707964
+        },
+        {
+          "easing" : "easeInOutSine",
+          "time" : 1,
+          "value" : -1.3264502
+        },
+        {
+          "easing" : "easeInOutSine",
+          "time" : 2,
+          "value" : -1.5707964
+        }
+      ]
+    },
+    {
+      "bone" : "shinNear",
+      "position" : [
+
+      ],
+      "rotation" : [
+        {
+          "easing" : "easeInOutSine",
+          "time" : 0,
+          "value" : 0
+        },
+        {
+          "easing" : "easeInOutSine",
+          "time" : 1,
+          "value" : -0.4886922
+        },
+        {
+          "easing" : "easeInOutSine",
+          "time" : 2,
+          "value" : 0
+        }
+      ]
+    },
+    {
+      "bone" : "shinFar",
+      "position" : [
+
+      ],
+      "rotation" : [
+        {
+          "easing" : "easeInOutSine",
+          "time" : 0,
+          "value" : 0
+        },
+        {
+          "easing" : "easeInOutSine",
+          "time" : 1,
+          "value" : -0.4886922
+        },
+        {
+          "easing" : "easeInOutSine",
+          "time" : 2,
+          "value" : 0
+        }
+      ]
+    },
+    {
       "bone" : "spine",
       "position" : [
 
@@ -20,12 +112,35 @@
         {
           "easing" : "easeInOutSine",
           "time" : 1,
-          "value" : 1.6057029
+          "value" : 1.5184364
         },
         {
           "easing" : "easeInOutSine",
           "time" : 2,
           "value" : 1.5707964
+        }
+      ]
+    },
+    {
+      "bone" : "head",
+      "position" : [
+
+      ],
+      "rotation" : [
+        {
+          "easing" : "easeInOutSine",
+          "time" : 0,
+          "value" : 0
+        },
+        {
+          "easing" : "easeInOutSine",
+          "time" : 1,
+          "value" : -0.05235988
+        },
+        {
+          "easing" : "easeInOutSine",
+          "time" : 2,
+          "value" : 0
         }
       ]
     },
@@ -43,7 +158,7 @@
         {
           "easing" : "easeInOutSine",
           "time" : 1,
-          "value" : 3.1939526
+          "value" : 3.2288592
         },
         {
           "easing" : "easeInOutSine",
@@ -66,7 +181,7 @@
         {
           "easing" : "easeInOutSine",
           "time" : 1,
-          "value" : 3.1939526
+          "value" : 3.2288592
         },
         {
           "easing" : "easeInOutSine",
@@ -84,7 +199,17 @@
         {
           "easing" : "easeInOutSine",
           "time" : 0,
-          "value" : 0.17453292
+          "value" : 0.13962634
+        },
+        {
+          "easing" : "easeInOutSine",
+          "time" : 1,
+          "value" : 0.2443461
+        },
+        {
+          "easing" : "easeInOutSine",
+          "time" : 2,
+          "value" : 0.13962634
         }
       ]
     },
@@ -97,7 +222,17 @@
         {
           "easing" : "easeInOutSine",
           "time" : 0,
-          "value" : 0.17453292
+          "value" : 0.13962634
+        },
+        {
+          "easing" : "easeInOutSine",
+          "time" : 1,
+          "value" : 0.2443461
+        },
+        {
+          "easing" : "easeInOutSine",
+          "time" : 2,
+          "value" : 0.13962634
         }
       ]
     },
@@ -117,7 +252,7 @@
           "time" : 1,
           "value" : [
             0,
-            -0.08
+            -0.12
           ]
         },
         {
