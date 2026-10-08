@@ -174,23 +174,25 @@ enum StickFigure {
         BoneTrack(bone: "hips", position: keys.map { Keyframe(time: $0.time, value: Vec2(0, $0.y), easing: easing) })
     }
 
-    /// Standing and breathing: the knees bend forward and straighten once
-    /// every two seconds, the hips dip so the feet stay planted, the spine
-    /// leans in and the head nods with it, the arms hang and sway a little.
-    /// Every main bone is keyed, so the rest pose never shows through.
+    /// A ready stance, breathing: the near leg forward with its knee bent,
+    /// the far leg back and straight, the near arm in front with the sword
+    /// and the far arm behind, so both show as if the body were turned a
+    /// little. Once every two seconds the near knee flexes, the hips dip,
+    /// the spine leans in and the arms sway; the angles keep both feet
+    /// planted. Every main bone is keyed, so the rest pose never shows through.
     private static func idle() -> AnimationClip {
         AnimationClip(name: "idle", duration: 2, loops: true, tracks: [
-            turn("thighNear", [(0, 0), (1, 14), (2, 0)]),
-            turn("thighFar", [(0, 0), (1, 14), (2, 0)]),
-            turn("shinNear", [(0, 0), (1, -28), (2, 0)]),
-            turn("shinFar", [(0, 0), (1, -28), (2, 0)]),
-            turn("spine", [(0, 0), (1, -3), (2, 0)]),
-            turn("head", [(0, 0), (1, -3), (2, 0)]),
-            turn("upperArmNear", [(0, 0), (1, 5), (2, 0)]),
-            turn("upperArmFar", [(0, 0), (1, 5), (2, 0)]),
-            turn("lowerArmNear", [(0, 8), (1, 14), (2, 8)]),
-            turn("lowerArmFar", [(0, 8), (1, 14), (2, 8)]),
-            bob([(0, 0), (1, -0.12), (2, 0)]),
+            turn("thighNear", [(0, 22), (1, 26), (2, 22)]),
+            turn("shinNear", [(0, -22), (1, -30), (2, -22)]),
+            turn("thighFar", [(0, -18), (1, -17), (2, -18)]),
+            turn("shinFar", [(0, 0), (1, -6), (2, 0)]),
+            turn("spine", [(0, -6), (1, -9), (2, -6)]),
+            turn("head", [(0, 2), (1, -1), (2, 2)]),
+            turn("upperArmNear", [(0, 15), (1, 19), (2, 15)]),
+            turn("lowerArmNear", [(0, 20), (1, 26), (2, 20)]),
+            turn("upperArmFar", [(0, -15), (1, -11), (2, -15)]),
+            turn("lowerArmFar", [(0, 15), (1, 20), (2, 15)]),
+            bob([(0, -0.15), (1, -0.2), (2, -0.15)]),
         ])
     }
 

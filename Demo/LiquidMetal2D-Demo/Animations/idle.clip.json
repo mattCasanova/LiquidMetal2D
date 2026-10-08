@@ -15,40 +15,17 @@
         {
           "easing" : "easeInOutSine",
           "time" : 0,
-          "value" : -1.5707964
+          "value" : -1.1868238
         },
         {
           "easing" : "easeInOutSine",
           "time" : 1,
-          "value" : -1.3264502
+          "value" : -1.1170107
         },
         {
           "easing" : "easeInOutSine",
           "time" : 2,
-          "value" : -1.5707964
-        }
-      ]
-    },
-    {
-      "bone" : "thighFar",
-      "position" : [
-
-      ],
-      "rotation" : [
-        {
-          "easing" : "easeInOutSine",
-          "time" : 0,
-          "value" : -1.5707964
-        },
-        {
-          "easing" : "easeInOutSine",
-          "time" : 1,
-          "value" : -1.3264502
-        },
-        {
-          "easing" : "easeInOutSine",
-          "time" : 2,
-          "value" : -1.5707964
+          "value" : -1.1868238
         }
       ]
     },
@@ -61,17 +38,40 @@
         {
           "easing" : "easeInOutSine",
           "time" : 0,
-          "value" : 0
+          "value" : -0.38397244
         },
         {
           "easing" : "easeInOutSine",
           "time" : 1,
-          "value" : -0.4886922
+          "value" : -0.5235988
         },
         {
           "easing" : "easeInOutSine",
           "time" : 2,
-          "value" : 0
+          "value" : -0.38397244
+        }
+      ]
+    },
+    {
+      "bone" : "thighFar",
+      "position" : [
+
+      ],
+      "rotation" : [
+        {
+          "easing" : "easeInOutSine",
+          "time" : 0,
+          "value" : -1.8849555
+        },
+        {
+          "easing" : "easeInOutSine",
+          "time" : 1,
+          "value" : -1.8675023
+        },
+        {
+          "easing" : "easeInOutSine",
+          "time" : 2,
+          "value" : -1.8849555
         }
       ]
     },
@@ -89,7 +89,7 @@
         {
           "easing" : "easeInOutSine",
           "time" : 1,
-          "value" : -0.4886922
+          "value" : -0.10471976
         },
         {
           "easing" : "easeInOutSine",
@@ -107,17 +107,17 @@
         {
           "easing" : "easeInOutSine",
           "time" : 0,
-          "value" : 1.5707964
+          "value" : 1.4660766
         },
         {
           "easing" : "easeInOutSine",
           "time" : 1,
-          "value" : 1.5184364
+          "value" : 1.4137167
         },
         {
           "easing" : "easeInOutSine",
           "time" : 2,
-          "value" : 1.5707964
+          "value" : 1.4660766
         }
       ]
     },
@@ -130,17 +130,17 @@
         {
           "easing" : "easeInOutSine",
           "time" : 0,
-          "value" : 0
+          "value" : 0.034906585
         },
         {
           "easing" : "easeInOutSine",
           "time" : 1,
-          "value" : -0.05235988
+          "value" : -0.017453292
         },
         {
           "easing" : "easeInOutSine",
           "time" : 2,
-          "value" : 0
+          "value" : 0.034906585
         }
       ]
     },
@@ -153,40 +153,17 @@
         {
           "easing" : "easeInOutSine",
           "time" : 0,
-          "value" : 3.1415927
+          "value" : 3.403392
         },
         {
           "easing" : "easeInOutSine",
           "time" : 1,
-          "value" : 3.2288592
+          "value" : 3.473205
         },
         {
           "easing" : "easeInOutSine",
           "time" : 2,
-          "value" : 3.1415927
-        }
-      ]
-    },
-    {
-      "bone" : "upperArmFar",
-      "position" : [
-
-      ],
-      "rotation" : [
-        {
-          "easing" : "easeInOutSine",
-          "time" : 0,
-          "value" : 3.1415927
-        },
-        {
-          "easing" : "easeInOutSine",
-          "time" : 1,
-          "value" : 3.2288592
-        },
-        {
-          "easing" : "easeInOutSine",
-          "time" : 2,
-          "value" : 3.1415927
+          "value" : 3.403392
         }
       ]
     },
@@ -199,17 +176,40 @@
         {
           "easing" : "easeInOutSine",
           "time" : 0,
-          "value" : 0.13962634
+          "value" : 0.34906584
         },
         {
           "easing" : "easeInOutSine",
           "time" : 1,
-          "value" : 0.2443461
+          "value" : 0.4537856
         },
         {
           "easing" : "easeInOutSine",
           "time" : 2,
-          "value" : 0.13962634
+          "value" : 0.34906584
+        }
+      ]
+    },
+    {
+      "bone" : "upperArmFar",
+      "position" : [
+
+      ],
+      "rotation" : [
+        {
+          "easing" : "easeInOutSine",
+          "time" : 0,
+          "value" : 2.8797932
+        },
+        {
+          "easing" : "easeInOutSine",
+          "time" : 1,
+          "value" : 2.9496064
+        },
+        {
+          "easing" : "easeInOutSine",
+          "time" : 2,
+          "value" : 2.8797932
         }
       ]
     },
@@ -222,17 +222,17 @@
         {
           "easing" : "easeInOutSine",
           "time" : 0,
-          "value" : 0.13962634
+          "value" : 0.2617994
         },
         {
           "easing" : "easeInOutSine",
           "time" : 1,
-          "value" : 0.2443461
+          "value" : 0.34906584
         },
         {
           "easing" : "easeInOutSine",
           "time" : 2,
-          "value" : 0.13962634
+          "value" : 0.2617994
         }
       ]
     },
@@ -244,7 +244,7 @@
           "time" : 0,
           "value" : [
             0,
-            0
+            -0.15
           ]
         },
         {
@@ -252,7 +252,7 @@
           "time" : 1,
           "value" : [
             0,
-            -0.12
+            -0.2
           ]
         },
         {
@@ -260,7 +260,7 @@
           "time" : 2,
           "value" : [
             0,
-            0
+            -0.15
           ]
         }
       ],
