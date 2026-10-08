@@ -139,8 +139,39 @@ struct InspectorView: View {
                 }), format: .number.precision(.fractionLength(0...3)))
                 Text("Edits here key the bone at the playhead.").font(.caption).foregroundStyle(.secondary)
             }
+            keyList(for: bone.name, in: clip)
         } else {
             Text("No clip selected").foregroundStyle(.secondary)
+        }
+    }
+
+    /// The bone's key times: click one to jump to it, delete beside each.
+    @ViewBuilder
+    private func keyList(for bone: String, in clip: AnimationClip) -> some View {
+        let keys = ClipEditor.allKeys(in: clip).filter { $0.bone == bone }
+        let times = Array(Set(keys.map { ($0.time * 1e4).rounded() / 1e4 })).sorted()
+        Section(times.isEmpty ? "No keys on \(bone)" : "\(times.count) \(times.count == 1 ? "key" : "keys") on \(bone)") {
+            if times.count == 1 {
+                Text("One key holds its pose for the whole clip. Scrub elsewhere and pose again to blend.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            ForEach(times, id: \.self) { time in
+                HStack {
+                    Button(String(format: "%.3f s", time)) {
+                        session.isPlaying = false
+                        session.playhead = time
+                        session.selectedKeys = keys.filter { abs($0.time - time) < 1e-3 }
+                    }
+                    .buttonStyle(.link)
+                    Spacer()
+                    Button("Delete", systemImage: "trash", role: .destructive) {
+                        replace(ClipEditor.removingKeys(clip, keys.filter { abs($0.time - time) < 1e-3 }),
+                                named: "Delete Keys")
+                        session.selectedKeys = []
+                    }
+                    .labelStyle(.iconOnly)
+                }
+            }
         }
     }
 
