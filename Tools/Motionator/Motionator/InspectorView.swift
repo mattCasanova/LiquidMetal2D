@@ -150,7 +150,8 @@ struct InspectorView: View {
     private func keyList(for bone: String, in clip: AnimationClip) -> some View {
         let keys = ClipEditor.allKeys(in: clip).filter { $0.bone == bone }
         let times = Array(Set(keys.map { ($0.time * 1e4).rounded() / 1e4 })).sorted()
-        let title = times.isEmpty ? "No keys on \(bone)" : "\(times.count) \(times.count == 1 ? "key" : "keys") on \(bone)"
+        let noun = times.count == 1 ? "key" : "keys"
+        let title = times.isEmpty ? "No keys on \(bone)" : "\(times.count) \(noun) on \(bone)"
         Section(title) {
             if times.count == 1 {
                 Text("One key holds its pose for the whole clip. Scrub elsewhere and pose again to blend.")
