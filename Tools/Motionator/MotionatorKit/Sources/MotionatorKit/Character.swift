@@ -164,6 +164,33 @@ public enum CharacterFiles {
         return urls
     }
 
+    // MARK: - Bytes on disk
+
+    /// Every file the folder holds that the character format knows, by its
+    /// path inside the folder: `Hero.rig.json`, `clips/walk.clip.json`,
+    /// `images/torso.png`. Comparing two of these tells whether a folder
+    /// changed, whoever wrote it.
+    public static func contents(of wrapper: FileWrapper) -> [String: Data] {
+        var files: [String: Data] = [:]
+        for (name, entry) in wrapper.fileWrappers ?? [:] {
+            if name.hasSuffix(rigSuffix), let data = entry.regularFileContents {
+                files[name] = data
+            } else if name == clipsFolder || name == imagesFolder {
+                for (fileName, file) in entry.fileWrappers ?? [:] {
+                    guard let data = file.regularFileContents else { continue }
+                    if name == clipsFolder ? fileName.hasSuffix(clipSuffix) : fileName.lowercased().hasSuffix(".png") {
+                        files[name + "/" + fileName] = data
+                    }
+                }
+            }
+        }
+        return files
+    }
+
+    public static func contents(at url: URL) throws -> [String: Data] {
+        contents(of: try FileWrapper(url: url, options: .immediate))
+    }
+
     // MARK: - Checks
 
     /// The rig validates and every clip resolves against it.

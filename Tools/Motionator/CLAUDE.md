@@ -27,10 +27,21 @@ engine repo and builds against the engine in this checkout: no tags, no version 
   - `Motionator/MotionatorApp.swift` — `DocumentGroup` over `CharacterDocument`
   - `CharacterDocument` — `ReferenceFileDocument` (the old `ObservableObject`, which the protocol requires; not
     the `@Observable` macro) over a `Character`; reads and writes through `CharacterFiles`; `apply(_:named:undoManager:)`
-    is the one way to edit: it keeps the old value for undo and ticks `version` so the viewport rebuilds. The
-    `.character` type is declared in `Info.plist` (a package UTType) and excluded from the resources phase
+    is the one way to edit: it keeps the old value for undo and ticks `version` so the viewport rebuilds.
+    `reloadIfChanged(at:undoManager:)` takes a change made to the folder by someone else (the agent, a script):
+    it remembers the folder's bytes as last read or handed to the system for a save, so a change on disk that
+    matches is its own write and anything else is read again (the undo stack goes, its steps lead to a
+    character no longer on disk). The `.character` type is declared in `Info.plist` (a package UTType) and
+    excluded from the resources phase
+  - `DocumentWatcher` / `CharacterEditorView+Reload` — the window watches its folder (`DispatchSource`s on the
+    folder, `clips`, `images` and every file in them, re-armed after each event because a safe save replaces
+    the folder and files come and go; a file's own descriptor is what reports an in-place write) and, a
+    moment after a change, reloads the document, keeps the session by name (`EditorSession.reconcile`) and
+    tells the AppKit document behind the SwiftUI one (`NSDocumentController.shared.documents`, matched by
+    `fileURL`) that the disk is current (`fileModificationDate`, change count cleared), or its next autosave
+    would write the old character back. Edits not yet autosaved plus a change on disk ask: Reload or Keep Mine
   - `EditorSession` — what isn't saved: mode, the selection (`EditorSelection`: a bone or a part), camera,
-    grid, pixels per unit for imports, the last refused edit's reason, the window's undo manager
+    grid, pixels per unit for imports, the last refused edit's reason, the window's undo manager, the watcher
   - `CharacterEditorView` — the window: bones (indented by depth, context menu to add a child or delete),
     parts in draw order (drag to reorder) and clips in the sidebar; the viewport in the detail (PNGs dropped on
     it become parts); the mode picker, Add Bone, Add Part…, Delete, grid, Fit and the inspector toggle in the
@@ -91,3 +102,9 @@ xcodebuild -project Tools/Motionator/Motionator.xcodeproj -scheme Motionator -de
   then `wait`), not in a subshell that exits, or it dies with the shell. A document opened by path that way shows
   as Locked: the sandbox only writes files the user picked in a panel. Launch Services (`open`) is the normal way
 - `Info.plist` is hand-written for the document type; `GENERATE_INFOPLIST_FILE` still adds the usual keys
+- The system's document never reloads a package another process changed (checked 2026-10-10: a new file,
+  an in-place edit and a coordinated write all left it alone), hence `DocumentWatcher`. Watching
+  `.attrib` events loops: reading the folder back touches attributes, which fires again, for seconds. The
+  masks are write, extend, delete and rename only. An agent can now edit a clip while the window is open
+  and see it in the viewport a moment later; a folder that does not read (a half-written file) is left for
+  the next change and the reason shows in the inspector

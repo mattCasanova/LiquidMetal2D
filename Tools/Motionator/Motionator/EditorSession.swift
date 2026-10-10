@@ -40,6 +40,8 @@ final class EditorSession {
     var problem: String?
     /// The window's undo manager, for edits the viewport makes.
     @ObservationIgnored weak var undoManager: UndoManager?
+    /// Reports changes to the document's folder made outside the window (`CharacterEditorView+Reload`).
+    @ObservationIgnored var watcher: DocumentWatcher?
 
     // MARK: Animate mode
 
@@ -73,5 +75,27 @@ final class EditorSession {
 
     func clip(in character: Character) -> AnimationClip? {
         clipName.flatMap { character.clip(named: $0) } ?? character.clips.first
+    }
+
+    /// After the document was replaced from disk: keeps what still exists
+    /// under its name and drops the rest, so the window stays where it was.
+    func reconcile(from old: Character, to new: Character) {
+        switch selection {
+        case .bone(let index):
+            let name = old.rig.bones.indices.contains(index) ? old.rig.bones[index].name : nil
+            selection = name.flatMap { name in new.rig.bones.firstIndex { $0.name == name } }.map { .bone($0) }
+        case .attachment(let index):
+            let name = old.rig.attachments.indices.contains(index) ? old.rig.attachments[index].name : nil
+            selection = name.flatMap { name in new.rig.attachments.firstIndex { $0.name == name } }
+                .map { .attachment($0) }
+        case nil:
+            break
+        }
+        if let clipName, new.clip(named: clipName) == nil { self.clipName = nil }
+        let clip = clip(in: new)
+        if let clip { playhead = min(playhead, clip.duration) }
+        selectedKeys = selectedKeys.filter { ref in clip.map { ClipEditor.key(in: $0, ref) != nil } ?? false }
+        if let index = selectedEvent, !(clip?.events.indices.contains(index) ?? false) { selectedEvent = nil }
+        pendingBones = pendingBones.filter { name in new.rig.bones.contains { $0.name == name } }
     }
 }
