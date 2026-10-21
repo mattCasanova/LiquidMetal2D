@@ -25,6 +25,26 @@ final class CharacterFilesTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: folder.appendingPathComponent("images/disc.png")), original.images["disc"])
     }
 
+    func testAFolderContentsListEveryKnownFileByPath() throws {
+        let character = try Fixtures.stickFigure()
+        let folder = try Fixtures.temporaryFolder().appendingPathComponent("Stick.character")
+        try CharacterFiles.save(character, to: folder)
+        try Data("not ours".utf8).write(to: folder.appendingPathComponent("notes.txt"))
+        try Data("not ours".utf8).write(to: folder.appendingPathComponent("clips/readme.md"))
+
+        let onDisk = try CharacterFiles.contents(at: folder)
+        let written = CharacterFiles.contents(of: try CharacterFiles.wrapper(for: character, rigName: "Stick"))
+
+        XCTAssertEqual(onDisk.keys.sorted(), [
+            "Stick.rig.json", "clips/idle.clip.json", "clips/jump.clip.json", "clips/slash.clip.json",
+            "clips/throw.clip.json", "clips/walk.clip.json", "images/disc.png"
+        ])
+        XCTAssertEqual(onDisk, written, "what the wrapper holds is what lands on disk")
+
+        try Data("{}".utf8).write(to: folder.appendingPathComponent("clips/idle.clip.json"))
+        XCTAssertNotEqual(try CharacterFiles.contents(at: folder), written)
+    }
+
     func testAClipThatDoesNotFitTheRigIsNamed() throws {
         var character = try Fixtures.stickFigure()
         var bad = try Fixtures.walk()

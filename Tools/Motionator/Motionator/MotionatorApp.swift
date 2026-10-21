@@ -14,6 +14,8 @@ struct MotionatorApp: App {
     var body: some SwiftUI.Scene {
         DocumentGroup(
             newDocument: { CharacterDocument() },
-            editor: { configuration in CharacterEditorView(document: configuration.document) })
+            editor: { configuration in
+                CharacterEditorView(document: configuration.document, fileURL: configuration.fileURL)
+            })
     }
 }

@@ -15,7 +15,9 @@ import UniformTypeIdentifiers
 /// middle, the inspector on the right, the mode and camera in the toolbar.
 struct CharacterEditorView: View {
     @ObservedObject var document: CharacterDocument
-    @State private var session = EditorSession()
+    /// The folder on disk; nil until an untitled document is first saved.
+    var fileURL: URL?
+    @State var session = EditorSession()
     @State private var isImportingParts = false
     @State private var isImportingReference = false
     @State private var timelineHeight: CGFloat = 260
@@ -68,6 +70,7 @@ struct CharacterEditorView: View {
             session.selectedKeys = []
         }
         .onAppear { session.undoManager = undoManager }
+        .onChange(of: fileURL, initial: true) { _, url in watch(url) }
         .frame(minWidth: 900, minHeight: 540)
     }
 
