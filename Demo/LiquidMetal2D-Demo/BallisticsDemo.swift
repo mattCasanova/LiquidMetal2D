@@ -66,6 +66,8 @@ class BallisticsDemo: LiquidMetal2D.Scene {
     private var sweep = ArcSweep()
     private var velocity = Vec2(12, 18)
     private var flightPath: [Vec2] = []
+    /// The velocity the current flight left with, for its heading along the way.
+    private var launchVelocity = Vec2()
     private var flight = Flight.aiming
     private let controls = BallisticsControls()
 
@@ -111,6 +113,7 @@ class BallisticsDemo: LiquidMetal2D.Scene {
         switch flight {
         case .aiming:
             if isAutoplay { sweepAim() } else { aim() }
+            ship.rotation = velocity.angle
             preview()
         case .flying(let elapsed):
             fly(elapsed: elapsed + dt)
@@ -213,13 +216,17 @@ class BallisticsDemo: LiquidMetal2D.Scene {
         guard case .aiming = flight, !controls.outOfRange else { return }
         flightPath.removeAll(keepingCapacity: true)
         flightPath.append(contentsOf: sweep.samples)
+        launchVelocity = velocity
         flight = .flying(elapsed: 0)
     }
 
-    /// Steps the ship along the path at the sweep's `dt`, so it lands on the marker.
+    /// Steps the ship along the path at the sweep's `dt`, so it lands on the
+    /// marker, its nose along the velocity at that moment.
     private func fly(elapsed: Float) {
         let step = min(Int(elapsed / sweep.dt), flightPath.count - 1)
         ship.position = flightPath[step]
+        let heading = Ballistics.velocity(launchVelocity, gravity: gravity, at: Float(step) * sweep.dt)
+        ship.rotation = heading.angle
         if step == flightPath.count - 1 {
             flight = .landed
         } else {
