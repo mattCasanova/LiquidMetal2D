@@ -25,7 +25,8 @@ import LiquidMetal2D
 /// The `title` property provides human-readable names used by the PauseDemo menu.
 /// The `navigable` list controls which scenes appear in the menu (excludes pauseDemo
 /// since it is a push-only overlay, not a standalone scene).
-enum SceneTypes: SceneType {
+/// String-backed so a launch argument can name one (`-startScene ballisticsDemo`, read by `AsyncLoadDemo`).
+enum SceneTypes: String, SceneType {
     case massRenderDemo
     case touchZoomDemo
     case instanceDemo

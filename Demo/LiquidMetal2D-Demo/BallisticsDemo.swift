@@ -24,7 +24,8 @@ import LiquidMetal2D
 ///
 /// Aim with the pointer: hover on the Mac, a finger on iOS (lifting it does
 /// not launch). Launch with the button, Space or Return; Reset with the
-/// button or R.
+/// button or R. Until the first touch, click or key it plays by itself:
+/// the aim sweeps and the ship launches every few seconds.
 class BallisticsDemo: LiquidMetal2D.Scene {
     static var sceneType: any SceneType { SceneTypes.ballisticsDemo }
 
@@ -68,6 +69,12 @@ class BallisticsDemo: LiquidMetal2D.Scene {
     private var flight = Flight.aiming
     private let controls = BallisticsControls()
 
+    /// Plays by itself until the first input.
+    private var isAutoplay = true
+    private var autoplayTime: Float = 0
+    private let autoplayLaunchEvery: Float = 3
+    private let autoplayRestFor: Float = 1.2
+
     func initialize(services: SceneServices) {
         self.renderer = services.renderer
         self.input = services.input
@@ -83,9 +90,9 @@ class BallisticsDemo: LiquidMetal2D.Scene {
         buildShip()
         buildPreview()
 
-        controls.onLaunch = { [unowned self] in launch() }
-        controls.onReset = { [unowned self] in reset() }
-        controls.onMode = { [unowned self] in controls.hitCursor.toggle() }
+        controls.onLaunch = { [unowned self] in isAutoplay = false; launch() }
+        controls.onReset = { [unowned self] in isAutoplay = false; reset() }
+        controls.onMode = { [unowned self] in isAutoplay = false; controls.hitCursor.toggle() }
         showOverlay()
     }
 
@@ -96,12 +103,14 @@ class BallisticsDemo: LiquidMetal2D.Scene {
     }
 
     func update(dt: Float) {
+        if input.isAnyTriggered || input.pointer.location != nil { isAutoplay = false }
         if input.isTriggered(.space) || input.isTriggered(.returnKey) { launch() }
         if input.isTriggered(.r) { reset() }
+        if isAutoplay { autoplay(dt: dt) }
 
         switch flight {
         case .aiming:
-            aim()
+            if isAutoplay { sweepAim() } else { aim() }
             preview()
         case .flying(let elapsed):
             fly(elapsed: elapsed + dt)
@@ -124,6 +133,30 @@ class BallisticsDemo: LiquidMetal2D.Scene {
     static func build() -> LiquidMetal2D.Scene { BallisticsDemo() }
 
     // MARK: - Aiming and flying
+
+    /// Launches every few seconds and resets a moment after landing.
+    private func autoplay(dt: Float) {
+        autoplayTime += dt
+        switch flight {
+        case .aiming where autoplayTime >= autoplayLaunchEvery:
+            launch()
+            autoplayTime = 0
+        case .landed where autoplayTime >= autoplayRestFor:
+            reset()
+            autoplayTime = 0
+        default:
+            break
+        }
+    }
+
+    /// The autoplay's aim: a slow sweep through angles and speeds.
+    private func sweepAim() {
+        let phase = autoplayTime / autoplayLaunchEvery
+        let angle = GameMath.lerp(a: 0.35, b: 1.1, t: 0.5 + 0.5 * sin(phase * .pi * 2 + 1))
+        let speed = GameMath.lerp(a: 20, b: maxSpeed, t: 0.5 + 0.5 * cos(phase * .pi * 2))
+        velocity = Vec2(angle: angle) * speed
+        controls.outOfRange = false
+    }
 
     /// The launch velocity from the pointer: a pull from the ship, or in
     /// "Hit cursor" mode the full-speed arc through the cursor.
@@ -163,12 +196,12 @@ class BallisticsDemo: LiquidMetal2D.Scene {
             marker.position = hit.point
             marker.get(AlphaBlendComponent.self)?.tintColor = Self.tint(forNormal: hit.normal)
             controls.readout = String(
-                format: "apex %5.1f   flight %4.2fs   %@   steps %d",
+                format: "apex %.1f  flight %.2fs\n%@  steps %d",
                 apex.y - ship.position.y, hit.time, Self.face(of: hit.normal), samples.count)
         case .noHit(let endTime):
             marker.isActive = false
             controls.readout = String(
-                format: "apex %5.1f   flight %4.2fs+  no hit   steps %d",
+                format: "apex %.1f  flight %.2fs+\nno hit  steps %d",
                 apex.y - ship.position.y, endTime, samples.count)
         }
         if controls.outOfRange {
@@ -234,7 +267,7 @@ class BallisticsDemo: LiquidMetal2D.Scene {
 
     private func buildShip() {
         ship = GameObj()
-        shipHome = Vec2(-24, floorY + shipHalfSize.y)
+        shipHome = Vec2(-20, floorY + shipHalfSize.y)
         ship.position = shipHome
         ship.scale = shipHalfSize * 2
         ship.zOrder = 0.04
@@ -282,6 +315,7 @@ struct BallisticsPanel: View {
             Text(controls.readout)
                 .font(.system(size: 14, design: .monospaced))
                 .foregroundStyle(TokyoNight.color(TokyoNight.comment))
+                .multilineTextAlignment(.trailing)
                 .padding(8)
 
             BottomBar {

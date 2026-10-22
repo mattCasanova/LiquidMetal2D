@@ -8,6 +8,11 @@
 //  load asynchronously. On completion, "Ready!" and a Start button
 //  appear over the starfield.
 //
+//  Launched with `-startScene <SceneTypes case>` (an Xcode scheme argument
+//  or `simctl launch … -startScene ballisticsDemo`) it skips the wait and
+//  the button and goes straight to that scene once the textures are in,
+//  so a scene can be screenshotted or recorded without a tap.
+//
 //  Copyright © 2026 Matt Casanova. All rights reserved.
 //
 
@@ -21,6 +26,14 @@ class AsyncLoadDemo: DefaultScene {
 
     private var isLoaded = false
     private var hasWaited = false
+    /// The scene a launch argument asked for, or nil for the menu's default.
+    private let startScene: SceneTypes? = {
+        guard let name = UserDefaults.standard.string(forKey: "startScene") else { return nil }
+        guard let scene = SceneTypes(rawValue: name) else {
+            fatalError("-startScene \(name): no such scene; the names are SceneTypes' cases")
+        }
+        return scene
+    }()
     private let controls = AsyncLoadControls()
     private var ui: DemoUI!
 
@@ -146,8 +159,13 @@ class AsyncLoadDemo: DefaultScene {
         showReadyIfDone()
     }
 
-    /// Ready once the textures are in and the starfield has had its moment.
+    /// Ready once the textures are in and the starfield has had its moment;
+    /// a launch argument's scene skips the moment and the button.
     private func showReadyIfDone() {
+        if let startScene, isLoaded {
+            sceneMgr.setScene(type: startScene)
+            return
+        }
         guard isLoaded, hasWaited else { return }
         controls.status = "Ready!"
         controls.isReady = true
