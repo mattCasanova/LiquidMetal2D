@@ -144,6 +144,29 @@ final class AllocationTests: XCTestCase {
         XCTAssertGreaterThan(polygon.points.count, 48, "the walls were in range")
     }
 
+    func testArcSweepTraceAllocatesNothing() throws {
+        try requireOptimizedBuild()
+        let boxes = (0..<30).map { i in
+            AllocationBox(center: Vec2(Float(i) * 12 - 180, Float(i % 5) * 15), width: 8, height: 8)
+        }
+        let walls = (0..<8).map { i in
+            LineSegment(start: Vec2(Float(i) * 30 - 100, 60), end: Vec2(Float(i) * 30 - 80, 90))
+        }
+        var sweep = ArcSweep()
+        sweep.trace(from: Vec2(-150, 100), velocity: Vec2(80, 60), gravity: Vec2(0, -400), halfSize: Vec2(2, 5),
+                    boxes: boxes, walls: walls)
+
+        let count = AllocationCounter.count {
+            for frame in 0..<50 {
+                sweep.trace(from: Vec2(-150, 100), velocity: Vec2(80 + Float(frame), 60), gravity: Vec2(0, -400),
+                            halfSize: Vec2(2, 5), boxes: boxes, walls: walls)
+            }
+        }
+
+        XCTAssertEqual(count, 0)
+        XCTAssertGreaterThan(sweep.samples.count, 1)
+    }
+
     func testLightMapAddAllocatesNothing() throws {
         try requireOptimizedBuild()
         let renderCore = try ShaderTestSupport.makeRenderCore()
@@ -364,4 +387,10 @@ final class AllocationTests: XCTestCase {
 
 private enum AllocationAction: String, InputAction {
     case jump, left, right
+}
+
+private struct AllocationBox: AABB {
+    var center: Vec2
+    var width: Float
+    var height: Float
 }

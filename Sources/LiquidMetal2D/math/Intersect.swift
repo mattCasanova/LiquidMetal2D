@@ -171,6 +171,100 @@ public enum Intersect {
         return t
     }
 
+    // MARK: - Segment vs AABB
+
+    /// Where a segment enters an axis-aligned box: the fraction along
+    /// `start → end` in 0…1 and the unit normal of the face it crosses, or
+    /// nil when it misses. A start point strictly inside the box returns 0
+    /// with the normal of the nearest face, so a caller sees the overlap
+    /// instead of stepping out through it. A start point on a face is
+    /// outside: heading away from the face it misses, heading in it hits
+    /// at 0. That is what lets a thing resting on a box launch off it.
+    ///
+    /// The slab method: each axis clips the segment to the box's extent on
+    /// that axis; the latest entry is where the segment enters, the
+    /// earliest exit is where it leaves, and a miss is an entry after the
+    /// exit or an exit at or before the start. The test is closed, so a
+    /// segment that only touches a face or a corner, or ends on a face,
+    /// counts as a hit; the one exception is a segment running exactly
+    /// along a face's line, which slides past (a thing sitting on the box
+    /// can move along it).
+    @inlinable
+    public static func segmentAABB(
+        start: Vec2, end: Vec2, center: Vec2, width: Float, height: Float
+    ) -> (t: Float, normal: Vec2)? {
+        let half = Vec2(width / 2, height / 2)
+        let low = center - half
+        let high = center + half
+        if start.x > low.x, start.x < high.x, start.y > low.y, start.y < high.y {
+            return (0, nearestFaceNormal(of: start - center, half: half))
+        }
+        let delta = end - start
+        var entry = -Float.infinity
+        var exit = Float.infinity
+        var normal = Vec2()
+        for axis in 0..<2 {
+            let s = start[axis]
+            let d = delta[axis]
+            if d == 0 {
+                // Parallel to this slab: the start must already be strictly
+                // between its faces; on a face line it slides past.
+                guard s > low[axis], s < high[axis] else { return nil }
+                continue
+            }
+            var near = (low[axis] - s) / d
+            var far = (high[axis] - s) / d
+            var nearSign: Float = -1
+            if near > far {
+                swap(&near, &far)
+                nearSign = 1
+            }
+            if near > entry {
+                entry = near
+                normal = axis == 0 ? Vec2(nearSign, 0) : Vec2(0, nearSign)
+            }
+            exit = min(exit, far)
+        }
+        guard entry <= exit, exit > 0, entry <= 1 else { return nil }
+        return (max(entry, 0), normal)
+    }
+
+    /// The outward normal of the face of a box (half-extents `half`,
+    /// centred at the origin) nearest to `point`, a point inside it.
+    @inlinable
+    public static func nearestFaceNormal(of point: Vec2, half: Vec2) -> Vec2 {
+        let toLeft = point.x + half.x
+        let toRight = half.x - point.x
+        let toBottom = point.y + half.y
+        let toTop = half.y - point.y
+        let nearest = min(min(toLeft, toRight), min(toBottom, toTop))
+        if nearest == toLeft { return Vec2(-1, 0) }
+        if nearest == toRight { return Vec2(1, 0) }
+        if nearest == toBottom { return Vec2(0, -1) }
+        return Vec2(0, 1)
+    }
+
+    // MARK: - Segment vs Segment
+
+    /// The fraction along `first` where it crosses `second`, or nil when
+    /// they miss, run parallel or lie on one line (a collinear overlap has
+    /// no single crossing; callers that care test the endpoints).
+    ///
+    /// Solves `a + t·(b − a) = c + u·(d − c)` with two cross products; a
+    /// hit needs both `t` and `u` in 0…1, endpoints included.
+    @inlinable
+    public static func segmentSegment(_ first: LineSegment, _ second: LineSegment) -> Float? {
+        let direction = first.end - first.start
+        let edge = second.end - second.start
+        let denominator = direction.cross(edge)
+        guard abs(denominator) >= 1e-8 else { return nil }
+        let toStart = second.start - first.start
+        let t = toStart.cross(edge) / denominator
+        let u = toStart.cross(direction) / denominator
+        guard t >= 0, t <= 1, u >= 0, u <= 1 else { return nil }
+        return t
+    }
+
     // MARK: - AABB vs AABB
 
     /// Returns `true` if two `AABB` instances overlap or touch.
